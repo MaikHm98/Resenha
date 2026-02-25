@@ -1,0 +1,33 @@
+# ── .NET ──────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.db
+*.sqlite
+
+# Nunca subir appsettings com senhas reais
+# (usamos appsettings.Development.json localmente)
+backend/Resenha.API/appsettings.json
+
+# Migrations geradas automaticamente (cada dev roda localmente)
+backend/Resenha.API/Migrations/
+
+# ── Node / React Native ────────────────────────────────────────
+node_modules/
+.expo/
+dist/
+build/
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+google-services.json
+GoogleService-Info.plist
+
+# ── Sistema ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
