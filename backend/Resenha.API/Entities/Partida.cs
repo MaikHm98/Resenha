@@ -31,6 +31,10 @@ namespace Resenha.API.Entities
         [Column("observacao")]
         public string? Observacao { get; set; }
 
+        // Vagas definidas pelo admin para esta partida específica (deve ser <= grupo.LimiteJogadores)
+        [Column("limite_vagas")]
+        public int LimiteVagas { get; set; } = 16;
+
         [Column("criado_por_usuario")]
         public ulong CriadoPorUsuario { get; set; }
 

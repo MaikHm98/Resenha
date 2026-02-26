@@ -22,6 +22,10 @@ namespace Resenha.API.Entities
         [Column("id_capitao_atual")]
         public ulong IdCapitaoAtual { get; set; }
 
+        // Jogador que está desafiando o capitão no momento (null = sem desafio pendente)
+        [Column("id_desafiante_atual")]
+        public ulong? IdDesafianteAtual { get; set; }
+
         // ATIVO | ENCERRADO
         [Required]
         [MaxLength(20)]

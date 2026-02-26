@@ -32,7 +32,8 @@ namespace Resenha.API.Services
             {
                 Nome = request.Nome,
                 Email = request.Email,
-                SenhaHash = PasswordHelper.HashPassword(request.Senha)
+                SenhaHash = PasswordHelper.HashPassword(request.Senha),
+                Goleiro = request.Goleiro
             };
 
             _context.Usuarios.Add(usuario);

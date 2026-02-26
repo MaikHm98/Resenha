@@ -43,6 +43,11 @@ builder.Services.AddAuthorization();
 
 // ── Injeção de Dependência — Services ──────────────────────────────────────
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<GroupService>();
+builder.Services.AddScoped<MatchService>();
+builder.Services.AddScoped<CaptainService>();
+builder.Services.AddScoped<ClassificationService>();
+builder.Services.AddScoped<VoteService>();
 
 // ── Controllers e Swagger ──────────────────────────────────────────────────
 builder.Services.AddControllers();

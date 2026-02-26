@@ -31,6 +31,9 @@ namespace Resenha.API.Entities
         [Column("criado_em")]
         public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
 
+        [Column("goleiro")]
+        public bool Goleiro { get; set; } = false;
+
         [Column("atualizado_em")]
         public DateTime? AtualizadoEm { get; set; }
     }
