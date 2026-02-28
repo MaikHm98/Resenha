@@ -31,3 +31,6 @@ GoogleService-Info.plist
 .DS_Store
 Thumbs.db
 *.log
+
+# ── Claude Code (configs locais) ───────────────────────────────
+.claude/
