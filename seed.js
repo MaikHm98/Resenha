@@ -1,8 +1,8 @@
 // seed.js — Popular o grupo "Fut da Ressaca" com dados de teste
 // Rodar: node seed.js
-// Pré-requisito: API rodando em http://localhost:5100
+// Pré-requisito: API rodando em http://localhost:5276
 
-const BASE_URL = 'http://localhost:5100';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:5276';
 
 // ============================================================
 // CONFIGURAÇÃO — defina as variáveis de ambiente antes de rodar:

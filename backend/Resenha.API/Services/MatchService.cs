@@ -1,6 +1,8 @@
+using Microsoft.EntityFrameworkCore;
 using Resenha.API.Data;
 using Resenha.API.DTOs.Matches;
 using Resenha.API.Entities;
+using System.Data;
 
 namespace Resenha.API.Services
 {
@@ -146,6 +148,8 @@ namespace Resenha.API.Services
         // Usuário confirma presença na partida
         public PresenceResponseDTO ConfirmPresence(ulong userId, ulong matchId)
         {
+            using var transaction = _context.Database.BeginTransaction(IsolationLevel.Serializable);
+
             var partida = _context.Partidas.FirstOrDefault(p => p.IdPartida == matchId);
             if (partida == null)
                 throw new Exception("Partida não encontrada.");
@@ -165,7 +169,7 @@ namespace Resenha.API.Services
             if (presencaExistente != null && presencaExistente.Status == "CONFIRMADO")
                 throw new Exception("Você já confirmou presença nesta partida.");
 
-            // Bloqueia quando vagas da partida estão esgotadas
+            // Em transação serializável para evitar overbooking em chamadas concorrentes
             var totalConfirmados = _context.PresencasPartida
                 .Count(pr => pr.IdPartida == matchId && pr.Status == "CONFIRMADO");
 
@@ -187,6 +191,7 @@ namespace Resenha.API.Services
             }
 
             _context.SaveChanges();
+            transaction.Commit();
 
             var novoTotal = _context.PresencasPartida
                 .Count(pr => pr.IdPartida == matchId && pr.Status == "CONFIRMADO");

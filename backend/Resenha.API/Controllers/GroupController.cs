@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Resenha.API.DTOs.Groups;
+using Resenha.API.Helpers;
 using Resenha.API.Services;
 using System.Security.Claims;
 
@@ -37,7 +38,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -53,7 +54,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -69,7 +70,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -85,7 +86,87 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
+            }
+        }
+
+        // PATCH /api/groups/{id}/schedule
+        // Admin atualiza o dia e horário fixo do grupo.
+        [HttpPatch("{id}/schedule")]
+        public IActionResult UpdateSchedule(ulong id, [FromBody] UpdateScheduleDTO dto)
+        {
+            try
+            {
+                _groupService.UpdateSchedule(GetUserId(), id, dto.DiaSemana, dto.HorarioFixo);
+                return Ok(new { mensagem = "Horário atualizado com sucesso." });
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
+
+        // GET /api/groups/{id}/members
+        // Admin lista todos os membros ativos do grupo.
+        [HttpGet("{id}/members")]
+        public IActionResult GetMembers(ulong id)
+        {
+            try
+            {
+                var response = _groupService.GetGroupMembers(GetUserId(), id);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
+
+        // POST /api/groups/{id}/members
+        // Admin adiciona um membro ao grupo pelo email.
+        [HttpPost("{id}/members")]
+        public IActionResult AddMember(ulong id, [FromBody] AddGroupMemberDTO dto)
+        {
+            try
+            {
+                var response = _groupService.AddMemberByEmail(GetUserId(), id, dto);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
+
+        // DELETE /api/groups/{id}/members/{memberUserId}
+        // Admin remove um membro do grupo.
+        [HttpDelete("{id}/members/{memberUserId}")]
+        public IActionResult RemoveMember(ulong id, ulong memberUserId)
+        {
+            try
+            {
+                _groupService.RemoveMember(GetUserId(), id, memberUserId);
+                return Ok(new { mensagem = "Membro removido com sucesso." });
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
+
+        // PATCH /api/groups/{id}/members/{memberUserId}/role
+        // Admin promove/rebaixa o perfil de um membro.
+        [HttpPatch("{id}/members/{memberUserId}/role")]
+        public IActionResult UpdateMemberRole(ulong id, ulong memberUserId, [FromBody] UpdateGroupMemberRoleDTO dto)
+        {
+            try
+            {
+                var response = _groupService.UpdateMemberRole(GetUserId(), id, memberUserId, dto.Perfil);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
             }
         }
     }

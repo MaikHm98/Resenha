@@ -1,10 +1,12 @@
 import React from 'react';
+import * as Linking from 'expo-linking';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../contexts/AuthContext';
-import { Colors } from '../theme';
+import { Colors, FontSize } from '../theme';
 
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
@@ -17,26 +19,45 @@ import CaptainScreen from '../screens/CaptainScreen';
 import VoteScreen from '../screens/VoteScreen';
 import ClassificationScreen from '../screens/ClassificationScreen';
 import MyPerformanceScreen from '../screens/MyPerformanceScreen';
+import ManageMembersScreen from '../screens/ManageMembersScreen';
 
 export type AuthStackParamList = {
   Login: undefined;
-  Register: undefined;
+  Register: { email?: string; invite?: string } | undefined;
 };
 
 export type AppStackParamList = {
   Home: undefined;
   CreateGroup: undefined;
   JoinGroup: undefined;
-  GroupDashboard: { groupId: number; groupName: string; isAdmin: boolean };
-  CreateMatch: { groupId: number; limiteGrupo: number };
+  GroupDashboard: {
+    groupId: number;
+    groupName: string;
+    isAdmin: boolean;
+    diaSemana?: number;
+    horarioFixo?: string;
+    limiteJogadores: number;
+  };
+  CreateMatch: { groupId: number; limiteGrupo: number; diaSemana?: number; horarioFixo?: string };
   Captain: { groupId: number; isAdmin: boolean };
   Vote: { matchId: number; isAdmin: boolean };
   Classification: { groupId: number };
   MyPerformance: { groupId: number };
+  ManageMembers: { groupId: number; groupName: string; isAdmin: boolean };
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
+
+const linking = {
+  prefixes: [Linking.createURL('/'), 'resenha://'],
+  config: {
+    screens: {
+      Login: 'login',
+      Register: 'register',
+    },
+  },
+};
 
 function AuthNavigator() {
   return (
@@ -49,27 +70,51 @@ function AuthNavigator() {
 
 const headerOptions = {
   headerStyle: { backgroundColor: Colors.surface },
-  headerTintColor: Colors.primary,
-  headerTitleStyle: { fontWeight: 'bold' as const },
+  headerTintColor: Colors.text,
+  headerTitleStyle: {
+    fontWeight: '800' as const,
+    fontSize: FontSize.md,
+  },
   headerShadowVisible: false,
 };
 
 function AppNavigatorStack() {
+  const { user } = useAuth();
+
   return (
     <AppStack.Navigator screenOptions={headerOptions}>
-      <AppStack.Screen name="Home" component={HomeScreen} options={{ title: 'Resenha ⚽' }} />
+      <AppStack.Screen name="Home" component={HomeScreen} options={{ title: 'Resenha' }} />
       <AppStack.Screen name="CreateGroup" component={CreateGroupScreen} options={{ title: 'Novo Grupo' }} />
       <AppStack.Screen name="JoinGroup" component={JoinGroupScreen} options={{ title: 'Entrar no Grupo' }} />
       <AppStack.Screen
         name="GroupDashboard"
         component={GroupDashboardScreen}
-        options={({ route }) => ({ title: route.params.groupName })}
+        options={({ route }) => ({
+          headerTitle: () => (
+            <View style={styles.groupHeaderTitle}>
+              <Text style={styles.groupHeaderName} numberOfLines={1}>
+                {route.params.groupName}
+              </Text>
+              <View style={styles.groupHeaderUserRow}>
+                <Ionicons
+                  name={route.params.isAdmin ? 'shield-checkmark-outline' : 'person-outline'}
+                  size={12}
+                  color={route.params.isAdmin ? Colors.gold : Colors.textMuted}
+                />
+                <Text style={styles.groupHeaderUser} numberOfLines={1}>
+                  {user?.nome ?? 'Usuario'}
+                </Text>
+              </View>
+            </View>
+          ),
+        })}
       />
       <AppStack.Screen name="CreateMatch" component={CreateMatchScreen} options={{ title: 'Nova Partida' }} />
-      <AppStack.Screen name="Captain" component={CaptainScreen} options={{ title: 'Capitão' }} />
-      <AppStack.Screen name="Vote" component={VoteScreen} options={{ title: 'Votação' }} />
-      <AppStack.Screen name="Classification" component={ClassificationScreen} options={{ title: 'Ranking' }} />
+      <AppStack.Screen name="Captain" component={CaptainScreen} options={{ title: 'Capitao' }} />
+      <AppStack.Screen name="Vote" component={VoteScreen} options={{ title: 'Votacao' }} />
+      <AppStack.Screen name="Classification" component={ClassificationScreen} options={{ title: 'Classificacao' }} />
       <AppStack.Screen name="MyPerformance" component={MyPerformanceScreen} options={{ title: 'Meu Desempenho' }} />
+      <AppStack.Screen name="ManageMembers" component={ManageMembersScreen} options={{ title: 'Membros' }} />
     </AppStack.Navigator>
   );
 }
@@ -86,8 +131,30 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       {token ? <AppNavigatorStack /> : <AuthNavigator />}
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  groupHeaderTitle: {
+    maxWidth: 250,
+  },
+  groupHeaderName: {
+    color: Colors.text,
+    fontSize: FontSize.md,
+    fontWeight: '800',
+  },
+  groupHeaderUser: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    marginTop: 1,
+  },
+  groupHeaderUserRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 1,
+  },
+});

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Resenha.API.DTOs.Auth;
+using Resenha.API.Helpers;
 using Resenha.API.Services;
 
 namespace Resenha.API.Controllers
@@ -28,7 +29,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -44,7 +45,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
     }

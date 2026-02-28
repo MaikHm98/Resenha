@@ -8,11 +8,12 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import api from '../api/api';
-import { Colors, FontSize, Spacing, getInitials } from '../theme';
+import { Colors, FontSize, Radius, Spacing, Typography, getInitials } from '../theme';
 import { VoteStatus, VoteRound, VoteTally } from '../types';
 import { AppStackParamList } from '../navigation/AppNavigator';
 
@@ -21,9 +22,9 @@ type Props = {
   route: RouteProp<AppStackParamList, 'Vote'>;
 };
 
-const TIPO_LABEL = { MVP: 'MVP', BOLA_MURCHA: 'Bola Murcha' };
-const TIPO_EMOJI = { MVP: '⭐', BOLA_MURCHA: '💀' };
-const TIPO_COLOR = { MVP: Colors.gold, BOLA_MURCHA: Colors.danger };
+const TYPE_LABEL = { MVP: 'MVP', BOLA_MURCHA: 'Bola Murcha' } as const;
+const TYPE_ICON = { MVP: 'star-outline', BOLA_MURCHA: 'skull-outline' } as const;
+const TYPE_COLOR = { MVP: Colors.gold, BOLA_MURCHA: Colors.danger } as const;
 
 const STATUS_BADGE: Record<string, { label: string; color: string }> = {
   ABERTA: { label: 'ABERTA', color: Colors.success },
@@ -38,26 +39,29 @@ export default function VoteScreen({ route }: Props) {
   const [semVotacao, setSemVotacao] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
+  const [erroGeral, setErroGeral] = useState('');
 
-  // Seleção local por tipo
   const [selectedMvp, setSelectedMvp] = useState<number | null>(null);
   const [selectedBm, setSelectedBm] = useState<number | null>(null);
-
-  // Loading e erro por tipo
   const [loadingTipo, setLoadingTipo] = useState<Record<string, boolean>>({});
   const [erroTipo, setErroTipo] = useState<Record<string, string>>({});
 
   async function carregar(silencioso = false) {
     if (!silencioso) setCarregando(true);
+    setErroGeral('');
     try {
       const res = await api.get(`/api/matches/${matchId}/vote`);
       setVoteStatus(res.data);
       setSemVotacao(false);
     } catch (e: any) {
       const msg: string = e?.response?.data?.mensagem ?? '';
-      if (e?.response?.status === 400) {
+      const normalized = msg.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (normalized.includes('nao ha votacao')) {
         setSemVotacao(true);
         setVoteStatus(null);
+      } else {
+        setSemVotacao(false);
+        setErroGeral(msg || 'Erro ao carregar votacao.');
       }
     } finally {
       setCarregando(false);
@@ -65,7 +69,11 @@ export default function VoteScreen({ route }: Props) {
     }
   }
 
-  useFocusEffect(useCallback(() => { carregar(); }, [matchId]));
+  useFocusEffect(
+    useCallback(() => {
+      carregar();
+    }, [matchId])
+  );
 
   async function executar(tipo: string, fn: () => Promise<void>) {
     setLoadingTipo((p) => ({ ...p, [tipo]: true }));
@@ -74,7 +82,7 @@ export default function VoteScreen({ route }: Props) {
       await fn();
       await carregar(true);
     } catch (e: any) {
-      const msg = e?.response?.data?.mensagem || 'Operação falhou.';
+      const msg = e?.response?.data?.mensagem || 'Operacao falhou.';
       setErroTipo((p) => ({ ...p, [tipo]: msg }));
     } finally {
       setLoadingTipo((p) => ({ ...p, [tipo]: false }));
@@ -86,55 +94,47 @@ export default function VoteScreen({ route }: Props) {
   }
 
   function votar(tipo: 'MVP' | 'BOLA_MURCHA', idVotado: number) {
-    executar(tipo, () =>
-      api.post(`/api/matches/${matchId}/vote`, { tipo, idUsuarioVotado: idVotado })
-    );
+    executar(tipo, () => api.post(`/api/matches/${matchId}/vote`, { tipo, idUsuarioVotado: idVotado }));
   }
 
-  function encerrar(tipo: string) {
-    executar(tipo + '_close', () =>
-      api.post(`/api/matches/${matchId}/vote/close`, { tipo })
-    );
+  function encerrar(tipo: 'MVP' | 'BOLA_MURCHA') {
+    executar(`${tipo}_close`, () => api.post(`/api/matches/${matchId}/vote/close`, { tipo }));
   }
 
-  function aprovar(tipo: string) {
-    executar(tipo + '_approve', () =>
-      api.post(`/api/matches/${matchId}/vote/approve`, { tipo })
-    );
+  function aprovar(tipo: 'MVP' | 'BOLA_MURCHA') {
+    executar(`${tipo}_approve`, () => api.post(`/api/matches/${matchId}/vote/approve`, { tipo }));
   }
 
-  function renderCandidatos(
-    candidatos: VoteTally[],
-    tipo: 'MVP' | 'BOLA_MURCHA',
-    selecionavel: boolean
-  ) {
+  function renderCandidatos(candidatos: VoteTally[], tipo: 'MVP' | 'BOLA_MURCHA', selecionavel: boolean) {
     const maxVotos = Math.max(...candidatos.map((c) => c.votos), 1);
     const selected = tipo === 'MVP' ? selectedMvp : selectedBm;
     const setSelected = tipo === 'MVP' ? setSelectedMvp : setSelectedBm;
-    const cor = TIPO_COLOR[tipo];
+    const cor = TYPE_COLOR[tipo];
 
     return candidatos.map((c) => {
       const isSel = selected === c.idUsuario;
       const pct = Math.round((c.votos / maxVotos) * 100);
+
       return (
         <TouchableOpacity
           key={c.idUsuario}
-          style={[styles.candidatoRow, isSel && { borderColor: cor, borderWidth: 1 }]}
+          style={[styles.candidateRow, isSel && { borderColor: cor }]}
           onPress={() => selecionavel && setSelected(isSel ? null : c.idUsuario)}
           activeOpacity={selecionavel ? 0.7 : 1}
         >
-          <View style={[styles.avatarSmall, { backgroundColor: cor + '33' }]}>
-            <Text style={[styles.avatarSmallText, { color: cor }]}>
-              {getInitials(c.nome)}
-            </Text>
+          <View style={[styles.avatarSmall, { backgroundColor: `${cor}33` }]}>
+            <Text style={[styles.avatarSmallText, { color: cor }]}>{getInitials(c.nome)}</Text>
           </View>
-          <View style={styles.candidatoInfo}>
-            <Text style={styles.candidatoNome}>{c.nome}</Text>
-            <View style={styles.barraFundoSmall}>
-              <View style={[styles.barraFillSmall, { width: `${pct}%` as any, backgroundColor: cor }]} />
+
+          <View style={styles.candidateInfo}>
+            <Text style={styles.candidateName}>{c.nome}</Text>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: cor }]} />
             </View>
           </View>
-          <Text style={[styles.votosNum, { color: cor }]}>{c.votos}</Text>
+
+          <Text style={[styles.votesCount, { color: cor }]}>{c.votos}</Text>
+
           {selecionavel && (
             <View style={[styles.radio, isSel && { backgroundColor: cor, borderColor: cor }]} />
           )}
@@ -144,106 +144,115 @@ export default function VoteScreen({ route }: Props) {
   }
 
   function renderSecao(round: VoteRound | undefined, tipo: 'MVP' | 'BOLA_MURCHA') {
-    const cor = TIPO_COLOR[tipo];
-    const emoji = TIPO_EMOJI[tipo];
-    const label = TIPO_LABEL[tipo];
-    const isLoadingClose = loadingTipo[tipo + '_close'];
-    const isLoadingApprove = loadingTipo[tipo + '_approve'];
-    const isLoadingVote = loadingTipo[tipo];
-    const erroVote = erroTipo[tipo] || '';
-    const erroAcao = erroTipo[tipo + '_close'] || erroTipo[tipo + '_approve'] || '';
-    const selected = tipo === 'MVP' ? selectedMvp : selectedBm;
-
     if (!round) return null;
 
+    const cor = TYPE_COLOR[tipo];
+    const icon = TYPE_ICON[tipo];
+    const label = TYPE_LABEL[tipo];
+    const isLoadingClose = !!loadingTipo[`${tipo}_close`];
+    const isLoadingApprove = !!loadingTipo[`${tipo}_approve`];
+    const isLoadingVote = !!loadingTipo[tipo];
+    const erroVote = erroTipo[tipo] || '';
+    const erroAcao = erroTipo[`${tipo}_close`] || erroTipo[`${tipo}_approve`] || '';
+    const selected = tipo === 'MVP' ? selectedMvp : selectedBm;
     const badge = STATUS_BADGE[round.status] ?? { label: round.status, color: Colors.textMuted };
 
     return (
-      <View style={[styles.secao, { borderColor: cor + '44' }]}>
-        {/* Header da seção */}
-        <View style={styles.secaoHeader}>
-          <Text style={[styles.secaoTitulo, { color: cor }]}>{emoji} {label} · Rodada {round.rodada}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: badge.color + '22', borderColor: badge.color }]}>
+      <View style={[styles.sectionCard, { borderColor: `${cor}55` }]}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleWrap}>
+            <Ionicons name={icon} size={16} color={cor} />
+            <Text style={[styles.sectionTitle, { color: cor }]}>{label} - Rodada {round.rodada}</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: `${badge.color}22`, borderColor: badge.color }]}>
             <Text style={[styles.statusText, { color: badge.color }]}>{badge.label}</Text>
           </View>
         </View>
 
-        {/* APROVADA */}
         {round.status === 'APROVADA' && round.nomeVencedorProvisorio && (
-          <View style={[styles.vencedorCard, { borderColor: cor }]}>
-            <Text style={styles.trofeu}>🏆</Text>
-            <Text style={[styles.vencedorNome, { color: cor }]}>
-              {round.nomeVencedorProvisorio.toUpperCase()}
-            </Text>
-            <Text style={styles.vencedorLabel}>{label} da partida</Text>
+          <View style={[styles.winnerCard, { borderColor: cor }]}>
+            <Ionicons name="trophy-outline" size={30} color={cor} />
+            <Text style={[styles.winnerName, { color: cor }]}>{round.nomeVencedorProvisorio.toUpperCase()}</Text>
+            <Text style={styles.winnerLabel}>{label} da partida</Text>
           </View>
         )}
 
-        {/* APURADA */}
         {round.status === 'APURADA' && (
           <>
             {renderCandidatos(round.candidatos, tipo, false)}
             {round.nomeVencedorProvisorio && (
-              <View style={[styles.provisorioCard, { borderColor: cor + '88' }]}>
-                <Text style={[styles.provisorioLabel, { color: cor }]}>
+              <View style={[styles.provisionalCard, { borderColor: `${cor}88` }]}>
+                <Text style={[styles.provisionalText, { color: cor }]}>
                   Vencedor provisório: {round.nomeVencedorProvisorio}
                 </Text>
               </View>
             )}
             {isAdmin && (
-              <TouchableOpacity
-                style={[styles.botaoAcao, { backgroundColor: cor }]}
-                onPress={() => aprovar(tipo)}
-                disabled={!!isLoadingApprove}
-              >
-                {isLoadingApprove
-                  ? <ActivityIndicator color={Colors.bg} />
-                  : <Text style={styles.botaoAcaoText}>Aprovar {label}</Text>
-                }
+              <TouchableOpacity style={[styles.primaryButton, { backgroundColor: cor }]} onPress={() => aprovar(tipo)} disabled={isLoadingApprove}>
+                {isLoadingApprove ? <ActivityIndicator color={Colors.bg} /> : <Text style={styles.primaryButtonText}>Aprovar {label}</Text>}
               </TouchableOpacity>
             )}
           </>
         )}
 
-        {/* ABERTA */}
         {round.status === 'ABERTA' && (
           <>
             {renderCandidatos(round.candidatos, tipo, true)}
-            {erroVote !== '' && <Text style={styles.erroText}>{erroVote}</Text>}
+            {erroVote !== '' && <Text style={styles.errorText}>{erroVote}</Text>}
+
             {selected !== null && (
-              <TouchableOpacity
-                style={[styles.botaoAcao, { backgroundColor: cor }]}
-                onPress={() => votar(tipo, selected)}
-                disabled={!!isLoadingVote}
-              >
-                {isLoadingVote
-                  ? <ActivityIndicator color={Colors.bg} />
-                  : <Text style={styles.botaoAcaoText}>Confirmar Voto {label}</Text>
-                }
+              <TouchableOpacity style={[styles.primaryButton, { backgroundColor: cor }]} onPress={() => votar(tipo, selected)} disabled={isLoadingVote}>
+                {isLoadingVote ? (
+                  <ActivityIndicator color={Colors.bg} />
+                ) : (
+                  <Text style={styles.primaryButtonText}>Confirmar voto {label}</Text>
+                )}
               </TouchableOpacity>
             )}
+
             {isAdmin && (
               <>
-                {erroAcao !== '' && <Text style={styles.erroText}>{erroAcao}</Text>}
-                <TouchableOpacity
-                  style={[styles.botaoSecundario, { borderColor: cor }]}
-                  onPress={() => encerrar(tipo)}
-                  disabled={!!isLoadingClose}
-                >
-                  {isLoadingClose
-                    ? <ActivityIndicator color={cor} />
-                    : <Text style={[styles.botaoSecundarioText, { color: cor }]}>Encerrar {label}</Text>
-                  }
+                {erroAcao !== '' && <Text style={styles.errorText}>{erroAcao}</Text>}
+                <TouchableOpacity style={[styles.secondaryButton, { borderColor: cor }]} onPress={() => encerrar(tipo)} disabled={isLoadingClose}>
+                  {isLoadingClose ? <ActivityIndicator color={cor} /> : <Text style={[styles.secondaryButtonText, { color: cor }]}>Encerrar {label}</Text>}
                 </TouchableOpacity>
               </>
             )}
           </>
         )}
 
-        {/* ENCERRADA por empate */}
         {round.status === 'ENCERRADA' && (
-          <Text style={styles.encerradaText}>Rodada encerrada por empate — nova rodada aberta.</Text>
+          <Text style={styles.infoText}>Rodada encerrada por empate. Uma nova rodada foi aberta.</Text>
         )}
+      </View>
+    );
+  }
+
+  function renderHistorico(tipo: 'MVP' | 'BOLA_MURCHA', historico: VoteRound[] | undefined) {
+    if (!historico || historico.length === 0) return null;
+    const cor = TYPE_COLOR[tipo];
+    const label = TYPE_LABEL[tipo];
+
+    return (
+      <View style={styles.historyCard}>
+        <View style={styles.historyHeader}>
+          <Ionicons name={TYPE_ICON[tipo]} size={16} color={cor} />
+          <Text style={[styles.historyTitle, { color: cor }]}>Histórico {label}</Text>
+        </View>
+        {historico.map((round) => {
+          const badge = STATUS_BADGE[round.status] ?? { label: round.status, color: Colors.textMuted };
+          return (
+            <View key={round.idVotacao} style={styles.historyItem}>
+              <View style={styles.historyLine}>
+                <Text style={styles.historyRound}>Rodada {round.rodada}</Text>
+                <Text style={[styles.historyStatus, { color: badge.color }]}>{badge.label}</Text>
+              </View>
+              <Text style={styles.historyDetail}>
+                {round.nomeVencedorProvisorio ? `Vencedor: ${round.nomeVencedorProvisorio}` : 'Sem vencedor definido'}
+              </Text>
+            </View>
+          );
+        })}
       </View>
     );
   }
@@ -265,38 +274,40 @@ export default function VoteScreen({ route }: Props) {
       refreshControl={
         <RefreshControl
           refreshing={atualizando}
-          onRefresh={() => { setAtualizando(true); carregar(true); }}
+          onRefresh={() => {
+            setAtualizando(true);
+            carregar(true);
+          }}
           tintColor={Colors.primary}
         />
       }
     >
       {podeAbrirVotacao && (
-        <TouchableOpacity
-          style={styles.botaoAbrir}
-          onPress={abrirVotacao}
-          disabled={!!loadingTipo['open']}
-        >
-          {loadingTipo['open']
-            ? <ActivityIndicator color={Colors.bg} />
-            : <Text style={styles.botaoAbrirText}>Abrir Votação (MVP + Bola Murcha)</Text>
-          }
+        <TouchableOpacity style={styles.openButton} onPress={abrirVotacao} disabled={!!loadingTipo.open}>
+          <Ionicons name="megaphone-outline" size={16} color={Colors.bg} />
+          {loadingTipo.open ? (
+            <ActivityIndicator color={Colors.bg} />
+          ) : (
+            <Text style={styles.openButtonText}>Abrir votacao (MVP + Bola Murcha)</Text>
+          )}
         </TouchableOpacity>
       )}
 
       {!isAdmin && semVotacao && (
-        <View style={styles.center}>
-          <Text style={styles.infoText}>A votação ainda não foi aberta pelo admin.</Text>
+        <View style={styles.infoCard}>
+          <Text style={styles.infoText}>A votacao ainda nao foi aberta pelo admin.</Text>
         </View>
       )}
 
-      {erroTipo['open'] !== '' && erroTipo['open'] !== undefined && (
-        <Text style={styles.erroText}>{erroTipo['open']}</Text>
-      )}
+      {erroTipo.open !== '' && <Text style={styles.errorText}>{erroTipo.open}</Text>}
+      {erroGeral !== '' && <Text style={styles.errorText}>{erroGeral}</Text>}
 
       {voteStatus && (
         <>
           {renderSecao(voteStatus.mvp, 'MVP')}
           {renderSecao(voteStatus.bolaMurcha, 'BOLA_MURCHA')}
+          {renderHistorico('MVP', voteStatus.mvpHistorico)}
+          {renderHistorico('BOLA_MURCHA', voteStatus.bolaMurchaHistorico)}
         </>
       )}
     </ScrollView>
@@ -305,47 +316,53 @@ export default function VoteScreen({ route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
-  content: { padding: Spacing.md, gap: Spacing.md },
+  content: { padding: Spacing.md, gap: Spacing.md, paddingBottom: Spacing.xl },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: Spacing.xl },
 
-  botaoAbrir: {
+  openButton: {
+    borderRadius: Radius.md,
     backgroundColor: Colors.primary,
-    borderRadius: 10,
     paddingVertical: 14,
+    paddingHorizontal: Spacing.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
   },
-  botaoAbrirText: { color: Colors.bg, fontWeight: 'bold', fontSize: FontSize.md },
+  openButtonText: { color: Colors.bg, fontWeight: '800', fontSize: FontSize.md },
 
-  secao: {
+  sectionCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 12,
+    borderRadius: Radius.lg,
     borderWidth: 1,
     padding: Spacing.md,
     gap: Spacing.sm,
   },
-  secaoHeader: {
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    gap: Spacing.sm,
   },
-  secaoTitulo: { fontSize: FontSize.md, fontWeight: '800', letterSpacing: 0.3 },
+  sectionTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
+  sectionTitle: { fontSize: FontSize.md, fontWeight: '800' },
   statusBadge: {
-    borderRadius: 6,
+    borderRadius: Radius.sm,
     borderWidth: 1,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   statusText: { fontSize: FontSize.xs, fontWeight: '700' },
 
-  candidatoRow: {
+  candidateRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface2,
-    borderRadius: 8,
+    borderRadius: Radius.md,
     padding: Spacing.sm,
     borderWidth: 1,
     borderColor: 'transparent',
+    gap: Spacing.sm,
   },
   avatarSmall: {
     width: 36,
@@ -353,77 +370,89 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Spacing.sm,
   },
   avatarSmallText: { fontWeight: '900', fontSize: FontSize.sm },
-  candidatoInfo: { flex: 1, marginRight: Spacing.sm },
-  candidatoNome: { color: Colors.text, fontSize: FontSize.sm, fontWeight: '600', marginBottom: 4 },
-  barraFundoSmall: {
+  candidateInfo: { flex: 1 },
+  candidateName: { color: Colors.text, fontSize: FontSize.sm, fontWeight: '600', marginBottom: 4 },
+  progressTrack: {
     height: 3,
     backgroundColor: Colors.border,
-    borderRadius: 2,
+    borderRadius: Radius.sm,
     overflow: 'hidden',
   },
-  barraFillSmall: { height: 3, borderRadius: 2 },
-  votosNum: { fontSize: FontSize.sm, fontWeight: '800', minWidth: 20, textAlign: 'right' },
+  progressFill: { height: 3, borderRadius: Radius.sm },
+  votesCount: { fontSize: FontSize.sm, fontWeight: '800', minWidth: 20, textAlign: 'right' },
   radio: {
     width: 18,
     height: 18,
     borderRadius: 9,
     borderWidth: 2,
     borderColor: Colors.border,
-    marginLeft: Spacing.sm,
   },
 
-  vencedorCard: {
-    borderRadius: 10,
+  winnerCard: {
+    borderRadius: Radius.md,
     borderWidth: 1,
     padding: Spacing.md,
     alignItems: 'center',
   },
-  trofeu: { fontSize: 40, marginBottom: 4 },
-  vencedorNome: { fontSize: FontSize.xl, fontWeight: '900', letterSpacing: 1 },
-  vencedorLabel: { color: Colors.textMuted, fontSize: FontSize.sm, marginTop: 4 },
+  winnerName: { fontSize: FontSize.lg, fontWeight: '900', letterSpacing: 0.7, marginTop: 6 },
+  winnerLabel: { color: Colors.textMuted, fontSize: FontSize.sm, marginTop: 4 },
 
-  provisorioCard: {
-    borderRadius: 8,
+  provisionalCard: {
+    borderRadius: Radius.md,
     borderWidth: 1,
     padding: Spacing.sm,
     alignItems: 'center',
   },
-  provisorioLabel: { fontSize: FontSize.sm, fontWeight: '700' },
+  provisionalText: { fontSize: FontSize.sm, fontWeight: '700' },
 
-  botaoAcao: {
-    borderRadius: 8,
+  primaryButton: {
+    borderRadius: Radius.md,
     paddingVertical: 12,
     alignItems: 'center',
     marginTop: 4,
   },
-  botaoAcaoText: { color: Colors.bg, fontWeight: 'bold', fontSize: FontSize.sm },
-
-  botaoSecundario: {
-    borderRadius: 8,
+  primaryButtonText: { color: Colors.bg, fontWeight: '800', fontSize: FontSize.sm },
+  secondaryButton: {
+    borderRadius: Radius.md,
     paddingVertical: 12,
     alignItems: 'center',
     borderWidth: 1,
   },
-  botaoSecundarioText: { fontWeight: 'bold', fontSize: FontSize.sm },
+  secondaryButtonText: { fontWeight: '800', fontSize: FontSize.sm },
 
-  encerradaText: {
-    color: Colors.textMuted,
-    fontSize: FontSize.sm,
-    fontStyle: 'italic',
-    textAlign: 'center',
+  infoCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
   },
-  infoText: {
-    color: Colors.textMuted,
-    fontSize: FontSize.sm,
-    textAlign: 'center',
-    fontStyle: 'italic',
+  infoText: { color: Colors.textMuted, fontSize: FontSize.sm, textAlign: 'center', fontStyle: 'italic' },
+  errorText: { color: Colors.danger, fontSize: FontSize.xs, textAlign: 'center' },
+
+  historyCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+    gap: Spacing.xs,
   },
-  erroText: {
-    color: Colors.danger,
-    fontSize: FontSize.xs,
-    textAlign: 'center',
+  historyHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
+  historyTitle: { fontSize: FontSize.sm, fontWeight: '800' },
+  historyItem: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingTop: 8,
   },
+  historyLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  historyRound: { color: Colors.text, fontSize: FontSize.sm, fontWeight: '700' },
+  historyStatus: { fontSize: FontSize.xs, fontWeight: '700' },
+  historyDetail: { color: Colors.textMuted, fontSize: FontSize.xs, marginTop: 2 },
 });

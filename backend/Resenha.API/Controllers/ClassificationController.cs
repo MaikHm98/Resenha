@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Resenha.API.DTOs.Classification;
+using Resenha.API.Helpers;
 using Resenha.API.Services;
 using System.Security.Claims;
 
@@ -35,7 +36,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -52,7 +53,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -63,12 +64,12 @@ namespace Resenha.API.Controllers
         {
             try
             {
-                var response = _classificationService.GetSeasonClassification(groupId);
+                var response = _classificationService.GetSeasonClassification(GetUserId(), groupId);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -79,12 +80,12 @@ namespace Resenha.API.Controllers
         {
             try
             {
-                var response = _classificationService.GetAllTimeClassification(groupId);
+                var response = _classificationService.GetAllTimeClassification(GetUserId(), groupId);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -100,7 +101,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
     }

@@ -1,16 +1,17 @@
 export const Colors = {
-  bg: '#0d0d1a',
+  bg: '#0d111f',
   surface: '#16213e',
-  surface2: '#0f3460',
+  surface2: '#1d2b52',
   primary: '#4fc3f7',
+  primarySoft: '#2b4966',
   gold: '#ffd700',
   silver: '#bdc3c7',
   bronze: '#cd6f32',
   danger: '#ef5350',
   success: '#66bb6a',
-  text: '#ffffff',
-  textMuted: '#9e9e9e',
-  border: '#1e3a5f',
+  text: '#f7f9ff',
+  textMuted: '#9ca8c6',
+  border: '#2a3a63',
 };
 
 export const gradients = {
@@ -29,6 +30,13 @@ export const Spacing = {
   xl: 32,
 };
 
+export const Radius = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+};
+
 export const FontSize = {
   xs: 11,
   sm: 13,
@@ -37,6 +45,25 @@ export const FontSize = {
   xl: 22,
   xxl: 28,
   hero: 36,
+};
+
+export const Typography = {
+  title: {
+    fontSize: FontSize.xxl,
+    fontWeight: '800' as const,
+    color: Colors.text,
+  },
+  subtitle: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+  },
+  label: {
+    fontSize: FontSize.xs,
+    fontWeight: '700' as const,
+    color: Colors.textMuted,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.6,
+  },
 };
 
 export function getCardTier(rank: number): 'gold' | 'silver' | 'bronze' {

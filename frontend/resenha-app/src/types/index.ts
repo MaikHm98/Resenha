@@ -18,6 +18,17 @@ export interface Group {
   perfil: 'ADMIN' | 'MEMBRO';
   totalMembros: number;
   criadoEm: string;
+  diaSemana?: number;
+  horarioFixo?: string;
+}
+
+export interface GroupMember {
+  idUsuario: number;
+  nome: string;
+  email: string;
+  perfil: 'ADMIN' | 'JOGADOR' | 'MEMBRO';
+  goleiro: boolean;
+  entrouEm: string;
 }
 
 export interface BlockedPlayer {
@@ -69,6 +80,8 @@ export interface VoteRound {
 export interface VoteStatus {
   mvp?: VoteRound;
   bolaMurcha?: VoteRound;
+  mvpHistorico: VoteRound[];
+  bolaMurchaHistorico: VoteRound[];
 }
 
 export interface Match {

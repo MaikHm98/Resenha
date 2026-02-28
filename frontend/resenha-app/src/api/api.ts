@@ -1,9 +1,19 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
-// Emulador Android: http://10.0.2.2:5100
-// Dispositivo físico: usar IP da máquina na rede local
-export const API_BASE_URL = 'http://192.168.100.113:5100';
+// Use EXPO_PUBLIC_API_BASE_URL para forçar a URL em qualquer ambiente.
+// Exemplo (celular físico): EXPO_PUBLIC_API_BASE_URL=http://192.168.0.10:5276
+const envBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
+
+const defaultByPlatform = Platform.select({
+  web: 'http://localhost:5276',
+  android: 'http://10.0.2.2:5276',
+  ios: 'http://localhost:5276',
+  default: 'http://localhost:5276',
+});
+
+export const API_BASE_URL = envBaseUrl || defaultByPlatform;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

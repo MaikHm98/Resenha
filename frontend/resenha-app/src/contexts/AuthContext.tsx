@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/api';
 import { User } from '../types';
@@ -8,7 +8,7 @@ interface AuthContextData {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (nome: string, email: string, password: string, goleiro?: boolean) => Promise<void>;
+  register: (nome: string, email: string, password: string, goleiro?: boolean, inviteCode?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -19,7 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Restaura sessão salva ao iniciar o app
+  // Restaura sessÃ£o salva ao iniciar o app
   useEffect(() => {
     async function loadStoredSession() {
       try {
@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(JSON.parse(storedUser));
         }
       } catch {
-        // sessão inválida — ignora
+        // sessÃ£o invÃ¡lida â€” ignora
       } finally {
         setLoading(false);
       }
@@ -52,10 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
   }
 
-  async function register(nome: string, email: string, password: string, goleiro?: boolean) {
+  async function register(nome: string, email: string, password: string, goleiro?: boolean, inviteCode?: string) {
     await api.post('/api/users/register', { nome, email, senha: password, goleiro: goleiro ?? false });
-    // Faz login automático após cadastro
+    // Faz login automatico apos cadastro
     await login(email, password);
+
+    if (inviteCode) {
+      try {
+        await api.post('/api/groups/join', { codigoConvite: inviteCode });
+      } catch {
+        // Mantem login mesmo se o convite falhar (expirado, lotacao, etc.)
+      }
+    }
   }
 
   async function logout() {
@@ -75,3 +83,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+

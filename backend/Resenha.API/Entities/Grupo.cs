@@ -30,6 +30,15 @@ namespace Resenha.API.Entities
         [Column("ativo")]
         public bool Ativo { get; set; } = true;
 
+        // Dia da semana fixo do jogo: 0=Dom, 1=Seg, ..., 6=Sab (null = não definido)
+        [Column("dia_semana")]
+        public int? DiaSemana { get; set; }
+
+        // Horário fixo do jogo no formato "HH:mm" (null = não definido)
+        [MaxLength(5)]
+        [Column("horario_fixo")]
+        public string? HorarioFixo { get; set; }
+
         [Column("criado_em")]
         public DateTime CriadoEm { get; set; } = DateTime.UtcNow;
 

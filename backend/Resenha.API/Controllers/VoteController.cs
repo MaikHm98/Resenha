@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Resenha.API.DTOs.Vote;
+using Resenha.API.Helpers;
 using Resenha.API.Services;
 using System.Security.Claims;
 
@@ -35,7 +36,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -52,7 +53,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -69,7 +70,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -86,7 +87,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -97,12 +98,12 @@ namespace Resenha.API.Controllers
         {
             try
             {
-                var response = _voteService.GetVoteStatus(id);
+                var response = _voteService.GetVoteStatus(GetUserId(), id);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
     }

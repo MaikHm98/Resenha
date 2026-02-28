@@ -1,20 +1,18 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using Resenha.API.Data;
 using Resenha.API.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Banco de Dados (MySQL via Entity Framework) ────────────────────────────
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ResenhaDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-// ── Autenticação JWT ────────────────────────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"]!;
 
@@ -41,24 +39,33 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ── Injeção de Dependência — Services ──────────────────────────────────────
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DevCors", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IInviteEmailService, InviteEmailService>();
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<CaptainService>();
 builder.Services.AddScoped<ClassificationService>();
 builder.Services.AddScoped<VoteService>();
 
-// ── Controllers e Swagger ──────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Configuração do Swagger com suporte a autenticação JWT
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Resenha API", Version = "v1" });
 
-    // Permite enviar o token JWT no Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "Insira o token JWT assim: Bearer {seu_token}",
@@ -86,10 +93,10 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// ── Pipeline HTTP ──────────────────────────────────────────────────────────
-// Swagger disponível sempre (não só em Development) para facilitar os testes
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseCors("DevCors");
 
 app.UseAuthentication();
 app.UseAuthorization();

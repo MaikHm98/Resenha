@@ -9,9 +9,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import api from '../api/api';
-import { Colors, FontSize, Spacing } from '../theme';
+import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
 import { AppStackParamList } from '../navigation/AppNavigator';
 
 type Props = {
@@ -25,7 +26,7 @@ export default function JoinGroupScreen({ navigation }: Props) {
 
   async function handleEntrar() {
     if (codigo.trim().length !== 8) {
-      setErro('O código de convite deve ter 8 caracteres.');
+      setErro('O codigo de convite deve ter 8 caracteres.');
       return;
     }
 
@@ -36,7 +37,7 @@ export default function JoinGroupScreen({ navigation }: Props) {
       await api.post('/api/groups/join', { codigoConvite: codigo.trim().toUpperCase() });
       navigation.goBack();
     } catch (e: any) {
-      setErro(e?.response?.data?.mensagem || 'Código inválido ou expirado.');
+      setErro(e?.response?.data?.mensagem || 'Codigo invalido ou expirado.');
     } finally {
       setCarregando(false);
     }
@@ -48,10 +49,14 @@ export default function JoinGroupScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.card}>
-        <Text style={styles.emoji}>🔑</Text>
-        <Text style={styles.titulo}>Código de Convite</Text>
-        <Text style={styles.sub}>Peça o código ao administrador do grupo.</Text>
+        <View style={styles.iconBadge}>
+          <Ionicons name="key-outline" size={22} color={Colors.primary} />
+        </View>
 
+        <Text style={styles.titulo}>Codigo de Convite</Text>
+        <Text style={styles.sub}>Peca o codigo ao administrador do grupo.</Text>
+
+        <Text style={styles.label}>Codigo</Text>
         <TextInput
           style={styles.input}
           placeholder="Ex: AB12CD34"
@@ -90,29 +95,42 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
+    borderRadius: Radius.xl,
     padding: Spacing.lg,
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',
   },
-  emoji: { fontSize: 48, marginBottom: Spacing.sm },
+  iconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.sm,
+  },
   titulo: {
-    color: Colors.text,
+    ...Typography.title,
     fontSize: FontSize.xl,
-    fontWeight: 'bold',
     marginBottom: 6,
   },
   sub: {
-    color: Colors.textMuted,
-    fontSize: FontSize.sm,
+    ...Typography.subtitle,
     marginBottom: Spacing.lg,
     textAlign: 'center',
+  },
+  label: {
+    ...Typography.label,
+    alignSelf: 'flex-start',
+    marginBottom: 6,
   },
   input: {
     backgroundColor: Colors.surface2,
     color: Colors.primary,
-    borderRadius: 10,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
     paddingHorizontal: Spacing.md,
     paddingVertical: 14,
     fontSize: 22,
@@ -130,7 +148,7 @@ const styles = StyleSheet.create({
   },
   botao: {
     backgroundColor: Colors.primary,
-    borderRadius: 10,
+    borderRadius: Radius.md,
     paddingVertical: 14,
     alignItems: 'center',
     width: '100%',
@@ -138,7 +156,7 @@ const styles = StyleSheet.create({
   },
   botaoText: {
     color: Colors.bg,
-    fontWeight: 'bold',
+    fontWeight: '800',
     fontSize: FontSize.md,
   },
 });

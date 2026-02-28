@@ -9,5 +9,7 @@ namespace Resenha.API.DTOs.Groups
         public string Perfil { get; set; } = string.Empty; // ADMIN ou JOGADOR
         public int TotalMembros { get; set; }
         public DateTime CriadoEm { get; set; }
+        public int? DiaSemana { get; set; }
+        public string? HorarioFixo { get; set; }
     }
 }

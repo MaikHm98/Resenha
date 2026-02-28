@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Resenha.API.DTOs.Captain;
+using Resenha.API.Helpers;
 using Resenha.API.Services;
 using System.Security.Claims;
 
@@ -35,7 +36,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -46,28 +47,46 @@ namespace Resenha.API.Controllers
         {
             try
             {
-                var response = _captainService.GetStatus(groupId);
+                var response = _captainService.GetStatus(GetUserId(), groupId);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
 
         // POST /api/groups/{groupId}/captain/challenge
-        // Membro não-bloqueado registra desafio ao capitão.
+        // Capitão escolhe o Capitão 2 (desafiante) da lista de confirmados.
+        // Body: { "idDesafiante": number, "idPartida": number }
         [HttpPost("api/groups/{groupId}/captain/challenge")]
-        public IActionResult Challenge(ulong groupId)
+        public IActionResult Challenge(ulong groupId, [FromBody] LaunchChallengeDTO dto)
         {
             try
             {
-                var response = _captainService.Challenge(GetUserId(), groupId);
+                var response = _captainService.Challenge(GetUserId(), groupId, dto);
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
+            }
+        }
+
+        // GET /api/groups/{groupId}/captain/eligible/{matchId}
+        // Retorna lista de jogadores elegíveis para ser Capitão 2
+        // (confirmados na partida, excluindo capitão e já derrotados)
+        [HttpGet("api/groups/{groupId}/captain/eligible/{matchId}")]
+        public IActionResult GetEligibleChallengers(ulong groupId, ulong matchId)
+        {
+            try
+            {
+                var response = _captainService.GetEligibleChallengers(GetUserId(), groupId, matchId);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
             }
         }
 
@@ -84,7 +103,7 @@ namespace Resenha.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { mensagem = ex.Message });
+                return this.ToErrorResult(ex);
             }
         }
     }

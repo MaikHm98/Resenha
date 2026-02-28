@@ -8,10 +8,14 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStackParamList } from '../navigation/AppNavigator';
+import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -23,10 +27,22 @@ export default function LoginScreen({ navigation }: Props) {
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const [showSenha, setShowSenha] = useState(false);
 
   async function handleLogin() {
     if (!email.trim() || !senha.trim()) {
-      setErro('Preencha todos os campos.');
+      const msg = 'Preencha todos os campos.';
+      setErro(msg);
+      Alert.alert('Login', msg);
+      return;
+    }
+
+    const emailNormalizado = email.trim().toLowerCase();
+    const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalizado);
+    if (!emailValido) {
+      const msg = 'Informe um e-mail valido. Exemplo: nome@dominio.com';
+      setErro(msg);
+      Alert.alert('Login', msg);
       return;
     }
 
@@ -34,12 +50,13 @@ export default function LoginScreen({ navigation }: Props) {
     setCarregando(true);
 
     try {
-      await login(email.trim(), senha);
+      await login(emailNormalizado, senha);
     } catch (e: any) {
       const mensagem =
         e?.response?.data?.mensagem ||
-        'Não foi possível entrar. Verifique suas credenciais.';
+        'Nao foi possivel entrar. Verifique usuario, senha e conexao com API.';
       setErro(mensagem);
+      Alert.alert('Falha no login', mensagem);
     } finally {
       setCarregando(false);
     }
@@ -51,27 +68,49 @@ export default function LoginScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.card}>
-        <Text style={styles.titulo}>Resenha</Text>
-        <Text style={styles.subtitulo}>Entrar na conta</Text>
+        <View style={styles.brandRow}>
+          <View style={styles.logoCircle}>
+            <Ionicons name="football-outline" size={20} color={Colors.primary} />
+          </View>
+          <View>
+            <Text style={styles.titulo}>Resenha</Text>
+            <Text style={styles.subtitulo}>Entrar na conta</Text>
+          </View>
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="E-mail"
-          placeholderTextColor="#999"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
+        <Text style={styles.label}>E-mail</Text>
+        <View style={styles.inputWrap}>
+          <Ionicons name="mail-outline" size={18} color={Colors.textMuted} />
+          <TextInput
+            style={styles.input}
+            placeholder="seuemail@dominio.com"
+            placeholderTextColor={Colors.textMuted}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Senha"
-          placeholderTextColor="#999"
-          secureTextEntry
-          value={senha}
-          onChangeText={setSenha}
-        />
+        <Text style={styles.label}>Senha</Text>
+        <View style={styles.inputWrap}>
+          <Ionicons name="lock-closed-outline" size={18} color={Colors.textMuted} />
+          <TextInput
+            style={styles.input}
+            placeholder="Sua senha"
+            placeholderTextColor={Colors.textMuted}
+            secureTextEntry={!showSenha}
+            value={senha}
+            onChangeText={setSenha}
+          />
+          <Pressable onPress={() => setShowSenha((prev) => !prev)}>
+            <Ionicons
+              name={showSenha ? 'eye-off-outline' : 'eye-outline'}
+              size={18}
+              color={Colors.textMuted}
+            />
+          </Pressable>
+        </View>
 
         {erro !== '' && <Text style={styles.erro}>{erro}</Text>}
 
@@ -81,14 +120,14 @@ export default function LoginScreen({ navigation }: Props) {
           disabled={carregando}
         >
           {carregando ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Colors.bg} />
           ) : (
             <Text style={styles.botaoTexto}>Entrar</Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.link}>Não tem conta? Criar conta</Text>
+          <Text style={styles.link}>Nao tem conta? Criar conta</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -98,67 +137,79 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: Colors.bg,
     justifyContent: 'center',
-    padding: 24,
+    padding: Spacing.lg,
   },
   card: {
-    backgroundColor: '#16213e',
-    borderRadius: 16,
-    padding: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.lg },
+  logoCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   titulo: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#4fc3f7',
-    textAlign: 'center',
-    marginBottom: 4,
+    ...Typography.title,
+    fontSize: FontSize.xl,
   },
   subtitulo: {
-    fontSize: 14,
-    color: '#aaa',
-    textAlign: 'center',
-    marginBottom: 28,
+    ...Typography.subtitle,
+    marginTop: 2,
+  },
+  label: {
+    ...Typography.label,
+    marginBottom: 6,
+  },
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.surface2,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   input: {
-    backgroundColor: '#0f3460',
-    color: '#fff',
-    borderRadius: 10,
-    paddingHorizontal: 16,
+    flex: 1,
+    color: Colors.text,
     paddingVertical: 12,
-    marginBottom: 14,
-    fontSize: 15,
+    fontSize: FontSize.md,
   },
   erro: {
-    color: '#ef5350',
-    fontSize: 13,
-    marginBottom: 10,
-    textAlign: 'center',
+    color: Colors.danger,
+    fontSize: FontSize.xs,
+    marginBottom: Spacing.sm,
   },
   botao: {
-    backgroundColor: '#4fc3f7',
-    borderRadius: 10,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.md,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 18,
+    marginBottom: Spacing.md,
   },
   botaoDesabilitado: {
     opacity: 0.6,
   },
   botaoTexto: {
-    color: '#1a1a2e',
-    fontWeight: 'bold',
-    fontSize: 16,
+    color: Colors.bg,
+    fontWeight: '800',
+    fontSize: FontSize.md,
   },
   link: {
-    color: '#4fc3f7',
+    color: Colors.primary,
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
   },
 });

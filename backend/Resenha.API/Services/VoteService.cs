@@ -50,7 +50,7 @@ namespace Resenha.API.Services
 
             _context.SaveChanges();
 
-            return GetVoteStatus(matchId);
+            return GetVoteStatus(adminId, matchId);
         }
 
         // Jogador registra seu voto em uma votação aberta
@@ -123,7 +123,7 @@ namespace Resenha.API.Services
 
             _context.SaveChanges();
 
-            return GetVoteStatus(matchId);
+            return GetVoteStatus(userId, matchId);
         }
 
         // Admin encerra a votação e apura o resultado
@@ -187,7 +187,7 @@ namespace Resenha.API.Services
 
             _context.SaveChanges();
 
-            return GetVoteStatus(matchId);
+            return GetVoteStatus(adminId, matchId);
         }
 
         // Admin aprova o resultado provisório e atualiza a classificação
@@ -224,24 +224,39 @@ namespace Resenha.API.Services
 
             _context.SaveChanges();
 
-            return GetVoteStatus(matchId);
+            return GetVoteStatus(adminId, matchId);
         }
 
         // Retorna o status atual das votações da partida
-        public VoteStatusDTO GetVoteStatus(ulong matchId)
+        public VoteStatusDTO GetVoteStatus(ulong userId, ulong matchId)
         {
+            var partida = _context.Partidas.FirstOrDefault(p => p.IdPartida == matchId);
+            if (partida == null)
+                throw new Exception("Partida não encontrada.");
+
+            ValidarMembro(userId, partida.IdGrupo);
+
             var todasVotacoes = _context.VotacoesPartida
                 .Where(v => v.IdPartida == matchId)
-                .OrderByDescending(v => v.Rodada)
+                .OrderBy(v => v.Rodada)
                 .ToList();
 
-            var mvpAtual = todasVotacoes.FirstOrDefault(v => v.Tipo == "MVP");
-            var bolaMurchaAtual = todasVotacoes.FirstOrDefault(v => v.Tipo == "BOLA_MURCHA");
+            var mvpHistorico = todasVotacoes
+                .Where(v => v.Tipo == "MVP")
+                .Select(BuildRoundDTO)
+                .ToList();
+
+            var bolaMurchaHistorico = todasVotacoes
+                .Where(v => v.Tipo == "BOLA_MURCHA")
+                .Select(BuildRoundDTO)
+                .ToList();
 
             return new VoteStatusDTO
             {
-                Mvp = mvpAtual != null ? BuildRoundDTO(mvpAtual) : null,
-                BolaMurcha = bolaMurchaAtual != null ? BuildRoundDTO(bolaMurchaAtual) : null
+                Mvp = mvpHistorico.LastOrDefault(),
+                BolaMurcha = bolaMurchaHistorico.LastOrDefault(),
+                MvpHistorico = mvpHistorico,
+                BolaMurchaHistorico = bolaMurchaHistorico
             };
         }
 
@@ -348,6 +363,15 @@ namespace Resenha.API.Services
 
             if (membro.Perfil != "ADMIN")
                 throw new Exception("Apenas administradores podem executar esta ação.");
+        }
+
+        private void ValidarMembro(ulong userId, ulong groupId)
+        {
+            var ehMembro = _context.GrupoUsuarios
+                .Any(gu => gu.IdGrupo == groupId && gu.IdUsuario == userId && gu.Ativo);
+
+            if (!ehMembro)
+                throw new Exception("Você não é membro deste grupo.");
         }
     }
 }

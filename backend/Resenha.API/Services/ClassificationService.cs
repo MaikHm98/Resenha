@@ -182,12 +182,14 @@ namespace Resenha.API.Services
             partida.AtualizadoEm = DateTime.UtcNow;
             _context.SaveChanges();
 
-            return GetSeasonClassification(partida.IdGrupo);
+            return GetSeasonClassification(adminId, partida.IdGrupo);
         }
 
         // Classificação da temporada ativa
-        public ClassificationResponseDTO GetSeasonClassification(ulong groupId)
+        public ClassificationResponseDTO GetSeasonClassification(ulong userId, ulong groupId)
         {
+            ValidarMembro(userId, groupId);
+
             var temporada = _context.Temporadas
                 .FirstOrDefault(t => t.IdGrupo == groupId && t.Status == "ATIVA");
 
@@ -224,8 +226,10 @@ namespace Resenha.API.Services
         }
 
         // Classificação histórica geral do grupo
-        public ClassificationResponseDTO GetAllTimeClassification(ulong groupId)
+        public ClassificationResponseDTO GetAllTimeClassification(ulong userId, ulong groupId)
         {
+            ValidarMembro(userId, groupId);
+
             var ranking = _context.ClassificacoesGeralGrupo
                 .Where(c => c.IdGrupo == groupId)
                 .Join(_context.Usuarios,
@@ -259,10 +263,10 @@ namespace Resenha.API.Services
         public (ClassificationEntryDTO? temporada, ClassificationEntryDTO? geral)
             GetMyStats(ulong userId, ulong groupId)
         {
-            var temporada = GetSeasonClassification(groupId).Classificacao
+            var temporada = GetSeasonClassification(userId, groupId).Classificacao
                 .FirstOrDefault(e => e.IdUsuario == userId);
 
-            var geral = GetAllTimeClassification(groupId).Classificacao
+            var geral = GetAllTimeClassification(userId, groupId).Classificacao
                 .FirstOrDefault(e => e.IdUsuario == userId);
 
             return (temporada, geral);
@@ -334,6 +338,15 @@ namespace Resenha.API.Services
 
             if (membro.Perfil != "ADMIN")
                 throw new Exception("Apenas administradores podem executar esta ação.");
+        }
+
+        private void ValidarMembro(ulong userId, ulong groupId)
+        {
+            var ehMembro = _context.GrupoUsuarios
+                .Any(gu => gu.IdGrupo == groupId && gu.IdUsuario == userId && gu.Ativo);
+
+            if (!ehMembro)
+                throw new Exception("Você não é membro deste grupo.");
         }
     }
 }
