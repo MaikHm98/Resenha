@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import {
+  Alert,
   View,
   Text,
   FlatList,
+  Platform,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -59,50 +61,90 @@ export default function HomeScreen({ navigation }: Props) {
     }, [])
   );
 
+  function confirmarExclusaoGrupo(group: Group) {
+    const executarExclusao = async () => {
+      try {
+        await api.delete(`/api/groups/${group.idGrupo}`);
+        setAviso(`Grupo "${group.nome}" excluido com sucesso.`);
+        await carregarGrupos(true);
+      } catch (e: any) {
+        setErro(e?.response?.data?.mensagem || 'Nao foi possivel excluir o grupo.');
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      const confirmed =
+        typeof window !== 'undefined' &&
+        window.confirm(`Deseja excluir o grupo "${group.nome}"? Essa acao nao pode ser desfeita.`);
+      if (confirmed) {
+        void executarExclusao();
+      }
+      return;
+    }
+
+    Alert.alert('Excluir grupo', `Deseja excluir o grupo "${group.nome}"? Essa acao nao pode ser desfeita.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Excluir', style: 'destructive', onPress: () => void executarExclusao() },
+    ]);
+  }
+
   function renderGrupo({ item }: { item: Group }) {
     const isAdmin = String(item.perfil).toUpperCase() === 'ADMIN';
+
     return (
-      <TouchableOpacity
-        activeOpacity={0.85}
-        style={styles.cardWrapper}
-        onPress={() =>
-          navigation.navigate('GroupDashboard', {
-            groupId: item.idGrupo,
-            groupName: item.nome,
-            isAdmin,
-            diaSemana: item.diaSemana,
-            horarioFixo: item.horarioFixo,
-            limiteJogadores: item.limiteJogadores,
-          })
-        }
-      >
+      <View style={styles.cardWrapper}>
         <LinearGradient
           colors={gradients.surface}
           style={styles.card}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <View style={[styles.badge, { backgroundColor: isAdmin ? Colors.gold : Colors.primarySoft }]}>
-            <Text style={[styles.badgeText, { color: isAdmin ? '#0d0d1a' : Colors.text }]}>
-              {isAdmin ? 'ADMIN' : 'MEMBRO'}
-            </Text>
-          </View>
-
-          <View style={styles.cardBody}>
-            <Text style={styles.groupName} numberOfLines={1}>
-              {item.nome.toUpperCase()}
-            </Text>
-            <View style={styles.membrosRow}>
-              <Ionicons name="people-outline" size={12} color={Colors.textMuted} />
-              <Text style={styles.membrosText}>
-                {item.totalMembros}/{item.limiteJogadores} jogadores
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.cardMainPressable}
+            onPress={() =>
+              navigation.navigate('GroupDashboard', {
+                groupId: item.idGrupo,
+                groupName: item.nome,
+                isAdmin,
+                diaSemana: item.diaSemana,
+                horarioFixo: item.horarioFixo,
+                limiteJogadores: item.limiteJogadores,
+              })
+            }
+          >
+            <View style={[styles.badge, { backgroundColor: isAdmin ? Colors.gold : Colors.primarySoft }]}>
+              <Text style={[styles.badgeText, { color: isAdmin ? '#0d0d1a' : Colors.text }]}>
+                {isAdmin ? 'ADMIN' : 'MEMBRO'}
               </Text>
             </View>
-          </View>
 
-          <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+            <View style={styles.cardBody}>
+              <Text style={styles.groupName} numberOfLines={1}>
+                {item.nome.toUpperCase()}
+              </Text>
+              <View style={styles.membrosRow}>
+                <Ionicons name="people-outline" size={12} color={Colors.textMuted} />
+                <Text style={styles.membrosText}>
+                  {item.totalMembros}/{item.limiteJogadores} jogadores
+                </Text>
+              </View>
+            </View>
+
+            <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+          </TouchableOpacity>
+
+          {isAdmin && (
+            <TouchableOpacity
+              onPress={() => confirmarExclusaoGrupo(item)}
+              style={styles.deleteGroupButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="trash-outline" size={18} color={Colors.danger} />
+            </TouchableOpacity>
+          )}
         </LinearGradient>
-      </TouchableOpacity>
+      </View>
     );
   }
 
@@ -286,6 +328,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
   },
+  cardMainPressable: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   badge: {
     borderRadius: Radius.sm,
     paddingHorizontal: 8,
@@ -301,6 +349,16 @@ const styles = StyleSheet.create({
   },
   membrosRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   membrosText: { color: Colors.textMuted, fontSize: FontSize.xs },
+  deleteGroupButton: {
+    borderWidth: 1,
+    borderColor: `${Colors.danger}66`,
+    backgroundColor: `${Colors.danger}14`,
+    borderRadius: Radius.sm,
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   vazio: {
     flex: 1,

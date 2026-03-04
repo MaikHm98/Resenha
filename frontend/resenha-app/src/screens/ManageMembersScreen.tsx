@@ -9,15 +9,18 @@ import {
   FlatList,
   RefreshControl,
   Alert,
+  Platform,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import api from '../api/api';
 import { useAuth } from '../contexts/AuthContext';
 import { AppStackParamList } from '../navigation/AppNavigator';
 import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
-import { GroupMember } from '../types';
+import { AddGroupMemberResult, GroupMember } from '../types';
 import ClubLogo from '../components/ClubLogo';
 
 type Props = {
@@ -38,6 +41,7 @@ export default function ManageMembersScreen({ route }: Props) {
   const [roleLoadingIds, setRoleLoadingIds] = useState<Set<number>>(new Set());
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
+  const [lastInvite, setLastInvite] = useState<{ email: string; code: string; link?: string; expiresAt?: string } | null>(null);
   const [canManage, setCanManage] = useState(isAdmin);
 
   async function carregar(silencioso = false) {
@@ -73,18 +77,71 @@ export default function ManageMembersScreen({ route }: Props) {
 
     setErro('');
     setSucesso('');
+    setLastInvite(null);
     setAdicionando(true);
     try {
-      const res = await api.post(`/api/groups/${groupId}/members`, { email: cleanEmail });
-      const mensagem = res?.data?.mensagem as string | undefined;
+      const res = await api.post<AddGroupMemberResult>(`/api/groups/${groupId}/members`, { email: cleanEmail });
+      const payload = res.data;
+      const mensagem = payload?.mensagem;
       setEmail('');
       await carregar(true);
       setSucesso(mensagem || 'Operacao realizada com sucesso.');
+      if (payload?.acao === 'INVITED' && payload?.codigoConvite) {
+        setLastInvite({
+          email: cleanEmail,
+          code: payload.codigoConvite,
+          link: payload.inviteLink,
+          expiresAt: payload.expiraEm,
+        });
+      }
     } catch (e: any) {
       setErro(e?.response?.data?.mensagem || 'Nao foi possivel adicionar o membro.');
       setSucesso('');
+      setLastInvite(null);
     } finally {
       setAdicionando(false);
+    }
+  }
+
+  function formatInviteExpiry(value?: string) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString('pt-BR');
+  }
+
+  async function shareInviteCode() {
+    if (!lastInvite) return;
+
+    const expiry = formatInviteExpiry(lastInvite.expiresAt);
+    const text = expiry
+      ? `Codigo de convite do grupo: ${lastInvite.code}\nValido ate: ${expiry}${lastInvite.link ? `\nLink: ${lastInvite.link}` : ''}`
+      : `Codigo de convite do grupo: ${lastInvite.code}${lastInvite.link ? `\nLink: ${lastInvite.link}` : ''}`;
+
+    try {
+      await Share.share({ message: text });
+    } catch {
+      Alert.alert('Convite', 'Nao foi possivel abrir o compartilhamento.');
+    }
+  }
+
+  async function copyInviteCode() {
+    if (!lastInvite) return;
+    try {
+      await Clipboard.setStringAsync(lastInvite.code);
+      Alert.alert('Convite', 'Codigo copiado para a area de transferencia.');
+    } catch {
+      Alert.alert('Convite', 'Nao foi possivel copiar o codigo.');
+    }
+  }
+
+  async function copyInviteLink() {
+    if (!lastInvite?.link) return;
+    try {
+      await Clipboard.setStringAsync(lastInvite.link);
+      Alert.alert('Convite', 'Link de convite copiado para a area de transferencia.');
+    } catch {
+      Alert.alert('Convite', 'Nao foi possivel copiar o link de convite.');
     }
   }
 
@@ -265,8 +322,14 @@ export default function ManageMembersScreen({ route }: Props) {
                 placeholderTextColor={Colors.textMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="email"
+                textContentType="emailAddress"
+                keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+                returnKeyType="done"
                 value={email}
                 onChangeText={setEmail}
+                onSubmitEditing={handleAddMember}
               />
             </View>
             <TouchableOpacity style={[styles.addButton, adicionando && { opacity: 0.6 }]} onPress={handleAddMember} disabled={adicionando}>
@@ -286,6 +349,39 @@ export default function ManageMembersScreen({ route }: Props) {
           <View style={styles.successBox}>
             <Ionicons name="checkmark-circle-outline" size={14} color={Colors.success} />
             <Text style={styles.successText}>{sucesso}</Text>
+          </View>
+        )}
+
+        {lastInvite && (
+          <View style={styles.inviteBox}>
+            <View style={styles.inviteHeader}>
+              <Ionicons name="ticket-outline" size={16} color={Colors.primary} />
+              <Text style={styles.inviteTitle}>Codigo de convite gerado</Text>
+            </View>
+            <Text style={styles.inviteMeta}>Convidado: {lastInvite.email}</Text>
+            <Text selectable style={styles.inviteCode}>
+              {lastInvite.code}
+            </Text>
+            {formatInviteExpiry(lastInvite.expiresAt) !== '' && (
+              <Text style={styles.inviteMeta}>Valido ate: {formatInviteExpiry(lastInvite.expiresAt)}</Text>
+            )}
+            <Text style={styles.inviteHint}>Use os botoes abaixo para copiar ou compartilhar o codigo.</Text>
+            <View style={styles.inviteActions}>
+              <TouchableOpacity style={styles.inviteCopyButton} onPress={copyInviteCode}>
+                <Ionicons name="copy-outline" size={14} color={Colors.primary} />
+                <Text style={styles.inviteCopyButtonText}>Copiar codigo</Text>
+              </TouchableOpacity>
+              {lastInvite.link ? (
+                <TouchableOpacity style={styles.inviteCopyButton} onPress={copyInviteLink}>
+                  <Ionicons name="link-outline" size={14} color={Colors.primary} />
+                  <Text style={styles.inviteCopyButtonText}>Copiar link de convite</Text>
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity style={styles.inviteShareButton} onPress={shareInviteCode}>
+                <Ionicons name="share-social-outline" size={14} color={Colors.bg} />
+                <Text style={styles.inviteShareButtonText}>Compartilhar codigo</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </View>
@@ -386,6 +482,60 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   successText: { color: Colors.success, fontSize: FontSize.sm, flex: 1 },
+  inviteBox: {
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: `${Colors.primary}66`,
+    backgroundColor: Colors.surface,
+    padding: Spacing.sm,
+    gap: 6,
+  },
+  inviteHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  inviteTitle: { color: Colors.primary, fontSize: FontSize.sm, fontWeight: '800' },
+  inviteMeta: { color: Colors.textMuted, fontSize: FontSize.xs },
+  inviteCode: {
+    color: Colors.text,
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: 1.4,
+    textAlign: 'center',
+    backgroundColor: Colors.surface2,
+    borderRadius: Radius.sm,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  inviteHint: { color: Colors.textMuted, fontSize: FontSize.xs },
+  inviteActions: {
+    marginTop: 2,
+    gap: 6,
+  },
+  inviteCopyButton: {
+    borderRadius: Radius.sm,
+    paddingVertical: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    backgroundColor: Colors.surface2,
+    borderWidth: 1,
+    borderColor: `${Colors.primary}66`,
+  },
+  inviteCopyButtonText: { color: Colors.primary, fontSize: FontSize.xs, fontWeight: '800' },
+  inviteShareButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.sm,
+    paddingVertical: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  inviteShareButtonText: { color: Colors.bg, fontSize: FontSize.xs, fontWeight: '800' },
 
   listContent: { padding: Spacing.md, gap: Spacing.sm, paddingBottom: Spacing.xl },
   memberRow: {

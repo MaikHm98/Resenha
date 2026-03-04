@@ -20,7 +20,7 @@ interface AuthContextData {
   validateResetToken: (token: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
   getClubOptions: () => Promise<ClubOption[]>;
-  updateProfile: (payload: { goleiro?: boolean; timeCoracaoCodigo?: string }) => Promise<void>;
+  updateProfile: (payload: { nome?: string; goleiro?: boolean; timeCoracaoCodigo?: string }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -170,8 +170,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return response.data as ClubOption[];
   }
 
-  async function updateProfile(payload: { goleiro?: boolean; timeCoracaoCodigo?: string }) {
+  async function updateProfile(payload: { nome?: string; goleiro?: boolean; timeCoracaoCodigo?: string }) {
     const response = await api.patch('/api/users/profile', {
+      nome: payload.nome,
       goleiro: payload.goleiro,
       timeCoracaoCodigo: payload.timeCoracaoCodigo ?? null,
     });

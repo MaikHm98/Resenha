@@ -66,6 +66,11 @@ export default function JoinGroupScreen({ navigation }: Props) {
           autoCapitalize="characters"
           maxLength={8}
           autoCorrect={false}
+          autoComplete="off"
+          textContentType="none"
+          keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+          returnKeyType="done"
+          onSubmitEditing={handleEntrar}
         />
 
         {erro !== '' && <Text style={styles.erro}>{erro}</Text>}

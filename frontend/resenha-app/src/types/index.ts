@@ -42,6 +42,15 @@ export interface GroupMember {
   entrouEm: string;
 }
 
+export interface AddGroupMemberResult {
+  acao: 'ADDED' | 'INVITED';
+  mensagem: string;
+  membro?: GroupMember;
+  codigoConvite?: string;
+  inviteLink?: string;
+  expiraEm?: string;
+}
+
 export interface ClubOption {
   codigo: string;
   nome: string;

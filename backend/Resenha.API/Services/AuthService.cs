@@ -214,6 +214,15 @@ namespace Resenha.API.Services
             var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == userId && u.Ativo)
                 ?? throw new Exception("Usuario nao encontrado.");
 
+            if (request.Nome != null)
+            {
+                var nome = request.Nome.Trim();
+                if (nome.Length < 2)
+                    throw new Exception("Nome deve ter pelo menos 2 caracteres.");
+
+                usuario.Nome = nome;
+            }
+
             if (request.Goleiro.HasValue)
                 usuario.Goleiro = request.Goleiro.Value;
 

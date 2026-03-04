@@ -306,6 +306,7 @@ namespace Resenha.API.Services
                             ? $"Convite criado, mas nao foi possivel enviar o e-mail via {sendResult.Provider}. Verifique os logs da API."
                             : "Convite criado, mas o envio de e-mail nao esta configurado. Verifique os logs da API.",
                     CodigoConvite = convite.CodigoConvite,
+                    InviteLink = inviteLink,
                     ExpiraEm = convite.ExpiraEm
                 };
             }
@@ -385,6 +386,39 @@ namespace Resenha.API.Services
             _logger.LogInformation(
                 "GROUP_MEMBER_REMOVED | groupId={GroupId} group={GroupName} actorId={ActorId} actorName={ActorName} targetId={TargetId} targetName={TargetName} at={AtUtc}",
                 groupId, grupo.Nome, admin.IdUsuario, admin.Nome, membro.IdUsuario, usuario?.Nome ?? "N/A", DateTime.UtcNow);
+        }
+
+        // Admin inativa o grupo inteiro
+        public void DeleteGroup(ulong adminUserId, ulong groupId)
+        {
+            var (grupo, admin) = EnsureAdmin(adminUserId, groupId);
+
+            grupo.Ativo = false;
+            grupo.AtualizadoEm = DateTime.UtcNow;
+
+            var membrosAtivos = _context.GrupoUsuarios
+                .Where(gu => gu.IdGrupo == groupId && gu.Ativo)
+                .ToList();
+
+            foreach (var membro in membrosAtivos)
+            {
+                membro.Ativo = false;
+            }
+
+            var convitesPendentes = _context.ConvitesGrupo
+                .Where(c => c.IdGrupo == groupId && c.Status == "PENDENTE")
+                .ToList();
+
+            foreach (var convite in convitesPendentes)
+            {
+                convite.Status = "CANCELADO";
+            }
+
+            _context.SaveChanges();
+
+            _logger.LogInformation(
+                "GROUP_DELETED | groupId={GroupId} group={GroupName} actorId={ActorId} actorName={ActorName} membersDisabled={MembersDisabled} invitesCanceled={InvitesCanceled} at={AtUtc}",
+                groupId, grupo.Nome, admin.IdUsuario, admin.Nome, membrosAtivos.Count, convitesPendentes.Count, DateTime.UtcNow);
         }
 
         // Admin altera o perfil de um membro (ADMIN <-> JOGADOR)

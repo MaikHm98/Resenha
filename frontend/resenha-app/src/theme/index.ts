@@ -1,25 +1,25 @@
 export const Colors = {
-  bg: '#0d111f',
-  surface: '#16213e',
-  surface2: '#1d2b52',
-  primary: '#4fc3f7',
-  primarySoft: '#2b4966',
-  gold: '#ffd700',
+  bg: '#040b07',
+  surface: '#0f2618',
+  surface2: '#173425',
+  primary: '#7CFF4F',
+  primarySoft: '#1d3d2c',
+  gold: '#D7FF5A',
   silver: '#bdc3c7',
   bronze: '#cd6f32',
-  danger: '#ef5350',
-  success: '#66bb6a',
-  text: '#f7f9ff',
-  textMuted: '#9ca8c6',
-  border: '#2a3a63',
+  danger: '#ff6b6b',
+  success: '#35F57B',
+  text: '#f3fff4',
+  textMuted: '#8fa890',
+  border: '#2e5c44',
 };
 
 export const gradients = {
-  gold: ['#7d5a00', '#ffd700', '#c8960c'] as const,
+  gold: ['#7d8f20', '#d7ff5a', '#9cc41a'] as const,
   silver: ['#4a5568', '#bdc3c7', '#4a5568'] as const,
   bronze: ['#5c3317', '#cd6f32', '#5c3317'] as const,
-  surface: ['#16213e', '#0f3460'] as const,
-  header: ['#0d0d1a', '#16213e'] as const,
+  surface: ['#0f2618', '#0c1f14'] as const,
+  header: ['#040b07', '#071710'] as const,
 };
 
 export const Spacing = {

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Resenha.API.DTOs.Auth;
 using Resenha.API.Helpers;
 using Resenha.API.Services;
+using System.Net;
 using System.Security.Claims;
 
 namespace Resenha.API.Controllers
@@ -14,11 +15,13 @@ namespace Resenha.API.Controllers
     {
         private readonly AuthService _authService;
         private readonly IWebHostEnvironment _environment;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public UserController(AuthService authService, IWebHostEnvironment environment)
+        public UserController(AuthService authService, IWebHostEnvironment environment, IHttpClientFactory httpClientFactory)
         {
             _authService = authService;
             _environment = environment;
+            _httpClientFactory = httpClientFactory;
         }
 
         private ulong GetUserId()
@@ -132,6 +135,45 @@ namespace Resenha.API.Controllers
             try
             {
                 return Ok(_authService.GetClubOptions());
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
+
+        // GET /api/users/clubs/logo?url=...
+        // Proxy para escudos dos clubes, evitando bloqueios de carregamento em alguns dispositivos.
+        [HttpGet("clubs/logo")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetClubLogo([FromQuery] string url)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(url))
+                    throw new Exception("URL do escudo e obrigatoria.");
+
+                if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+                    throw new Exception("URL do escudo invalida.");
+
+                if (uri.Scheme != Uri.UriSchemeHttps)
+                    throw new Exception("Somente URLs https sao permitidas.");
+
+                var allowedHosts = new[] { "logodetimes.com", "upload.wikimedia.org" };
+                if (!allowedHosts.Any(h => string.Equals(uri.Host, h, StringComparison.OrdinalIgnoreCase)))
+                    throw new Exception("Host de escudo nao permitido.");
+
+                var client = _httpClientFactory.CreateClient();
+                using var response = await client.GetAsync(uri);
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                    return NotFound(new { mensagem = "Escudo nao encontrado." });
+
+                if (!response.IsSuccessStatusCode)
+                    return StatusCode((int)response.StatusCode, new { mensagem = "Falha ao carregar escudo." });
+
+                var bytes = await response.Content.ReadAsByteArrayAsync();
+                var contentType = response.Content.Headers.ContentType?.MediaType ?? "image/png";
+                return File(bytes, contentType);
             }
             catch (Exception ex)
             {

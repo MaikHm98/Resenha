@@ -7,8 +7,8 @@ namespace Resenha.API.Helpers
         private static readonly List<ClubOptionDTO> Clubs = new()
         {
             // Serie A
-            Club("ATH", "Athletico-PR", "athletico-pr"),
-            Club("CAM", "Atletico-MG", "atletico-mg"),
+            Club("ATH", "Athletico-PR", "atletico-paranaense"),
+            Club("CAM", "Atletico-MG", "atletico-mineiro"),
             Club("BAH", "Bahia", "bahia"),
             Club("BOT", "Botafogo", "botafogo"),
             Club("RBB", "Bragantino", "bragantino"),
@@ -26,28 +26,28 @@ namespace Resenha.API.Helpers
             Club("SAN", "Santos", "santos"),
             Club("SAO", "Sao Paulo", "sao-paulo"),
             Club("SPT", "Sport", "sport-recife"),
-            Club("VAS", "Vasco", "vasco"),
+            Club("VAS", "Vasco", "vasco-da-gama"),
 
             // Serie B
             Club("AMG", "America-MG", "america-mineiro"),
             Club("AVA", "Avai", "avai"),
             Club("CAP", "Chapecoense", "chapecoense"),
             Club("CFC", "Coritiba", "coritiba"),
-            Club("CRI", "Criciuma", "criciuma"),
+            ClubUrl("CRI", "Criciuma", "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Crici%C3%BAma_EC_2025_crest.svg/langpt-330px-Crici%C3%BAma_EC_2025_crest.svg.png"),
             Club("CUI", "Cuiaba", "cuiaba"),
             Club("FER", "Ferroviaria", "ferroviaria"),
-            Club("GOI", "Goias", "goias"),
-            Club("NOV", "Novorizontino", "novorizontino"),
-            Club("OPE", "Operario-PR", "operario-ferroviario"),
-            Club("PAY", "Paysandu", "paysandu"),
+            ClubUrl("GOI", "Goias", "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Goi%C3%A1s_Esporte_Clube_logo.svg/langpt-330px-Goi%C3%A1s_Esporte_Clube_logo.svg.png"),
+            Club("NOV", "Novorizontino", "gremio-novorizontino"),
+            Club("OPE", "Operario-PR", "operario-pr"),
+            ClubUrl("PAY", "Paysandu", "https://upload.wikimedia.org/wikipedia/pt/thumb/2/2f/PaysanduSC.png/330px-PaysanduSC.png"),
             Club("REM", "Remo", "remo"),
             Club("ABC", "Atletico-GO", "atletico-goianiense"),
-            Club("ATHB", "Athletic Club", "athletic-club-sjdr"),
+            ClubUrl("ATHB", "Athletic Club", "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Athletic_Club_%28Minas_Gerais%29.svg/langpt-330px-Athletic_Club_%28Minas_Gerais%29.svg.png"),
             Club("BOTSP", "Botafogo-SP", "botafogo-sp"),
             Club("CRB", "CRB", "crb"),
-            Club("VIL", "Vila Nova", "vila-nova"),
+            ClubUrl("VIL", "Vila Nova", "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Vila_Nova_Logo_Oficial.svg/langpt-330px-Vila_Nova_Logo_Oficial.svg.png"),
             Club("VOL", "Volta Redonda", "volta-redonda"),
-            Club("AMZ", "Amazonas", "amazonas"),
+            ClubUrl("AMZ", "Amazonas", "https://upload.wikimedia.org/wikipedia/pt/thumb/7/74/AmazonasFC.png/330px-AmazonasFC.png"),
             Club("PON", "Ponte Preta", "ponte-preta"),
         };
 
@@ -68,6 +68,14 @@ namespace Resenha.API.Helpers
                 Codigo = codigo,
                 Nome = nome,
                 EscudoUrl = $"https://logodetimes.com/times/{slug}/logo-{slug}-256.png"
+            };
+
+        private static ClubOptionDTO ClubUrl(string codigo, string nome, string escudoUrl)
+            => new()
+            {
+                Codigo = codigo,
+                Nome = nome,
+                EscudoUrl = escudoUrl
             };
     }
 }

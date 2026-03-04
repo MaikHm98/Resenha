@@ -2,7 +2,9 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -48,7 +50,7 @@ export default function ClubPicker({ clubs, selectedCode, loading = false, onSel
             ) : (
               <>
                 <Ionicons name="flag-outline" size={16} color={Colors.textMuted} />
-                <Text style={[styles.selectorText, { color: Colors.textMuted }]}>Selecionar time (opcional)</Text>
+                <Text style={[styles.selectorText, { color: Colors.textMuted }]}>Escolha seu time do coracao</Text>
               </>
             )}
           </View>
@@ -57,7 +59,7 @@ export default function ClubPicker({ clubs, selectedCode, loading = false, onSel
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <View style={styles.overlay}>
+        <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.modal}>
             <View style={styles.header}>
               <Text style={styles.title}>Time do Coracao</Text>
@@ -74,6 +76,8 @@ export default function ClubPicker({ clubs, selectedCode, loading = false, onSel
                 onChangeText={setSearch}
                 placeholder="Buscar clube"
                 placeholderTextColor={Colors.textMuted}
+                keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+                returnKeyType="search"
               />
             </View>
 
@@ -92,6 +96,8 @@ export default function ClubPicker({ clubs, selectedCode, loading = false, onSel
               data={filtered}
               keyExtractor={(item) => item.codigo}
               contentContainerStyle={{ paddingBottom: Spacing.sm }}
+              keyboardShouldPersistTaps="always"
+              keyboardDismissMode="on-drag"
               renderItem={({ item }) => {
                 const selectedItem = item.codigo === selectedCode;
                 return (
@@ -110,7 +116,7 @@ export default function ClubPicker({ clubs, selectedCode, loading = false, onSel
               }}
             />
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );
@@ -120,8 +126,8 @@ const styles = StyleSheet.create({
   selector: {
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface2,
+    borderColor: '#2e5c44',
+    backgroundColor: '#173425',
     paddingHorizontal: Spacing.sm,
     paddingVertical: 11,
     flexDirection: 'row',
@@ -145,10 +151,10 @@ const styles = StyleSheet.create({
   },
   modal: {
     maxHeight: '80%',
-    backgroundColor: Colors.surface,
+    backgroundColor: '#0f2618',
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: '#2d5f43',
     padding: Spacing.md,
     gap: Spacing.sm,
   },
@@ -158,15 +164,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.surface2,
+    backgroundColor: '#173425',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: '#2e5c44',
     borderRadius: Radius.md,
     paddingHorizontal: Spacing.sm,
   },
   searchInput: { flex: 1, color: Colors.text, fontSize: FontSize.sm, paddingVertical: 9 },
   noneButton: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 },
-  noneText: { color: Colors.textMuted, fontSize: FontSize.xs },
+  noneText: { color: '#8fa890', fontSize: FontSize.xs },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -177,6 +183,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  itemActive: { borderColor: Colors.primary, backgroundColor: Colors.primarySoft },
+  itemActive: { borderColor: '#7CFF4F', backgroundColor: '#1d3d2c' },
   itemText: { color: Colors.text, fontSize: FontSize.sm, flex: 1 },
 });

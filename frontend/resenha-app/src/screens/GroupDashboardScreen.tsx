@@ -9,6 +9,8 @@ import {
   RefreshControl,
   Modal,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -461,7 +463,7 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
       />
 
       <Modal visible={showScheduleModal} transparent animationType="fade" onRequestClose={() => setShowScheduleModal(false)}>
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Horario fixo do grupo</Text>
             <Text style={styles.modalLabel}>Dia da semana</Text>
@@ -488,6 +490,12 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
                 placeholderTextColor={Colors.textMuted}
                 keyboardType="numbers-and-punctuation"
                 maxLength={5}
+                autoCorrect={false}
+                autoComplete="off"
+                textContentType="none"
+                keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+                returnKeyType="done"
+                onSubmitEditing={handleSaveSchedule}
               />
             </View>
 
@@ -504,7 +512,7 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

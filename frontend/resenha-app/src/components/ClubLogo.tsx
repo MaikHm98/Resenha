@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { API_BASE_URL } from '../api/api';
 import { Colors, FontSize } from '../theme';
 
 type Props = {
@@ -18,9 +19,23 @@ function getInitials(name?: string | null) {
 
 export default function ClubLogo({ uri, clubName, size = 22 }: Props) {
   const [failed, setFailed] = useState(false);
+  const [useProxy, setUseProxy] = useState(false);
   const initials = useMemo(() => getInitials(clubName), [clubName]);
 
-  if (!uri || failed) {
+  useEffect(() => {
+    setFailed(false);
+    setUseProxy(false);
+  }, [uri]);
+
+  const canProxy =
+    !!uri &&
+    (uri.startsWith('https://logodetimes.com/') || uri.startsWith('https://upload.wikimedia.org/'));
+  const resolvedUri =
+    useProxy && canProxy
+      ? `${API_BASE_URL}/api/users/clubs/logo?url=${encodeURIComponent(uri)}`
+      : uri ?? undefined;
+
+  if (!resolvedUri || failed) {
     return (
       <View style={[styles.fallback, { width: size, height: size, borderRadius: size / 2 }]}>
         <Text style={[styles.fallbackText, { fontSize: Math.max(9, Math.floor(size * 0.38)) }]}>{initials}</Text>
@@ -30,9 +45,15 @@ export default function ClubLogo({ uri, clubName, size = 22 }: Props) {
 
   return (
     <Image
-      source={{ uri }}
+      source={{ uri: resolvedUri }}
       style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: Colors.surface2 }}
-      onError={() => setFailed(true)}
+      onError={() => {
+        if (!useProxy && canProxy) {
+          setUseProxy(true);
+          return;
+        }
+        setFailed(true);
+      }}
     />
   );
 }

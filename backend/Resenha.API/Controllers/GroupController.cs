@@ -169,5 +169,21 @@ namespace Resenha.API.Controllers
                 return this.ToErrorResult(ex);
             }
         }
+
+        // DELETE /api/groups/{id}
+        // Admin exclui (inativa) o grupo.
+        [HttpDelete("{id}")]
+        public IActionResult DeleteGroup(ulong id)
+        {
+            try
+            {
+                _groupService.DeleteGroup(GetUserId(), id);
+                return Ok(new { mensagem = "Grupo excluido com sucesso." });
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
     }
 }

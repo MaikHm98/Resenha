@@ -36,6 +36,38 @@ export default function CreateGroupScreen({ navigation }: Props) {
     return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   }
 
+  function parseHorarioTexto(valor: string): Date | null {
+    const match = valor.trim().match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+    if (!match) return null;
+
+    const horas = parseInt(match[1], 10);
+    const minutos = parseInt(match[2], 10);
+    const d = new Date();
+    d.setHours(horas, minutos, 0, 0);
+    return d;
+  }
+
+  function abrirSelecaoHorario() {
+    if (Platform.OS !== 'web') {
+      setShowTimePicker(true);
+      return;
+    }
+
+    const atual = horario ? formatHorario(horario) : '20:00';
+    const promptFn = (globalThis as any)?.prompt as ((message?: string, defaultValue?: string) => string | null) | undefined;
+    const entrada = promptFn?.('Informe o horario no formato HH:mm', atual) ?? null;
+    if (entrada === null) return;
+
+    const parsed = parseHorarioTexto(entrada);
+    if (!parsed) {
+      setErro('Horario invalido. Use o formato HH:mm (ex: 20:30).');
+      return;
+    }
+
+    setErro('');
+    setHorario(parsed);
+  }
+
   function extractApiMessage(e: any, fallback: string) {
     const msg = e?.response?.data?.mensagem;
     if (msg) return msg;
@@ -120,6 +152,11 @@ export default function CreateGroupScreen({ navigation }: Props) {
             value={nome}
             onChangeText={setNome}
             autoCapitalize="words"
+            autoCorrect={false}
+            autoComplete="off"
+            textContentType="none"
+            keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+            returnKeyType="next"
           />
         </View>
 
@@ -134,6 +171,9 @@ export default function CreateGroupScreen({ navigation }: Props) {
             value={limite}
             onChangeText={setLimite}
             maxLength={3}
+            autoCorrect={false}
+            keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+            returnKeyType="done"
           />
         </View>
         <Text style={styles.hint}>Maximo de membros que podem entrar no grupo.</Text>
@@ -164,14 +204,14 @@ export default function CreateGroupScreen({ navigation }: Props) {
           />
         ) : (
           <>
-            <TouchableOpacity style={styles.timeField} onPress={() => setShowTimePicker(true)}>
+            <TouchableOpacity style={styles.timeField} onPress={abrirSelecaoHorario}>
               <View style={styles.timeLeft}>
                 <Ionicons name="time-outline" size={16} color={Colors.textMuted} />
                 <Text style={styles.timeText}>{horario ? formatHorario(horario) : 'Toque para definir'}</Text>
               </View>
               <Ionicons name="chevron-down" size={16} color={Colors.textMuted} />
             </TouchableOpacity>
-            {showTimePicker && (
+            {showTimePicker && Platform.OS !== 'web' && (
               <DateTimePicker
                 value={horario ?? new Date()}
                 mode="time"

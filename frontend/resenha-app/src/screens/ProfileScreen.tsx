@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -18,6 +20,7 @@ import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
 
 export default function ProfileScreen() {
   const { user, getClubOptions, updateProfile } = useAuth();
+  const [nome, setNome] = useState(user?.nome ?? '');
   const [goleiro, setGoleiro] = useState(!!user?.goleiro);
   const [timeCoracaoCodigo, setTimeCoracaoCodigo] = useState<string | undefined>(user?.timeCoracaoCodigo);
   const [clubes, setClubes] = useState<ClubOption[]>([]);
@@ -27,9 +30,10 @@ export default function ProfileScreen() {
   const [sucesso, setSucesso] = useState('');
 
   useEffect(() => {
+    setNome(user?.nome ?? '');
     setGoleiro(!!user?.goleiro);
     setTimeCoracaoCodigo(user?.timeCoracaoCodigo);
-  }, [user?.goleiro, user?.timeCoracaoCodigo]);
+  }, [user?.nome, user?.goleiro, user?.timeCoracaoCodigo]);
 
   useEffect(() => {
     async function carregarClubes() {
@@ -47,11 +51,23 @@ export default function ProfileScreen() {
   }, [getClubOptions]);
 
   async function handleSalvar() {
+    const nomeNormalizado = nome.trim();
+    if (!nomeNormalizado) {
+      setErro('Informe seu nome.');
+      setSucesso('');
+      return;
+    }
+    if (nomeNormalizado.length < 2) {
+      setErro('Nome deve ter pelo menos 2 caracteres.');
+      setSucesso('');
+      return;
+    }
+
     setErro('');
     setSucesso('');
     setSalvando(true);
     try {
-      await updateProfile({ goleiro, timeCoracaoCodigo });
+      await updateProfile({ nome: nomeNormalizado, goleiro, timeCoracaoCodigo });
       setSucesso('Perfil atualizado com sucesso.');
     } catch (e: any) {
       setErro(e?.response?.data?.mensagem || 'Nao foi possivel atualizar o perfil.');
@@ -60,26 +76,52 @@ export default function ProfileScreen() {
     }
   }
 
-  const clubeSelecionado = clubes.find((c) => c.codigo === timeCoracaoCodigo);
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.card}>
         <View style={styles.headerRow}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.nome
-                ?.split(' ')
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase() || 'U'}
-            </Text>
+            {user?.timeCoracaoEscudoUrl ? (
+              <ClubLogo
+                uri={user.timeCoracaoEscudoUrl}
+                clubName={user?.timeCoracaoNome ?? user?.nome}
+                size={38}
+              />
+            ) : (
+              <Text style={styles.avatarText}>
+                {user?.nome
+                  ?.split(' ')
+                  .map((n) => n[0])
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase() || 'U'}
+              </Text>
+            )}
           </View>
           <View style={styles.headerInfo}>
-            <Text style={styles.name}>{user?.nome}</Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name}>{user?.nome}</Text>
+            </View>
             <Text style={styles.email}>{user?.email}</Text>
           </View>
+        </View>
+
+        <Text style={styles.label}>Nome</Text>
+        <View style={styles.inputWrap}>
+          <Ionicons name="person-outline" size={16} color={Colors.textMuted} />
+          <TextInput
+            style={styles.input}
+            value={nome}
+            onChangeText={setNome}
+            placeholder="Seu nome"
+            placeholderTextColor={Colors.textMuted}
+            autoCapitalize="words"
+            autoCorrect={false}
+            autoComplete="name"
+            textContentType="name"
+            keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+            returnKeyType="done"
+          />
         </View>
 
         <View style={styles.toggleRow}>
@@ -102,13 +144,6 @@ export default function ProfileScreen() {
           loading={carregandoClubes}
           onSelect={(code) => setTimeCoracaoCodigo(code)}
         />
-
-        {clubeSelecionado && (
-          <View style={styles.selectedClub}>
-            <ClubLogo uri={clubeSelecionado.escudoUrl} clubName={clubeSelecionado.nome} size={22} />
-            <Text style={styles.clubName}>{clubeSelecionado.nome}</Text>
-          </View>
-        )}
 
         {erro !== '' && <FeedbackBanner variant="error" message={erro} />}
         {sucesso !== '' && <FeedbackBanner variant="success" message={sucesso} />}
@@ -142,8 +177,26 @@ const styles = StyleSheet.create({
   },
   avatarText: { color: Colors.primary, fontWeight: '800', fontSize: FontSize.md },
   headerInfo: { flex: 1 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   name: { ...Typography.title, fontSize: FontSize.lg },
   email: { color: Colors.textMuted, fontSize: FontSize.xs },
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.surface2,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  input: {
+    flex: 1,
+    color: Colors.text,
+    paddingVertical: 12,
+    fontSize: FontSize.md,
+  },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -158,14 +211,6 @@ const styles = StyleSheet.create({
   toggleTitle: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   toggleLabel: { color: Colors.textMuted, fontSize: FontSize.sm, fontWeight: '600' },
   label: { ...Typography.label, marginBottom: 6 },
-  selectedClub: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: -4,
-    marginBottom: Spacing.md,
-  },
-  clubName: { color: Colors.text, fontSize: FontSize.sm, fontWeight: '600' },
   botao: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.md,

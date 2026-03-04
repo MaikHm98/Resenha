@@ -163,6 +163,11 @@ export default function CreateMatchScreen({ navigation, route }: Props) {
                   placeholderTextColor={Colors.textMuted}
                   keyboardType="number-pad"
                   maxLength={10}
+                  autoCorrect={false}
+                  autoComplete="off"
+                  textContentType="none"
+                  keyboardAppearance="default"
+                  returnKeyType="next"
                 />
               </View>
             </View>
@@ -178,6 +183,11 @@ export default function CreateMatchScreen({ navigation, route }: Props) {
                   placeholderTextColor={Colors.textMuted}
                   keyboardType="number-pad"
                   maxLength={5}
+                  autoCorrect={false}
+                  autoComplete="off"
+                  textContentType="none"
+                  keyboardAppearance="default"
+                  returnKeyType="next"
                 />
               </View>
             </View>
@@ -194,6 +204,11 @@ export default function CreateMatchScreen({ navigation, route }: Props) {
             keyboardType="number-pad"
             maxLength={3}
             placeholderTextColor={Colors.textMuted}
+            autoCorrect={false}
+            autoComplete="off"
+            textContentType="none"
+            keyboardAppearance="default"
+            returnKeyType="next"
           />
         </View>
         <Text style={styles.hint}>Maximo: {limiteGrupo} (limite do grupo)</Text>
@@ -210,6 +225,8 @@ export default function CreateMatchScreen({ navigation, route }: Props) {
             multiline
             numberOfLines={3}
             maxLength={255}
+            keyboardAppearance="default"
+            returnKeyType="default"
           />
         </View>
 
