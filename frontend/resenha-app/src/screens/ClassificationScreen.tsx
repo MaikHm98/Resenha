@@ -15,6 +15,7 @@ import api from '../api/api';
 import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
 import { ClassificationEntry } from '../types';
 import { AppStackParamList } from '../navigation/AppNavigator';
+import ClubLogo from '../components/ClubLogo';
 
 type Props = {
   navigation: NativeStackNavigationProp<AppStackParamList, 'Classification'>;
@@ -170,7 +171,18 @@ export default function ClassificationScreen({ route }: Props) {
             {dados.map((item) => (
               <View key={item.idUsuario} style={styles.tableRow}>
                 <Cell value={item.posicao} width={48} highlight={item.posicao <= 3} />
-                <Cell value={item.nome} width={170} align="left" />
+                <View style={[styles.cell, { width: 170 }]}>
+                  <View style={styles.nameCell}>
+                    <ClubLogo
+                      uri={item.timeCoracaoEscudoUrl}
+                      clubName={item.timeCoracaoNome ?? item.nome}
+                      size={16}
+                    />
+                    <Text style={[styles.cellValue, styles.nameCellText]} numberOfLines={1}>
+                      {item.nome}
+                    </Text>
+                  </View>
+                </View>
                 <Cell value={item.pontos} width={60} highlight />
                 <Cell value={item.presencas} width={64} />
                 <Cell value={item.vitorias} width={58} />
@@ -269,6 +281,15 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  nameCell: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  nameCellText: {
+    textAlign: 'left',
+    flex: 1,
   },
 
   emptyWrap: {

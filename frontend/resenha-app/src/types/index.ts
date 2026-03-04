@@ -2,6 +2,10 @@ export interface User {
   idUsuario: number;
   nome: string;
   email: string;
+  goleiro?: boolean;
+  timeCoracaoCodigo?: string;
+  timeCoracaoNome?: string;
+  timeCoracaoEscudoUrl?: string;
 }
 
 export interface AuthResponse {
@@ -9,6 +13,10 @@ export interface AuthResponse {
   idUsuario: number;
   nome: string;
   email: string;
+  goleiro?: boolean;
+  timeCoracaoCodigo?: string;
+  timeCoracaoNome?: string;
+  timeCoracaoEscudoUrl?: string;
 }
 
 export interface Group {
@@ -28,7 +36,16 @@ export interface GroupMember {
   email: string;
   perfil: 'ADMIN' | 'JOGADOR' | 'MEMBRO';
   goleiro: boolean;
+  timeCoracaoCodigo?: string;
+  timeCoracaoNome?: string;
+  timeCoracaoEscudoUrl?: string;
   entrouEm: string;
+}
+
+export interface ClubOption {
+  codigo: string;
+  nome: string;
+  escudoUrl: string;
 }
 
 export interface BlockedPlayer {
@@ -51,6 +68,9 @@ export interface ClassificationEntry {
   posicao: number;
   idUsuario: number;
   nome: string;
+  timeCoracaoCodigo?: string;
+  timeCoracaoNome?: string;
+  timeCoracaoEscudoUrl?: string;
   pontos: number;
   vitorias: number;
   derrotas: number;

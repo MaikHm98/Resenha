@@ -9,13 +9,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthStackParamList } from '../navigation/AppNavigator';
 import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
+import FeedbackBanner from '../components/FeedbackBanner';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -29,20 +29,29 @@ export default function LoginScreen({ navigation }: Props) {
   const [carregando, setCarregando] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
 
+  function extractApiMessage(e: any, fallback: string) {
+    const msg = e?.response?.data?.mensagem;
+    if (msg) return msg;
+
+    const errors = e?.response?.data?.errors;
+    if (errors && typeof errors === 'object') {
+      const first = Object.values(errors)[0] as string[] | undefined;
+      if (first?.[0]) return first[0];
+    }
+
+    return fallback;
+  }
+
   async function handleLogin() {
     if (!email.trim() || !senha.trim()) {
-      const msg = 'Preencha todos os campos.';
-      setErro(msg);
-      Alert.alert('Login', msg);
+      setErro('Preencha todos os campos.');
       return;
     }
 
     const emailNormalizado = email.trim().toLowerCase();
     const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalizado);
     if (!emailValido) {
-      const msg = 'Informe um e-mail valido. Exemplo: nome@dominio.com';
-      setErro(msg);
-      Alert.alert('Login', msg);
+      setErro('Informe um e-mail valido. Exemplo: nome@dominio.com');
       return;
     }
 
@@ -52,11 +61,11 @@ export default function LoginScreen({ navigation }: Props) {
     try {
       await login(emailNormalizado, senha);
     } catch (e: any) {
-      const mensagem =
-        e?.response?.data?.mensagem ||
-        'Nao foi possivel entrar. Verifique usuario, senha e conexao com API.';
+      const mensagem = extractApiMessage(
+        e,
+        'Nao foi possivel entrar. Verifique usuario, senha e conexao com API.'
+      );
       setErro(mensagem);
-      Alert.alert('Falha no login', mensagem);
     } finally {
       setCarregando(false);
     }
@@ -74,7 +83,7 @@ export default function LoginScreen({ navigation }: Props) {
           </View>
           <View>
             <Text style={styles.titulo}>Resenha</Text>
-            <Text style={styles.subtitulo}>Entrar na conta</Text>
+            <Text style={styles.subtitulo}>Acesse sua conta para continuar</Text>
           </View>
         </View>
 
@@ -111,8 +120,9 @@ export default function LoginScreen({ navigation }: Props) {
             />
           </Pressable>
         </View>
+        <Text style={styles.hint}>Use os mesmos dados do seu cadastro.</Text>
 
-        {erro !== '' && <Text style={styles.erro}>{erro}</Text>}
+        {erro !== '' && <FeedbackBanner variant="error" message={erro} />}
 
         <TouchableOpacity
           style={[styles.botao, carregando && styles.botaoDesabilitado]}
@@ -126,6 +136,9 @@ export default function LoginScreen({ navigation }: Props) {
           )}
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword', { email: email.trim().toLowerCase() || undefined })}>
+          <Text style={styles.linkSecondary}>Esqueci minha senha</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <Text style={styles.link}>Nao tem conta? Criar conta</Text>
         </TouchableOpacity>
@@ -186,9 +199,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: FontSize.md,
   },
-  erro: {
-    color: Colors.danger,
+  hint: {
+    color: Colors.textMuted,
     fontSize: FontSize.xs,
+    marginTop: -4,
     marginBottom: Spacing.sm,
   },
   botao: {
@@ -210,6 +224,13 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     textAlign: 'center',
     fontSize: FontSize.sm,
+    fontWeight: '600',
+  },
+  linkSecondary: {
+    color: Colors.textMuted,
+    textAlign: 'center',
+    fontSize: FontSize.xs,
+    marginBottom: Spacing.sm,
     fontWeight: '600',
   },
 });

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Resenha.API.Data;
 using Resenha.API.DTOs.Groups;
 using Resenha.API.Entities;
+using Resenha.API.Helpers;
 
 namespace Resenha.API.Services
 {
@@ -240,26 +241,42 @@ namespace Resenha.API.Services
         {
             EnsureMember(userId, groupId);
 
-            var membros = _context.GrupoUsuarios
+            var baseMembros = _context.GrupoUsuarios
                 .Where(gu => gu.IdGrupo == groupId && gu.Ativo)
                 .Join(
                     _context.Usuarios.Where(u => u.Ativo),
                     gu => gu.IdUsuario,
                     u => u.IdUsuario,
-                    (gu, u) => new GroupMemberDTO
+                    (gu, u) => new
                     {
                         IdUsuario = u.IdUsuario,
                         Nome = u.Nome,
                         Email = u.Email,
                         Perfil = gu.Perfil,
                         Goleiro = u.Goleiro,
+                        TimeCoracaoCodigo = u.TimeCoracaoCodigo,
                         EntrouEm = gu.EntrouEm
                     })
                 .OrderByDescending(m => m.Perfil == "ADMIN")
                 .ThenBy(m => m.Nome)
                 .ToList();
 
-            return membros;
+            return baseMembros.Select(m =>
+            {
+                var club = ClubCatalog.GetByCode(m.TimeCoracaoCodigo);
+                return new GroupMemberDTO
+                {
+                    IdUsuario = m.IdUsuario,
+                    Nome = m.Nome,
+                    Email = m.Email,
+                    Perfil = m.Perfil,
+                    Goleiro = m.Goleiro,
+                    TimeCoracaoCodigo = club?.Codigo,
+                    TimeCoracaoNome = club?.Nome,
+                    TimeCoracaoEscudoUrl = club?.EscudoUrl,
+                    EntrouEm = m.EntrouEm
+                };
+            }).ToList();
         }
 
         // Admin adiciona jogador ao grupo pelo email
@@ -333,6 +350,9 @@ namespace Resenha.API.Services
                 Mensagem = "Jogador adicionado ao grupo com sucesso.",
                 Membro = new GroupMemberDTO
                 {
+                    TimeCoracaoCodigo = ClubCatalog.GetByCode(usuario.TimeCoracaoCodigo)?.Codigo,
+                    TimeCoracaoNome = ClubCatalog.GetByCode(usuario.TimeCoracaoCodigo)?.Nome,
+                    TimeCoracaoEscudoUrl = ClubCatalog.GetByCode(usuario.TimeCoracaoCodigo)?.EscudoUrl,
                     IdUsuario = usuario.IdUsuario,
                     Nome = usuario.Nome,
                     Email = usuario.Email,
@@ -405,6 +425,9 @@ namespace Resenha.API.Services
 
             return new GroupMemberDTO
             {
+                TimeCoracaoCodigo = ClubCatalog.GetByCode(usuario.TimeCoracaoCodigo)?.Codigo,
+                TimeCoracaoNome = ClubCatalog.GetByCode(usuario.TimeCoracaoCodigo)?.Nome,
+                TimeCoracaoEscudoUrl = ClubCatalog.GetByCode(usuario.TimeCoracaoCodigo)?.EscudoUrl,
                 IdUsuario = usuario.IdUsuario,
                 Nome = usuario.Nome,
                 Email = usuario.Email,

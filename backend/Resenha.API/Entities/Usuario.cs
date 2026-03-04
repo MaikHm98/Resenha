@@ -34,6 +34,10 @@ namespace Resenha.API.Entities
         [Column("goleiro")]
         public bool Goleiro { get; set; } = false;
 
+        [MaxLength(20)]
+        [Column("time_coracao_codigo")]
+        public string? TimeCoracaoCodigo { get; set; }
+
         [Column("atualizado_em")]
         public DateTime? AtualizadoEm { get; set; }
     }

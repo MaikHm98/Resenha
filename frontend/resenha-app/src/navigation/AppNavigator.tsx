@@ -10,6 +10,8 @@ import { Colors, FontSize } from '../theme';
 
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CreateGroupScreen from '../screens/CreateGroupScreen';
 import JoinGroupScreen from '../screens/JoinGroupScreen';
@@ -20,10 +22,14 @@ import VoteScreen from '../screens/VoteScreen';
 import ClassificationScreen from '../screens/ClassificationScreen';
 import MyPerformanceScreen from '../screens/MyPerformanceScreen';
 import ManageMembersScreen from '../screens/ManageMembersScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import ClubLogo from '../components/ClubLogo';
 
 export type AuthStackParamList = {
   Login: undefined;
   Register: { email?: string; invite?: string } | undefined;
+  ForgotPassword: { email?: string } | undefined;
+  ResetPassword: { token?: string } | undefined;
 };
 
 export type AppStackParamList = {
@@ -44,6 +50,7 @@ export type AppStackParamList = {
   Classification: { groupId: number };
   MyPerformance: { groupId: number };
   ManageMembers: { groupId: number; groupName: string; isAdmin: boolean };
+  Profile: undefined;
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -55,6 +62,8 @@ const linking = {
     screens: {
       Login: 'login',
       Register: 'register',
+      ForgotPassword: 'forgot-password',
+      ResetPassword: 'reset-password',
     },
   },
 };
@@ -64,6 +73,8 @@ function AuthNavigator() {
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
+      <AuthStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <AuthStack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     </AuthStack.Navigator>
   );
 }
@@ -101,6 +112,11 @@ function AppNavigatorStack() {
                   size={12}
                   color={route.params.isAdmin ? Colors.gold : Colors.textMuted}
                 />
+                <ClubLogo
+                  uri={user?.timeCoracaoEscudoUrl}
+                  clubName={user?.timeCoracaoNome ?? user?.nome}
+                  size={14}
+                />
                 <Text style={styles.groupHeaderUser} numberOfLines={1}>
                   {user?.nome ?? 'Usuario'}
                 </Text>
@@ -115,6 +131,7 @@ function AppNavigatorStack() {
       <AppStack.Screen name="Classification" component={ClassificationScreen} options={{ title: 'Classificacao' }} />
       <AppStack.Screen name="MyPerformance" component={MyPerformanceScreen} options={{ title: 'Meu Desempenho' }} />
       <AppStack.Screen name="ManageMembers" component={ManageMembersScreen} options={{ title: 'Membros' }} />
+      <AppStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Meu Perfil' }} />
     </AppStack.Navigator>
   );
 }
@@ -149,7 +166,6 @@ const styles = StyleSheet.create({
   groupHeaderUser: {
     color: Colors.textMuted,
     fontSize: FontSize.xs,
-    marginTop: 1,
   },
   groupHeaderUserRow: {
     flexDirection: 'row',

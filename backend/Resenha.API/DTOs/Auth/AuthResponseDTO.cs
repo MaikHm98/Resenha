@@ -7,5 +7,9 @@ namespace Resenha.API.DTOs.Auth
         public ulong IdUsuario { get; set; }
         public string Nome { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public bool Goleiro { get; set; }
+        public string? TimeCoracaoCodigo { get; set; }
+        public string? TimeCoracaoNome { get; set; }
+        public string? TimeCoracaoEscudoUrl { get; set; }
     }
 }

@@ -25,12 +25,11 @@ namespace Resenha.API.Services
             if (partida.Status != "FINALIZADA")
                 throw new Exception("Só é possível abrir votação em partidas FINALIZADAS.");
 
-            // Verifica se já há votação em andamento
-            var votacaoAtiva = _context.VotacoesPartida
-                .Any(v => v.IdPartida == matchId && (v.Status == "ABERTA" || v.Status == "APURADA"));
+            var votacaoJaIniciada = _context.VotacoesPartida
+                .Any(v => v.IdPartida == matchId);
 
-            if (votacaoAtiva)
-                throw new Exception("Já existe votação em andamento para esta partida. Encerre as votações abertas antes de reabrir.");
+            if (votacaoJaIniciada)
+                throw new Exception("A votação desta partida já foi iniciada e não pode ser reaberta.");
 
             _context.VotacoesPartida.Add(new VotacaoPartida
             {
@@ -291,6 +290,28 @@ namespace Resenha.API.Services
                         Nome = c.Nome,
                         Votos = contagem.FirstOrDefault(x => x.IdUsuario == c.IdUsuario)?.Total ?? 0
                     })
+                    .OrderByDescending(c => c.Votos)
+                    .ToList();
+            }
+            else if (votacao.Rodada > 1 && votacao.Status == "ABERTA" && !string.IsNullOrWhiteSpace(votacao.Observacao))
+            {
+                // Rodadas de desempate devem manter os empatados como candidatos,
+                // mesmo antes de receber novos votos nesta rodada.
+                var candidatosPermitidos = votacao.Observacao
+                    .Split(',')
+                    .Select(id => ulong.Parse(id.Trim()))
+                    .ToList();
+
+                candidatos = candidatosPermitidos
+                    .Join(_context.Usuarios,
+                        id => id,
+                        u => u.IdUsuario,
+                        (id, u) => new VoteTallyDTO
+                        {
+                            IdUsuario = u.IdUsuario,
+                            Nome = u.Nome,
+                            Votos = contagem.FirstOrDefault(x => x.IdUsuario == u.IdUsuario)?.Total ?? 0
+                        })
                     .OrderByDescending(c => c.Votos)
                     .ToList();
             }

@@ -1,6 +1,7 @@
 using Resenha.API.Data;
 using Resenha.API.DTOs.Classification;
 using Resenha.API.Entities;
+using Resenha.API.Helpers;
 
 namespace Resenha.API.Services
 {
@@ -33,7 +34,7 @@ namespace Resenha.API.Services
             if (duplicatas.Any())
                 throw new Exception("Um jogador não pode estar nos dois times ao mesmo tempo.");
 
-            // Valida que todos os jogadores são membros ativos do grupo
+            // Valida que todos os jogadores são membros ativos e confirmados na partida
             var todosJogadores = dto.Time1.Jogadores.Concat(dto.Time2.Jogadores).ToList();
             foreach (var idUsuario in todosJogadores)
             {
@@ -41,7 +42,18 @@ namespace Resenha.API.Services
                     .Any(gu => gu.IdGrupo == partida.IdGrupo && gu.IdUsuario == idUsuario && gu.Ativo);
                 if (!ehMembro)
                     throw new Exception($"Usuário {idUsuario} não é membro ativo deste grupo.");
+
+                var confirmado = _context.PresencasPartida
+                    .Any(p => p.IdPartida == matchId && p.IdUsuario == idUsuario && p.Status == "CONFIRMADO");
+                if (!confirmado)
+                    throw new Exception($"Usuário {idUsuario} precisa ter presença CONFIRMADA para entrar no time.");
             }
+
+            if (!dto.Time1.Jogadores.Contains(dto.Time1.IdCapitao))
+                throw new Exception("O capitão do Time 1 precisa estar na lista de jogadores do Time 1.");
+
+            if (!dto.Time2.Jogadores.Contains(dto.Time2.IdCapitao))
+                throw new Exception("O capitão do Time 2 precisa estar na lista de jogadores do Time 2.");
 
             // Remove atribuições anteriores (permite re-atribuir times)
             var timesExistentes = _context.TimesPartida
@@ -153,8 +165,21 @@ namespace Resenha.API.Services
             });
 
             // Registra estatísticas individuais
+            var jogadoresDaPartida = jogadoresTime1.Concat(jogadoresTime2).ToHashSet();
+            var idsEstatisticasDuplicados = dto.Estatisticas
+                .GroupBy(e => e.IdUsuario)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (idsEstatisticasDuplicados.Any())
+                throw new Exception("Não é permitido enviar estatísticas duplicadas para o mesmo jogador na mesma partida.");
+
             foreach (var stat in dto.Estatisticas)
             {
+                if (!jogadoresDaPartida.Contains(stat.IdUsuario))
+                    throw new Exception($"Usuário {stat.IdUsuario} não participa desta partida.");
+
                 _context.EstatisticasPartida.Add(new EstatisticaPartida
                 {
                     IdPartida = matchId,
@@ -201,22 +226,44 @@ namespace Resenha.API.Services
                 .Join(_context.Usuarios,
                     c => c.IdUsuario,
                     u => u.IdUsuario,
-                    (c, u) => new ClassificationEntryDTO
+                    (c, u) => new
                     {
-                        IdUsuario = u.IdUsuario,
-                        Nome = u.Nome,
-                        Pontos = c.Pontos,
-                        Vitorias = c.Vitorias,
-                        Derrotas = c.Derrotas,
-                        Presencas = c.Presencas,
-                        Gols = c.Gols,
-                        Assistencias = c.Assistencias,
-                        Mvps = c.Mvps,
-                        BolasMurchas = c.BolasMurchas
+                        u.IdUsuario,
+                        u.Nome,
+                        u.TimeCoracaoCodigo,
+                        c.Pontos,
+                        c.Vitorias,
+                        c.Derrotas,
+                        c.Presencas,
+                        c.Gols,
+                        c.Assistencias,
+                        c.Mvps,
+                        c.BolasMurchas
                     })
                 .OrderByDescending(e => e.Pontos)
                 .ThenByDescending(e => e.Vitorias)
                 .ThenByDescending(e => e.Gols)
+                .ToList()
+                .Select(e =>
+                {
+                    var club = ClubCatalog.GetByCode(e.TimeCoracaoCodigo);
+                    return new ClassificationEntryDTO
+                    {
+                        IdUsuario = e.IdUsuario,
+                        Nome = e.Nome,
+                        TimeCoracaoCodigo = club?.Codigo,
+                        TimeCoracaoNome = club?.Nome,
+                        TimeCoracaoEscudoUrl = club?.EscudoUrl,
+                        Pontos = e.Pontos,
+                        Vitorias = e.Vitorias,
+                        Derrotas = e.Derrotas,
+                        Presencas = e.Presencas,
+                        Gols = e.Gols,
+                        Assistencias = e.Assistencias,
+                        Mvps = e.Mvps,
+                        BolasMurchas = e.BolasMurchas
+                    };
+                })
                 .ToList();
 
             for (int i = 0; i < ranking.Count; i++)
@@ -235,22 +282,44 @@ namespace Resenha.API.Services
                 .Join(_context.Usuarios,
                     c => c.IdUsuario,
                     u => u.IdUsuario,
-                    (c, u) => new ClassificationEntryDTO
+                    (c, u) => new
                     {
-                        IdUsuario = u.IdUsuario,
-                        Nome = u.Nome,
-                        Pontos = c.Pontos,
-                        Vitorias = c.Vitorias,
-                        Derrotas = c.Derrotas,
-                        Presencas = c.Presencas,
-                        Gols = c.Gols,
-                        Assistencias = c.Assistencias,
-                        Mvps = c.Mvps,
-                        BolasMurchas = c.BolasMurchas
+                        u.IdUsuario,
+                        u.Nome,
+                        u.TimeCoracaoCodigo,
+                        c.Pontos,
+                        c.Vitorias,
+                        c.Derrotas,
+                        c.Presencas,
+                        c.Gols,
+                        c.Assistencias,
+                        c.Mvps,
+                        c.BolasMurchas
                     })
                 .OrderByDescending(e => e.Pontos)
                 .ThenByDescending(e => e.Vitorias)
                 .ThenByDescending(e => e.Gols)
+                .ToList()
+                .Select(e =>
+                {
+                    var club = ClubCatalog.GetByCode(e.TimeCoracaoCodigo);
+                    return new ClassificationEntryDTO
+                    {
+                        IdUsuario = e.IdUsuario,
+                        Nome = e.Nome,
+                        TimeCoracaoCodigo = club?.Codigo,
+                        TimeCoracaoNome = club?.Nome,
+                        TimeCoracaoEscudoUrl = club?.EscudoUrl,
+                        Pontos = e.Pontos,
+                        Vitorias = e.Vitorias,
+                        Derrotas = e.Derrotas,
+                        Presencas = e.Presencas,
+                        Gols = e.Gols,
+                        Assistencias = e.Assistencias,
+                        Mvps = e.Mvps,
+                        BolasMurchas = e.BolasMurchas
+                    };
+                })
                 .ToList();
 
             for (int i = 0; i < ranking.Count; i++)

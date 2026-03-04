@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Resenha.API.Data;
 using Resenha.API.Services;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +37,44 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var pwdAtClaim = context.Principal?.FindFirst("pwd_at")?.Value;
+
+            if (string.IsNullOrWhiteSpace(userIdClaim) || string.IsNullOrWhiteSpace(pwdAtClaim))
+            {
+                context.Fail("Token invalido.");
+                return;
+            }
+
+            if (!ulong.TryParse(userIdClaim, out var userId))
+            {
+                context.Fail("Token invalido.");
+                return;
+            }
+
+            var db = context.HttpContext.RequestServices.GetRequiredService<ResenhaDbContext>();
+            var usuario = await db.Usuarios.FindAsync(userId);
+            if (usuario == null || !usuario.Ativo)
+            {
+                context.Fail("Usuario invalido.");
+                return;
+            }
+
+            var pwdDate = usuario.AtualizadoEm ?? usuario.CriadoEm;
+            var pwdUtc = pwdDate.Kind == DateTimeKind.Utc
+                ? pwdDate
+                : DateTime.SpecifyKind(pwdDate, DateTimeKind.Utc);
+            var currentPwdAt = new DateTimeOffset(pwdUtc).ToUnixTimeSeconds().ToString();
+            if (pwdAtClaim != currentPwdAt)
+            {
+                context.Fail("Sessao expirada. Faca login novamente.");
+            }
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -59,7 +99,24 @@ builder.Services.AddScoped<CaptainService>();
 builder.Services.AddScoped<ClassificationService>();
 builder.Services.AddScoped<VoteService>();
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var firstError = context.ModelState
+                .Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .FirstOrDefault();
+
+            return new BadRequestObjectResult(new
+            {
+                mensagem = string.IsNullOrWhiteSpace(firstError) ? "Dados invalidos." : firstError
+            });
+        };
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>

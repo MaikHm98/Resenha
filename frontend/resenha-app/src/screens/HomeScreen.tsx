@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +18,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { Colors, FontSize, Radius, Spacing, Typography, gradients } from '../theme';
 import { Group } from '../types';
 import { AppStackParamList } from '../navigation/AppNavigator';
+import FeedbackBanner from '../components/FeedbackBanner';
+import ClubLogo from '../components/ClubLogo';
 
 type Props = {
   navigation: NativeStackNavigationProp<AppStackParamList, 'Home'>;
@@ -28,6 +31,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
   const [erro, setErro] = useState('');
+  const [aviso, setAviso] = useState('');
 
   async function carregarGrupos(silencioso = false) {
     if (!silencioso) setCarregando(true);
@@ -35,6 +39,12 @@ export default function HomeScreen({ navigation }: Props) {
     try {
       const response = await api.get('/api/groups/me');
       setGrupos(response.data);
+
+      const flashWarning = await AsyncStorage.getItem('@resenha:flash_warning');
+      if (flashWarning) {
+        setAviso(flashWarning);
+        await AsyncStorage.removeItem('@resenha:flash_warning');
+      }
     } catch (e: any) {
       setErro(e?.response?.data?.mensagem || 'Nao foi possivel carregar seus grupos.');
     } finally {
@@ -106,37 +116,75 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.saudacaoRow}>
-        <View>
-          <Text style={styles.saudacao}>Ola,</Text>
-          <Text style={styles.saudacaoNome}>{user?.nome}</Text>
+      <View style={styles.heroCard}>
+        <View style={styles.heroTop}>
+          <View style={styles.avatarWrap}>
+            <ClubLogo
+              uri={user?.timeCoracaoEscudoUrl}
+              clubName={user?.timeCoracaoNome ?? user?.nome}
+              size={56}
+            />
+          </View>
+          <View style={styles.heroText}>
+            <Text style={styles.heroKicker}>Bem-vindo ao app Resenha</Text>
+            <Text style={styles.heroName}>{user?.nome}</Text>
+            <Text style={styles.heroSubtitle}>
+              {user?.timeCoracaoNome
+                ? `Seu escudo em campo hoje: ${user.timeCoracaoNome}.`
+                : 'Monte sua resenha, convide a galera e entre em campo.'}
+            </Text>
+          </View>
         </View>
-        <TouchableOpacity onPress={logout} style={styles.sairBtn}>
-          <Ionicons name="log-out-outline" size={16} color={Colors.danger} />
-          <Text style={styles.sair}>Sair</Text>
-        </TouchableOpacity>
+
+        <View style={styles.heroActions}>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.actionBtn}>
+            <Ionicons name="person-circle-outline" size={16} color={Colors.primary} />
+            <Text style={styles.actionText}>Perfil</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={logout} style={[styles.actionBtn, styles.actionBtnDanger]}>
+            <Ionicons name="log-out-outline" size={16} color={Colors.danger} />
+            <Text style={[styles.actionText, { color: Colors.danger }]}>Sair</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {erro !== '' && (
-        <View style={styles.erroBox}>
-          <Text style={styles.erroText}>{erro}</Text>
-          <TouchableOpacity onPress={() => carregarGrupos()}>
-            <Text style={styles.erroRetry}>Tentar novamente</Text>
-          </TouchableOpacity>
+        <View style={styles.feedbackWrap}>
+          <FeedbackBanner
+            variant="error"
+            message={erro}
+            actionLabel="Tentar novamente"
+            onActionPress={() => carregarGrupos()}
+          />
+        </View>
+      )}
+
+      {aviso !== '' && (
+        <View style={styles.feedbackWrap}>
+          <FeedbackBanner
+            variant="warning"
+            message={aviso}
+            actionLabel="Fechar"
+            onActionPress={() => setAviso('')}
+          />
         </View>
       )}
 
       {grupos.length === 0 ? (
         <View style={styles.vazio}>
-          <Ionicons name="football-outline" size={54} color={Colors.primary} />
-          <Text style={styles.vazioTitulo}>Nenhum grupo ainda</Text>
-          <Text style={styles.vazioSub}>Crie um grupo ou entre com um codigo de convite.</Text>
+          <View style={styles.ballBadge}>
+            <Ionicons name="football-outline" size={38} color={Colors.primary} />
+          </View>
+          <Text style={styles.vazioTitulo}>Seu vestiario esta vazio</Text>
+          <Text style={styles.vazioSub}>
+            Crie um grupo para organizar os jogos ou entre com um codigo de convite.
+          </Text>
 
-          <TouchableOpacity style={styles.botaoPrimario} onPress={() => navigation.navigate('CreateGroup')}>
+          <TouchableOpacity style={[styles.botaoPrimario, styles.emptyButton]} onPress={() => navigation.navigate('CreateGroup')}>
             <Text style={styles.botaoPrimarioText}>Criar Grupo</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.botaoSecundario} onPress={() => navigation.navigate('JoinGroup')}>
+          <TouchableOpacity style={[styles.botaoSecundario, styles.emptyButton]} onPress={() => navigation.navigate('JoinGroup')}>
             <Text style={styles.botaoSecundarioText}>Entrar com Codigo</Text>
           </TouchableOpacity>
         </View>
@@ -175,28 +223,58 @@ export default function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
   center: { justifyContent: 'center', alignItems: 'center' },
-  saudacaoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
+
+  heroCard: {
+    marginHorizontal: Spacing.md,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    padding: Spacing.md,
+    gap: Spacing.sm,
   },
-  saudacao: { color: Colors.textMuted, fontSize: FontSize.sm },
-  saudacaoNome: { color: Colors.text, fontSize: FontSize.lg, fontWeight: '800' },
-  sairBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  sair: { color: Colors.danger, fontSize: FontSize.sm, fontWeight: '600' },
-  erroBox: {
+  heroTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  avatarWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: Colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface2,
+  },
+  heroText: { flex: 1 },
+  heroKicker: { color: Colors.primary, fontSize: FontSize.xs, fontWeight: '700', marginBottom: 2 },
+  heroName: { color: Colors.text, fontSize: FontSize.lg, fontWeight: '800' },
+  heroSubtitle: { color: Colors.textMuted, fontSize: FontSize.xs, marginTop: 3, lineHeight: 18 },
+  heroActions: { flexDirection: 'row', gap: 8, marginTop: 2 },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    backgroundColor: Colors.surface2,
+  },
+  actionBtnDanger: {
+    borderColor: `${Colors.danger}66`,
+  },
+  actionText: { color: Colors.primary, fontSize: FontSize.xs, fontWeight: '700' },
+
+  feedbackWrap: {
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.danger + '66',
-    borderRadius: Radius.md,
-    padding: Spacing.sm,
-    backgroundColor: Colors.surface,
   },
-  erroText: { color: Colors.danger, fontSize: FontSize.xs, marginBottom: 4 },
-  erroRetry: { color: Colors.primary, fontSize: FontSize.xs, fontWeight: '700' },
   lista: { paddingHorizontal: Spacing.md, paddingBottom: Spacing.xl },
   cardWrapper: { marginBottom: Spacing.sm },
   card: {
@@ -223,26 +301,41 @@ const styles = StyleSheet.create({
   },
   membrosRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   membrosText: { color: Colors.textMuted, fontSize: FontSize.xs },
+
   vazio: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.xl,
   },
+  ballBadge: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    marginBottom: Spacing.sm,
+  },
   vazioTitulo: {
     color: Colors.text,
-    fontSize: FontSize.xl,
-    fontWeight: 'bold',
-    marginTop: Spacing.md,
+    fontSize: FontSize.lg,
+    fontWeight: '800',
     marginBottom: Spacing.sm,
+    textAlign: 'center',
   },
   vazioSub: {
     color: Colors.textMuted,
     fontSize: FontSize.sm,
     textAlign: 'center',
     marginBottom: Spacing.xl,
+    maxWidth: 320,
+    lineHeight: 21,
   },
   footerBotoes: { marginTop: Spacing.md, gap: Spacing.sm },
+  emptyButton: { width: '100%', maxWidth: 300 },
   botaoPrimario: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.md,

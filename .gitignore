@@ -34,3 +34,5 @@ Thumbs.db
 
 # ── Claude Code (configs locais) ───────────────────────────────
 .claude/
+
+backend/Resenha.API/build_tmp/

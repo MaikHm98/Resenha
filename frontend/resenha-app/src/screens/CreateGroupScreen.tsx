@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import api from '../api/api';
 import { AppStackParamList } from '../navigation/AppNavigator';
 import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
+import FeedbackBanner from '../components/FeedbackBanner';
 
 const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
 
@@ -35,10 +36,29 @@ export default function CreateGroupScreen({ navigation }: Props) {
     return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   }
 
+  function extractApiMessage(e: any, fallback: string) {
+    const msg = e?.response?.data?.mensagem;
+    if (msg) return msg;
+
+    const errors = e?.response?.data?.errors;
+    if (errors && typeof errors === 'object') {
+      const first = Object.values(errors)[0] as string[] | undefined;
+      if (first?.[0]) return first[0];
+    }
+
+    return fallback;
+  }
+
   async function handleCriar() {
+    const nomeNormalizado = nome.trim();
     const limiteNum = parseInt(limite, 10);
-    if (!nome.trim()) {
+
+    if (!nomeNormalizado) {
       setErro('Informe o nome do grupo.');
+      return;
+    }
+    if (nomeNormalizado.length < 2) {
+      setErro('Nome deve ter pelo menos 2 caracteres.');
       return;
     }
     if (isNaN(limiteNum) || limiteNum < 2 || limiteNum > 100) {
@@ -50,15 +70,24 @@ export default function CreateGroupScreen({ navigation }: Props) {
     setCarregando(true);
     try {
       const horarioFixo = horario ? formatHorario(horario) : undefined;
-      await api.post('/api/groups', {
-        nome: nome.trim(),
+      const response = await api.post('/api/groups', {
+        nome: nomeNormalizado,
         limiteJogadores: limiteNum,
         diaSemana: diaSemana ?? null,
         horarioFixo: horarioFixo ?? null,
       });
-      navigation.goBack();
+
+      const group = response.data;
+      navigation.replace('GroupDashboard', {
+        groupId: group.idGrupo,
+        groupName: group.nome,
+        isAdmin: true,
+        diaSemana: group.diaSemana ?? diaSemana,
+        horarioFixo: group.horarioFixo ?? horarioFixo,
+        limiteJogadores: group.limiteJogadores ?? limiteNum,
+      });
     } catch (e: any) {
-      setErro(e?.response?.data?.mensagem || 'Nao foi possivel criar o grupo.');
+      setErro(extractApiMessage(e, 'Nao foi possivel criar o grupo.'));
     } finally {
       setCarregando(false);
     }
@@ -158,7 +187,7 @@ export default function CreateGroupScreen({ navigation }: Props) {
         )}
         <Text style={styles.hint}>Usado para sugerir automaticamente a data ao criar partidas.</Text>
 
-        {erro !== '' && <Text style={styles.erro}>{erro}</Text>}
+        {erro !== '' && <FeedbackBanner variant="error" message={erro} />}
 
         <TouchableOpacity
           style={[styles.botao, carregando && { opacity: 0.6 }]}
@@ -255,7 +284,6 @@ const styles = StyleSheet.create({
   },
   timeLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   timeText: { color: Colors.primary, fontSize: FontSize.md, fontWeight: '700' },
-  erro: { color: Colors.danger, fontSize: FontSize.sm, marginBottom: Spacing.sm },
   botao: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.md,

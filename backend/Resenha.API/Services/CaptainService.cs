@@ -157,6 +157,12 @@ namespace Resenha.API.Services
             if (ciclo == null)
                 throw new Exception("Não há capitão ativo neste grupo.");
 
+            var partida = _context.Partidas
+                .FirstOrDefault(p => p.IdPartida == matchId && p.IdGrupo == groupId);
+
+            if (partida == null)
+                throw new Exception("Partida não encontrada neste grupo.");
+
             var bloqueadosIds = _context.CiclosCapitaoBloqueados
                 .Where(b => b.IdCiclo == ciclo.IdCiclo)
                 .Select(b => b.IdUsuarioBloqueado)

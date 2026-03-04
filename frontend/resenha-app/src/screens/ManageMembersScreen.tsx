@@ -18,6 +18,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { AppStackParamList } from '../navigation/AppNavigator';
 import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
 import { GroupMember } from '../types';
+import ClubLogo from '../components/ClubLogo';
 
 type Props = {
   navigation: NativeStackNavigationProp<AppStackParamList, 'ManageMembers'>;
@@ -169,6 +170,18 @@ export default function ManageMembersScreen({ route }: Props) {
             <Text style={styles.memberName} numberOfLines={1}>
               {item.nome}
             </Text>
+            {item.timeCoracaoEscudoUrl ? (
+              <View style={styles.clubChip}>
+                <ClubLogo
+                  uri={item.timeCoracaoEscudoUrl}
+                  clubName={item.timeCoracaoNome ?? item.timeCoracaoCodigo}
+                  size={14}
+                />
+                <Text style={styles.clubChipText} numberOfLines={1}>
+                  {item.timeCoracaoNome ?? item.timeCoracaoCodigo}
+                </Text>
+              </View>
+            ) : null}
             <View style={[styles.roleChip, isAdmin ? styles.roleChipAdmin : styles.roleChipMember]}>
               <Ionicons
                 name={isAdmin ? 'shield-checkmark-outline' : 'person-outline'}
@@ -410,6 +423,19 @@ const styles = StyleSheet.create({
   roleChipAdmin: { borderColor: `${Colors.gold}66`, backgroundColor: `${Colors.gold}12` },
   roleChipMember: { borderColor: Colors.border, backgroundColor: Colors.surface2 },
   roleChipText: { color: Colors.textMuted, fontSize: FontSize.xs, fontWeight: '700' },
+  clubChip: {
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface2,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    maxWidth: 110,
+  },
+  clubChipText: { color: Colors.textMuted, fontSize: 10, fontWeight: '700', flexShrink: 1 },
   removeButton: {
     width: 34,
     height: 34,

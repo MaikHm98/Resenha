@@ -1,14 +1,26 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/api';
-import { User } from '../types';
+import { ClubOption, User } from '../types';
 
 interface AuthContextData {
   user: User | null;
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (nome: string, email: string, password: string, goleiro?: boolean, inviteCode?: string) => Promise<void>;
+  register: (
+    nome: string,
+    email: string,
+    password: string,
+    goleiro?: boolean,
+    inviteCode?: string,
+    timeCoracaoCodigo?: string
+  ) => Promise<{ inviteJoinWarning?: string }>;
+  forgotPassword: (email: string) => Promise<string>;
+  validateResetToken: (token: string) => Promise<boolean>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
+  getClubOptions: () => Promise<ClubOption[]>;
+  updateProfile: (payload: { goleiro?: boolean; timeCoracaoCodigo?: string }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -19,7 +31,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Restaura sessÃ£o salva ao iniciar o app
   useEffect(() => {
     async function loadStoredSession() {
       try {
@@ -31,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(JSON.parse(storedUser));
         }
       } catch {
-        // sessÃ£o invÃ¡lida â€” ignora
+        // sessao invalida - ignora
       } finally {
         setLoading(false);
       }
@@ -40,10 +51,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function login(email: string, password: string) {
-    const response = await api.post('/api/users/login', { email, senha: password });
-    const { token: newToken, idUsuario, nome, email: userEmail } = response.data;
+    const normalizedEmail = email.trim().toLowerCase();
+    const response = await api.post('/api/users/login', { email: normalizedEmail, senha: password });
 
-    const userData: User = { idUsuario, nome, email: userEmail };
+    const {
+      token: newToken,
+      idUsuario,
+      nome,
+      email: userEmail,
+      goleiro,
+      timeCoracaoCodigo,
+      timeCoracaoNome,
+      timeCoracaoEscudoUrl,
+    } = response.data;
+
+    const userData: User = {
+      idUsuario,
+      nome,
+      email: userEmail,
+      goleiro,
+      timeCoracaoCodigo,
+      timeCoracaoNome,
+      timeCoracaoEscudoUrl,
+    };
 
     await AsyncStorage.setItem('@resenha:token', newToken);
     await AsyncStorage.setItem('@resenha:user', JSON.stringify(userData));
@@ -52,18 +82,113 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData);
   }
 
-  async function register(nome: string, email: string, password: string, goleiro?: boolean, inviteCode?: string) {
-    await api.post('/api/users/register', { nome, email, senha: password, goleiro: goleiro ?? false });
-    // Faz login automatico apos cadastro
-    await login(email, password);
+  async function register(
+    nome: string,
+    email: string,
+    password: string,
+    goleiro?: boolean,
+    inviteCode?: string,
+    timeCoracaoCodigo?: string
+  ) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const response = await api.post('/api/users/register', {
+      nome,
+      email: normalizedEmail,
+      senha: password,
+      goleiro: goleiro ?? false,
+      timeCoracaoCodigo: timeCoracaoCodigo ?? null,
+    });
+
+    const {
+      token: newToken,
+      idUsuario,
+      nome: nomeUsuario,
+      email: emailUsuario,
+      goleiro: goleiroUsuario,
+      timeCoracaoCodigo: clubCode,
+      timeCoracaoNome: clubName,
+      timeCoracaoEscudoUrl: clubLogo,
+    } = response.data;
+
+    const userData: User = {
+      idUsuario,
+      nome: nomeUsuario,
+      email: emailUsuario,
+      goleiro: goleiroUsuario,
+      timeCoracaoCodigo: clubCode,
+      timeCoracaoNome: clubName,
+      timeCoracaoEscudoUrl: clubLogo,
+    };
+
+    let inviteJoinWarning: string | undefined;
 
     if (inviteCode) {
       try {
-        await api.post('/api/groups/join', { codigoConvite: inviteCode });
-      } catch {
-        // Mantem login mesmo se o convite falhar (expirado, lotacao, etc.)
+        await api.post(
+          '/api/groups/join',
+          { codigoConvite: inviteCode },
+          { headers: { Authorization: `Bearer ${newToken}` } }
+        );
+      } catch (e: any) {
+        inviteJoinWarning =
+          e?.response?.data?.mensagem ||
+          'Conta criada, mas nao foi possivel entrar automaticamente no grupo pelo convite.';
       }
     }
+
+    if (inviteJoinWarning) {
+      await AsyncStorage.setItem('@resenha:flash_warning', inviteJoinWarning);
+    }
+
+    await AsyncStorage.setItem('@resenha:token', newToken);
+    await AsyncStorage.setItem('@resenha:user', JSON.stringify(userData));
+
+    setToken(newToken);
+    setUser(userData);
+
+    return { inviteJoinWarning };
+  }
+
+  async function forgotPassword(email: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const response = await api.post('/api/users/forgot-password', { email: normalizedEmail });
+    return response?.data?.mensagem || 'Solicitacao enviada.';
+  }
+
+  async function validateResetToken(tokenValue: string) {
+    const response = await api.get('/api/users/reset-password/validate', { params: { token: tokenValue } });
+    return !!response?.data?.valido;
+  }
+
+  async function resetPassword(tokenValue: string, newPassword: string) {
+    await api.post('/api/users/reset-password', { token: tokenValue, novaSenha: newPassword });
+    await logout();
+  }
+
+  async function getClubOptions() {
+    const response = await api.get('/api/users/clubs');
+    return response.data as ClubOption[];
+  }
+
+  async function updateProfile(payload: { goleiro?: boolean; timeCoracaoCodigo?: string }) {
+    const response = await api.patch('/api/users/profile', {
+      goleiro: payload.goleiro,
+      timeCoracaoCodigo: payload.timeCoracaoCodigo ?? null,
+    });
+
+    const updated = response.data;
+    const nextUser: User = {
+      idUsuario: updated.idUsuario ?? user?.idUsuario ?? 0,
+      nome: updated.nome ?? user?.nome ?? '',
+      email: updated.email ?? user?.email ?? '',
+      goleiro: updated.goleiro,
+      timeCoracaoCodigo: updated.timeCoracaoCodigo,
+      timeCoracaoNome: updated.timeCoracaoNome,
+      timeCoracaoEscudoUrl: updated.timeCoracaoEscudoUrl,
+    };
+
+    setUser(nextUser);
+    await AsyncStorage.setItem('@resenha:user', JSON.stringify(nextUser));
   }
 
   async function logout() {
@@ -74,7 +199,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        register,
+        forgotPassword,
+        validateResetToken,
+        resetPassword,
+        getClubOptions,
+        updateProfile,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -83,4 +222,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
-
