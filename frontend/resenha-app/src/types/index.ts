@@ -51,6 +51,24 @@ export interface AddGroupMemberResult {
   expiraEm?: string;
 }
 
+export interface PendingGroupInvite {
+  idConvite: number;
+  idGrupo: number;
+  nomeGrupo: string;
+  codigoConvite: string;
+  expiraEm: string;
+  criadoEm: string;
+}
+
+export interface GroupPendingInvite {
+  idConvite: number;
+  emailConvidado: string;
+  codigoConvite: string;
+  inviteLink: string;
+  expiraEm: string;
+  criadoEm: string;
+}
+
 export interface ClubOption {
   codigo: string;
   nome: string;

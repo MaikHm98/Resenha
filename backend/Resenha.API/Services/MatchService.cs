@@ -35,6 +35,17 @@ namespace Resenha.API.Services
             if (dto.LimiteVagas > grupo.LimiteJogadores)
                 throw new Exception($"Limite de vagas ({dto.LimiteVagas}) não pode exceder o limite de jogadores do grupo ({grupo.LimiteJogadores}).");
 
+            var inicioDia = dto.DataHoraJogo.Date;
+            var fimDia = inicioDia.AddDays(1);
+            var jaExisteNoDia = _context.Partidas.Any(p =>
+                p.IdGrupo == dto.IdGrupo &&
+                p.Status != "CANCELADA" &&
+                p.DataHoraJogo >= inicioDia &&
+                p.DataHoraJogo < fimDia);
+
+            if (jaExisteNoDia)
+                throw new Exception("Ja existe uma partida cadastrada para este dia.");
+
             // Busca temporada ATIVA do grupo; cria se não existir
             var temporada = _context.Temporadas
                 .FirstOrDefault(t => t.IdGrupo == dto.IdGrupo && t.Status == "ATIVA");
@@ -145,7 +156,210 @@ namespace Resenha.API.Services
             }).ToList();
         }
 
-        // Usuário confirma presença na partida
+        // Admin exclui uma partida e seus dados relacionados.
+        public void DeleteMatch(ulong userId, ulong matchId)
+        {
+            using var transaction = _context.Database.BeginTransaction(IsolationLevel.Serializable);
+
+            var partida = _context.Partidas.FirstOrDefault(p => p.IdPartida == matchId);
+            if (partida == null)
+                throw new Exception("Partida nao encontrada.");
+
+            var membro = _context.GrupoUsuarios
+                .FirstOrDefault(gu => gu.IdGrupo == partida.IdGrupo && gu.IdUsuario == userId && gu.Ativo);
+
+            if (membro == null)
+                throw new Exception("Voce nao e membro deste grupo.");
+
+            if (membro.Perfil != "ADMIN")
+                throw new Exception("Apenas administradores podem excluir partidas.");
+
+            RevertClassificationForDeletedMatch(partida, matchId);
+
+            var votacoesIds = _context.VotacoesPartida
+                .Where(v => v.IdPartida == matchId)
+                .Select(v => v.IdVotacao)
+                .ToList();
+
+            if (votacoesIds.Count > 0)
+            {
+                var votos = _context.Votos.Where(v => votacoesIds.Contains(v.IdVotacao)).ToList();
+                if (votos.Count > 0)
+                    _context.Votos.RemoveRange(votos);
+            }
+
+            var votacoes = _context.VotacoesPartida.Where(v => v.IdPartida == matchId).ToList();
+            if (votacoes.Count > 0)
+                _context.VotacoesPartida.RemoveRange(votacoes);
+
+            var timesIds = _context.TimesPartida
+                .Where(t => t.IdPartida == matchId)
+                .Select(t => t.IdTime)
+                .ToList();
+
+            if (timesIds.Count > 0)
+            {
+                var jogadoresTime = _context.JogadoresTimePartida.Where(j => timesIds.Contains(j.IdTime)).ToList();
+                if (jogadoresTime.Count > 0)
+                    _context.JogadoresTimePartida.RemoveRange(jogadoresTime);
+            }
+
+            var times = _context.TimesPartida.Where(t => t.IdPartida == matchId).ToList();
+            if (times.Count > 0)
+                _context.TimesPartida.RemoveRange(times);
+
+            var presencas = _context.PresencasPartida.Where(p => p.IdPartida == matchId).ToList();
+            if (presencas.Count > 0)
+                _context.PresencasPartida.RemoveRange(presencas);
+
+            var resultados = _context.ResultadosPartida.Where(r => r.IdPartida == matchId).ToList();
+            if (resultados.Count > 0)
+                _context.ResultadosPartida.RemoveRange(resultados);
+
+            var estatisticas = _context.EstatisticasPartida.Where(e => e.IdPartida == matchId).ToList();
+            if (estatisticas.Count > 0)
+                _context.EstatisticasPartida.RemoveRange(estatisticas);
+
+            _context.Partidas.Remove(partida);
+            _context.SaveChanges();
+            transaction.Commit();
+        }
+
+        private void RevertClassificationForDeletedMatch(Partida partida, ulong matchId)
+        {
+            if (partida.Status != "FINALIZADA")
+                return;
+
+            var resultado = _context.ResultadosPartida.FirstOrDefault(r => r.IdPartida == matchId);
+            if (resultado == null)
+                return;
+
+            var times = _context.TimesPartida
+                .Where(t => t.IdPartida == matchId)
+                .ToList();
+
+            var timeVencedor = times.FirstOrDefault(t => t.NumeroTime == resultado.VencedorNumeroTime);
+            if (timeVencedor == null)
+                return;
+
+            var timePerdedor = times.FirstOrDefault(t => t.IdTime != timeVencedor.IdTime);
+            if (timePerdedor == null)
+                return;
+
+            var jogadoresTime = _context.JogadoresTimePartida
+                .Where(j => j.IdTime == timeVencedor.IdTime || j.IdTime == timePerdedor.IdTime)
+                .ToList();
+
+            var vencedores = jogadoresTime
+                .Where(j => j.IdTime == timeVencedor.IdTime)
+                .Select(j => j.IdUsuario)
+                .Distinct()
+                .ToList();
+
+            var perdedores = jogadoresTime
+                .Where(j => j.IdTime == timePerdedor.IdTime)
+                .Select(j => j.IdUsuario)
+                .Distinct()
+                .ToList();
+
+            var estatisticas = _context.EstatisticasPartida
+                .Where(e => e.IdPartida == matchId)
+                .ToList()
+                .ToDictionary(e => e.IdUsuario, e => (Gols: e.Gols, Assistencias: e.Assistencias));
+
+            foreach (var idUsuario in vencedores)
+            {
+                var stat = estatisticas.TryGetValue(idUsuario, out var value) ? value : (0, 0);
+                RollbackPlayerBaseStats(partida.IdTemporada, partida.IdGrupo, idUsuario, 4, vitoria: true, stat.Item1, stat.Item2);
+            }
+
+            foreach (var idUsuario in perdedores)
+            {
+                var stat = estatisticas.TryGetValue(idUsuario, out var value) ? value : (0, 0);
+                RollbackPlayerBaseStats(partida.IdTemporada, partida.IdGrupo, idUsuario, 1, vitoria: false, stat.Item1, stat.Item2);
+            }
+
+            var votacoesAprovadas = _context.VotacoesPartida
+                .Where(v => v.IdPartida == matchId && v.Status == "APROVADA" && v.IdUsuarioVencedorProvisorio.HasValue)
+                .ToList();
+
+            foreach (var votacao in votacoesAprovadas)
+            {
+                RollbackVoteAward(partida.IdTemporada, partida.IdGrupo, votacao.IdUsuarioVencedorProvisorio!.Value, votacao.Tipo);
+            }
+
+            _context.SaveChanges();
+        }
+
+        private void RollbackPlayerBaseStats(ulong idTemporada, ulong idGrupo, ulong idUsuario, int pontos, bool vitoria, int gols, int assistencias)
+        {
+            var classTemp = _context.ClassificacoesTemporada
+                .FirstOrDefault(c => c.IdTemporada == idTemporada && c.IdUsuario == idUsuario);
+
+            if (classTemp != null)
+            {
+                classTemp.Pontos = ClampNonNegative(classTemp.Pontos - pontos);
+                classTemp.Presencas = ClampNonNegative(classTemp.Presencas - 1);
+                classTemp.Gols = ClampNonNegative(classTemp.Gols - gols);
+                classTemp.Assistencias = ClampNonNegative(classTemp.Assistencias - assistencias);
+                classTemp.Vitorias = vitoria
+                    ? ClampNonNegative(classTemp.Vitorias - 1)
+                    : classTemp.Vitorias;
+                classTemp.Derrotas = vitoria
+                    ? classTemp.Derrotas
+                    : ClampNonNegative(classTemp.Derrotas - 1);
+                classTemp.AtualizadoEm = DateTime.UtcNow;
+            }
+
+            var classGeral = _context.ClassificacoesGeralGrupo
+                .FirstOrDefault(c => c.IdGrupo == idGrupo && c.IdUsuario == idUsuario);
+
+            if (classGeral != null)
+            {
+                classGeral.Pontos = ClampNonNegative(classGeral.Pontos - pontos);
+                classGeral.Presencas = ClampNonNegative(classGeral.Presencas - 1);
+                classGeral.Gols = ClampNonNegative(classGeral.Gols - gols);
+                classGeral.Assistencias = ClampNonNegative(classGeral.Assistencias - assistencias);
+                classGeral.Vitorias = vitoria
+                    ? ClampNonNegative(classGeral.Vitorias - 1)
+                    : classGeral.Vitorias;
+                classGeral.Derrotas = vitoria
+                    ? classGeral.Derrotas
+                    : ClampNonNegative(classGeral.Derrotas - 1);
+                classGeral.AtualizadoEm = DateTime.UtcNow;
+            }
+        }
+
+        private void RollbackVoteAward(ulong idTemporada, ulong idGrupo, ulong idUsuario, string tipo)
+        {
+            var classTemp = _context.ClassificacoesTemporada
+                .FirstOrDefault(c => c.IdTemporada == idTemporada && c.IdUsuario == idUsuario);
+
+            if (classTemp != null)
+            {
+                if (tipo == "MVP")
+                    classTemp.Mvps = ClampNonNegative(classTemp.Mvps - 1);
+                else if (tipo == "BOLA_MURCHA")
+                    classTemp.BolasMurchas = ClampNonNegative(classTemp.BolasMurchas - 1);
+                classTemp.AtualizadoEm = DateTime.UtcNow;
+            }
+
+            var classGeral = _context.ClassificacoesGeralGrupo
+                .FirstOrDefault(c => c.IdGrupo == idGrupo && c.IdUsuario == idUsuario);
+
+            if (classGeral != null)
+            {
+                if (tipo == "MVP")
+                    classGeral.Mvps = ClampNonNegative(classGeral.Mvps - 1);
+                else if (tipo == "BOLA_MURCHA")
+                    classGeral.BolasMurchas = ClampNonNegative(classGeral.BolasMurchas - 1);
+                classGeral.AtualizadoEm = DateTime.UtcNow;
+            }
+        }
+
+        private static int ClampNonNegative(int value) => value < 0 ? 0 : value;
+
+        // Usuario confirma presenca na partida
         public PresenceResponseDTO ConfirmPresence(ulong userId, ulong matchId)
         {
             using var transaction = _context.Database.BeginTransaction(IsolationLevel.Serializable);
@@ -322,3 +536,4 @@ namespace Resenha.API.Services
         }
     }
 }
+

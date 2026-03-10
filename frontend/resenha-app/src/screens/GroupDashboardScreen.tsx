@@ -11,6 +11,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -56,6 +57,8 @@ function formatDate(iso: string): string {
 export default function GroupDashboardScreen({ navigation, route }: Props) {
   const { groupId, groupName, isAdmin, diaSemana, horarioFixo, limiteJogadores } = route.params;
   const [isAdminAtual, setIsAdminAtual] = useState(isAdmin);
+  const [diaSemanaAtual, setDiaSemanaAtual] = useState<number | undefined>(diaSemana);
+  const [horarioFixoAtual, setHorarioFixoAtual] = useState(horarioFixo ?? '');
   const [partidas, setPartidas] = useState<Match[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
@@ -63,12 +66,13 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
 
   const [loadingIds, setLoadingIds] = useState<Set<number>>(new Set());
   const [loadingAusenteIds, setLoadingAusenteIds] = useState<Set<number>>(new Set());
+  const [deletingMatchIds, setDeletingMatchIds] = useState<Set<number>>(new Set());
   const [showAusentes, setShowAusentes] = useState<Record<number, boolean>>({});
   const [captainStatus, setCaptainStatus] = useState<{ nomeCapitao: string; nomeDesafiante?: string } | null>(null);
 
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [editDia, setEditDia] = useState<number | undefined>(diaSemana);
-  const [editHorario, setEditHorario] = useState(horarioFixo ?? '');
+  const [editDia, setEditDia] = useState<number | undefined>(diaSemanaAtual);
+  const [editHorario, setEditHorario] = useState(horarioFixoAtual);
   const [savingSchedule, setSavingSchedule] = useState(false);
 
   async function carregarPartidas(silencioso = false) {
@@ -86,6 +90,8 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
       const myGroups = await api.get('/api/groups/me');
       const meuGrupo = (myGroups.data as any[]).find((g) => g.idGrupo === groupId);
       setIsAdminAtual(String(meuGrupo?.perfil ?? '').toUpperCase() === 'ADMIN');
+      setDiaSemanaAtual(meuGrupo?.diaSemana ?? undefined);
+      setHorarioFixoAtual(meuGrupo?.horarioFixo ?? '');
     } catch (e: any) {
       setErro(e?.response?.data?.mensagem || 'Nao foi possivel carregar os dados do grupo.');
     } finally {
@@ -152,12 +158,48 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
         diaSemana: editDia ?? null,
         horarioFixo: editHorario.trim() || null,
       });
+      setDiaSemanaAtual(editDia);
+      setHorarioFixoAtual(editHorario.trim());
       setShowScheduleModal(false);
       await carregarPartidas(true);
     } catch (e: any) {
       setErro(e?.response?.data?.mensagem || 'Nao foi possivel atualizar o horario.');
     } finally {
       setSavingSchedule(false);
+    }
+  }
+
+  function confirmDeleteMatch(partida: Match) {
+    Alert.alert(
+      'Excluir partida',
+      'Essa acao remove a partida e os dados relacionados. Deseja continuar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => handleDeleteMatch(partida.idPartida),
+        },
+      ]
+    );
+  }
+
+  async function handleDeleteMatch(matchId: number) {
+    if (deletingMatchIds.has(matchId)) return;
+
+    setDeletingMatchIds((prev) => new Set(prev).add(matchId));
+    setErro('');
+    try {
+      await api.delete(`/api/matches/${matchId}`);
+      await carregarPartidas(true);
+    } catch (e: any) {
+      setErro(e?.response?.data?.mensagem || 'Nao foi possivel excluir a partida.');
+    } finally {
+      setDeletingMatchIds((prev) => {
+        const next = new Set(prev);
+        next.delete(matchId);
+        return next;
+      });
     }
   }
 
@@ -171,7 +213,7 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
           { key: 'classification', label: 'Classificacao', icon: 'bar-chart-outline' as const },
           { key: 'captain', label: 'Capitao', icon: 'shield-outline' as const },
           { key: 'my-performance', label: 'Desempenho', icon: 'pulse-outline' as const },
-          ...(isAdminAtual ? [{ key: 'schedule', label: 'Horario', icon: 'time-outline' as const }] : []),
+          { key: 'schedule', label: 'Horario', icon: 'time-outline' as const },
           { key: 'members', label: 'Jogadores', icon: 'people-outline' as const },
           ...(isAdminAtual ? [{ key: 'new-match', label: 'Partida', icon: 'add-circle-outline' as const }] : []),
         ]}
@@ -187,11 +229,18 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
               } else if (item.key === 'my-performance') {
                 navigation.navigate('MyPerformance', { groupId });
               } else if (item.key === 'schedule') {
+                setEditDia(diaSemanaAtual);
+                setEditHorario(horarioFixoAtual);
                 setShowScheduleModal(true);
               } else if (item.key === 'members') {
                 navigation.navigate('ManageMembers', { groupId, groupName, isAdmin: isAdminAtual });
               } else if (item.key === 'new-match') {
-                navigation.navigate('CreateMatch', { groupId, limiteGrupo: limiteJogadores, diaSemana, horarioFixo });
+                navigation.navigate('CreateMatch', {
+                  groupId,
+                  limiteGrupo: limiteJogadores,
+                  diaSemana: diaSemanaAtual,
+                  horarioFixo: horarioFixoAtual || undefined,
+                });
               }
             }}
           >
@@ -232,6 +281,7 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
   function renderPartida({ item }: { item: Match }) {
     const isLoadingConfirm = loadingIds.has(item.idPartida);
     const isLoadingAusente = loadingAusenteIds.has(item.idPartida);
+    const isDeleting = deletingMatchIds.has(item.idPartida);
     const podeConfirmar = item.status === 'ABERTA' && (!item.limiteCheio || item.usuarioConfirmado);
     const progress = Math.min(100, (item.totalConfirmados / item.limiteVagas) * 100);
     const vagasColor = item.usuarioConfirmado
@@ -251,10 +301,25 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
             <Ionicons name="calendar-outline" size={14} color={Colors.textMuted} />
             <Text style={styles.cardDate}>{formatDate(item.dataHoraJogo)}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: `${STATUS_COLOR[item.status]}22` }]}>
-            <Text style={[styles.statusText, { color: STATUS_COLOR[item.status] }]}>
-              {STATUS_LABEL[item.status]}
-            </Text>
+          <View style={styles.cardHeaderRight}>
+            <View style={[styles.statusBadge, { backgroundColor: `${STATUS_COLOR[item.status]}22` }]}>
+              <Text style={[styles.statusText, { color: STATUS_COLOR[item.status] }]}>
+                {STATUS_LABEL[item.status]}
+              </Text>
+            </View>
+            {isAdminAtual && (
+              <TouchableOpacity
+                style={[styles.deleteMatchButton, isDeleting && { opacity: 0.7 }]}
+                onPress={() => confirmDeleteMatch(item)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color={Colors.danger} />
+                ) : (
+                  <Ionicons name="trash-outline" size={14} color={Colors.danger} />
+                )}
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -466,12 +531,14 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
         <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Horario fixo do grupo</Text>
+            {!isAdminAtual && <Text style={styles.readOnlyHint}>Somente o admin pode alterar este horario.</Text>}
             <Text style={styles.modalLabel}>Dia da semana</Text>
             <View style={styles.daysWrap}>
               {DAYS.map((d, i) => (
                 <TouchableOpacity
                   key={i}
                   style={[styles.dayButton, editDia === i && styles.dayButtonActive]}
+                  disabled={!isAdminAtual}
                   onPress={() => setEditDia(editDia === i ? undefined : i)}
                 >
                   <Text style={[styles.dayButtonText, editDia === i && styles.dayButtonTextActive]}>{d}</Text>
@@ -488,6 +555,7 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
                 onChangeText={setEditHorario}
                 placeholder="19:00"
                 placeholderTextColor={Colors.textMuted}
+                editable={isAdminAtual}
                 keyboardType="numbers-and-punctuation"
                 maxLength={5}
                 autoCorrect={false}
@@ -495,21 +563,29 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
                 textContentType="none"
                 keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
                 returnKeyType="done"
-                onSubmitEditing={handleSaveSchedule}
+                onSubmitEditing={isAdminAtual ? handleSaveSchedule : undefined}
               />
             </View>
 
             <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.modalCancelButton} onPress={() => setShowScheduleModal(false)}>
-                <Text style={styles.modalCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalSaveButton} onPress={handleSaveSchedule} disabled={savingSchedule}>
-                {savingSchedule ? (
-                  <ActivityIndicator size="small" color={Colors.bg} />
-                ) : (
-                  <Text style={styles.modalSaveText}>Salvar</Text>
-                )}
-              </TouchableOpacity>
+              {isAdminAtual ? (
+                <>
+                  <TouchableOpacity style={styles.modalCancelButton} onPress={() => setShowScheduleModal(false)}>
+                    <Text style={styles.modalCancelText}>Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalSaveButton} onPress={handleSaveSchedule} disabled={savingSchedule}>
+                    {savingSchedule ? (
+                      <ActivityIndicator size="small" color={Colors.bg} />
+                    ) : (
+                      <Text style={styles.modalSaveText}>Salvar</Text>
+                    )}
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <TouchableOpacity style={styles.modalCancelButtonFull} onPress={() => setShowScheduleModal(false)}>
+                  <Text style={styles.modalCancelText}>Fechar</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -600,7 +676,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
+  cardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   statusText: { fontSize: FontSize.xs, fontWeight: '800' },
+  deleteMatchButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: `${Colors.danger}66`,
+    backgroundColor: `${Colors.danger}10`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   presencaHeader: {
     flexDirection: 'row',
@@ -695,6 +782,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   modalTitle: { ...Typography.title, fontSize: FontSize.lg, marginBottom: Spacing.md, textAlign: 'center' },
+  readOnlyHint: { color: Colors.textMuted, fontSize: FontSize.xs, textAlign: 'center', marginBottom: Spacing.sm },
   modalLabel: { ...Typography.label, marginBottom: 6 },
   daysWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: Spacing.md },
   dayButton: {
@@ -727,6 +815,15 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     paddingVertical: 12,
     alignItems: 'center',
+  },
+  modalCancelButtonFull: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: Colors.surface2,
   },
   modalSaveButton: {
     flex: 1,

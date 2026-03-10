@@ -90,6 +90,54 @@ namespace Resenha.API.Controllers
             }
         }
 
+        // GET /api/groups/invites/pending
+        // Lista convites pendentes do usuario logado.
+        [HttpGet("invites/pending")]
+        public IActionResult GetPendingInvites()
+        {
+            try
+            {
+                var response = _groupService.GetPendingInvites(GetUserId());
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
+
+        // POST /api/groups/invites/{inviteId}/accept
+        // Usuario aceita um convite pendente.
+        [HttpPost("invites/{inviteId}/accept")]
+        public IActionResult AcceptInvite(ulong inviteId)
+        {
+            try
+            {
+                var response = _groupService.AcceptInvite(GetUserId(), inviteId);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
+
+        // POST /api/groups/invites/{inviteId}/reject
+        // Usuario recusa um convite pendente.
+        [HttpPost("invites/{inviteId}/reject")]
+        public IActionResult RejectInvite(ulong inviteId)
+        {
+            try
+            {
+                _groupService.RejectInvite(GetUserId(), inviteId);
+                return Ok(new { mensagem = "Convite recusado." });
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
+
         // PATCH /api/groups/{id}/schedule
         // Admin atualiza o dia e horário fixo do grupo.
         [HttpPatch("{id}/schedule")]
@@ -114,6 +162,22 @@ namespace Resenha.API.Controllers
             try
             {
                 var response = _groupService.GetGroupMembers(GetUserId(), id);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
+
+        // GET /api/groups/{id}/invites/pending
+        // Admin lista convites pendentes do grupo.
+        [HttpGet("{id}/invites/pending")]
+        public IActionResult GetGroupPendingInvites(ulong id)
+        {
+            try
+            {
+                var response = _groupService.GetGroupPendingInvites(GetUserId(), id);
                 return Ok(response);
             }
             catch (Exception ex)

@@ -287,46 +287,120 @@ namespace Resenha.API.Services
             var email = dto.Email.Trim().ToLowerInvariant();
             var usuario = _context.Usuarios.FirstOrDefault(u => u.Email.ToLower() == email && u.Ativo);
 
-            if (usuario == null)
+            if (usuario != null)
             {
-                var convite = CreateOrReplaceInvite(adminUserId, groupId, email);
-                var inviteLink = BuildInviteLink(email, convite.CodigoConvite);
-                var sendResult = _inviteEmailService.SendGroupInvite(email, admin.Nome, grupo.Nome, inviteLink, convite.ExpiraEm);
+                var membroExistente = _context.GrupoUsuarios
+                    .FirstOrDefault(gu => gu.IdGrupo == groupId && gu.IdUsuario == usuario.IdUsuario && gu.Ativo);
 
-                _logger.LogInformation(
-                    "GROUP_MEMBER_INVITED | groupId={GroupId} group={GroupName} actorId={ActorId} actorName={ActorName} targetEmail={TargetEmail} inviteCode={InviteCode} sent={EmailSent} provider={Provider} configured={Configured} at={AtUtc}",
-                    groupId, grupo.Nome, admin.IdUsuario, admin.Nome, email, convite.CodigoConvite, sendResult.Sent, sendResult.Provider, sendResult.Configured, DateTime.UtcNow);
-
-                return new AddGroupMemberResultDTO
-                {
-                    Acao = "INVITED",
-                    Mensagem = sendResult.Sent
-                        ? "Convite enviado por e-mail com sucesso."
-                        : sendResult.Configured
-                            ? $"Convite criado, mas nao foi possivel enviar o e-mail via {sendResult.Provider}. Verifique os logs da API."
-                            : "Convite criado, mas o envio de e-mail nao esta configurado. Verifique os logs da API.",
-                    CodigoConvite = convite.CodigoConvite,
-                    InviteLink = inviteLink,
-                    ExpiraEm = convite.ExpiraEm
-                };
+                if (membroExistente != null)
+                    throw new Exception("Este usuario ja e membro do grupo.");
             }
 
+            var convite = CreateOrReplaceInvite(adminUserId, groupId, email);
+            var inviteLink = BuildInviteLink(email, convite.CodigoConvite);
+            var sendResult = _inviteEmailService.SendGroupInvite(email, admin.Nome, grupo.Nome, inviteLink, convite.ExpiraEm);
+
+            _logger.LogInformation(
+                "GROUP_MEMBER_INVITED | groupId={GroupId} group={GroupName} actorId={ActorId} actorName={ActorName} targetEmail={TargetEmail} inviteCode={InviteCode} sent={EmailSent} provider={Provider} configured={Configured} at={AtUtc}",
+                groupId, grupo.Nome, admin.IdUsuario, admin.Nome, email, convite.CodigoConvite, sendResult.Sent, sendResult.Provider, sendResult.Configured, DateTime.UtcNow);
+
+            return new AddGroupMemberResultDTO
+            {
+                Acao = "INVITED",
+                Mensagem = sendResult.Sent
+                    ? "Convite enviado por e-mail com sucesso."
+                    : sendResult.Configured
+                        ? $"Convite criado, mas nao foi possivel enviar o e-mail via {sendResult.Provider}. Verifique os logs da API."
+                        : "Convite criado, mas o envio de e-mail nao esta configurado. Verifique os logs da API.",
+                CodigoConvite = convite.CodigoConvite,
+                InviteLink = inviteLink,
+                ExpiraEm = convite.ExpiraEm
+            };
+        }
+
+        public List<PendingGroupInviteDTO> GetPendingInvites(ulong userId)
+        {
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == userId && u.Ativo)
+                ?? throw new Exception("Usuário não encontrado.");
+
+            var email = usuario.Email.Trim().ToLowerInvariant();
+
+            var expirados = _context.ConvitesGrupo
+                .Where(c => c.Status == "PENDENTE" && c.ExpiraEm < DateTime.UtcNow)
+                .ToList();
+
+            if (expirados.Count > 0)
+            {
+                foreach (var convite in expirados)
+                    convite.Status = "EXPIRADO";
+                _context.SaveChanges();
+            }
+
+            var pendentes = _context.ConvitesGrupo
+                .Where(c => c.Status == "PENDENTE" && c.EmailConvidado.ToLower() == email)
+                .Join(
+                    _context.Grupos.Where(g => g.Ativo),
+                    c => c.IdGrupo,
+                    g => g.IdGrupo,
+                    (c, g) => new { Convite = c, Grupo = g }
+                )
+                .ToList()
+                .Where(x => !_context.GrupoUsuarios.Any(gu => gu.IdGrupo == x.Convite.IdGrupo && gu.IdUsuario == userId && gu.Ativo))
+                .OrderBy(x => x.Convite.ExpiraEm)
+                .Select(x => new PendingGroupInviteDTO
+                {
+                    IdConvite = x.Convite.IdConvite,
+                    IdGrupo = x.Convite.IdGrupo,
+                    NomeGrupo = x.Grupo.Nome,
+                    CodigoConvite = x.Convite.CodigoConvite,
+                    ExpiraEm = x.Convite.ExpiraEm,
+                    CriadoEm = x.Convite.CriadoEm
+                })
+                .ToList();
+
+            return pendentes;
+        }
+
+        public GroupResponseDTO AcceptInvite(ulong userId, ulong inviteId)
+        {
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == userId && u.Ativo)
+                ?? throw new Exception("Usuário não encontrado.");
+
+            var convite = _context.ConvitesGrupo.FirstOrDefault(c => c.IdConvite == inviteId)
+                ?? throw new Exception("Convite não encontrado.");
+
+            if (convite.Status != "PENDENTE")
+                throw new Exception("Este convite não está mais pendente.");
+
+            if (convite.ExpiraEm < DateTime.UtcNow)
+            {
+                convite.Status = "EXPIRADO";
+                _context.SaveChanges();
+                throw new Exception("Este convite expirou.");
+            }
+
+            if (convite.EmailConvidado.Trim().ToLowerInvariant() != usuario.Email.Trim().ToLowerInvariant())
+                throw new Exception("Este convite não pertence ao seu e-mail.");
+
+            var grupo = _context.Grupos.FirstOrDefault(g => g.IdGrupo == convite.IdGrupo && g.Ativo)
+                ?? throw new Exception("Grupo não encontrado.");
+
             var membroExistente = _context.GrupoUsuarios
-                .FirstOrDefault(gu => gu.IdGrupo == groupId && gu.IdUsuario == usuario.IdUsuario);
+                .FirstOrDefault(gu => gu.IdGrupo == convite.IdGrupo && gu.IdUsuario == userId);
 
             if (membroExistente != null && membroExistente.Ativo)
-                throw new Exception("Este usuario ja e membro do grupo.");
+                throw new Exception("Você já é membro deste grupo.");
 
-            var totalAtivos = _context.GrupoUsuarios.Count(gu => gu.IdGrupo == groupId && gu.Ativo);
+            var totalAtivos = _context.GrupoUsuarios.Count(gu => gu.IdGrupo == grupo.IdGrupo && gu.Ativo);
             if (totalAtivos >= grupo.LimiteJogadores)
-                throw new Exception("O grupo ja atingiu o limite de jogadores.");
+                throw new Exception("O grupo atingiu o limite de jogadores.");
 
             if (membroExistente == null)
             {
                 _context.GrupoUsuarios.Add(new GrupoUsuario
                 {
-                    IdGrupo = groupId,
-                    IdUsuario = usuario.IdUsuario,
+                    IdGrupo = convite.IdGrupo,
+                    IdUsuario = userId,
                     Perfil = "JOGADOR",
                     Ativo = true,
                     EntrouEm = DateTime.UtcNow
@@ -339,29 +413,72 @@ namespace Resenha.API.Services
                 membroExistente.EntrouEm = DateTime.UtcNow;
             }
 
+            convite.Status = "ACEITO";
             _context.SaveChanges();
 
-            _logger.LogInformation(
-                "GROUP_MEMBER_ADDED | groupId={GroupId} group={GroupName} actorId={ActorId} actorName={ActorName} targetId={TargetId} targetEmail={TargetEmail} at={AtUtc}",
-                groupId, grupo.Nome, admin.IdUsuario, admin.Nome, usuario.IdUsuario, usuario.Email, DateTime.UtcNow);
-
-            return new AddGroupMemberResultDTO
+            return new GroupResponseDTO
             {
-                Acao = "ADDED",
-                Mensagem = "Jogador adicionado ao grupo com sucesso.",
-                Membro = new GroupMemberDTO
-                {
-                    TimeCoracaoCodigo = ClubCatalog.GetByCode(usuario.TimeCoracaoCodigo)?.Codigo,
-                    TimeCoracaoNome = ClubCatalog.GetByCode(usuario.TimeCoracaoCodigo)?.Nome,
-                    TimeCoracaoEscudoUrl = ClubCatalog.GetByCode(usuario.TimeCoracaoCodigo)?.EscudoUrl,
-                    IdUsuario = usuario.IdUsuario,
-                    Nome = usuario.Nome,
-                    Email = usuario.Email,
-                    Perfil = "JOGADOR",
-                    Goleiro = usuario.Goleiro,
-                    EntrouEm = DateTime.UtcNow
-                }
+                IdGrupo = grupo.IdGrupo,
+                Nome = grupo.Nome,
+                Descricao = grupo.Descricao,
+                LimiteJogadores = grupo.LimiteJogadores,
+                Perfil = "JOGADOR",
+                TotalMembros = _context.GrupoUsuarios.Count(gu => gu.IdGrupo == grupo.IdGrupo && gu.Ativo),
+                CriadoEm = grupo.CriadoEm,
+                DiaSemana = grupo.DiaSemana,
+                HorarioFixo = grupo.HorarioFixo
             };
+        }
+
+        public void RejectInvite(ulong userId, ulong inviteId)
+        {
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == userId && u.Ativo)
+                ?? throw new Exception("Usuário não encontrado.");
+
+            var convite = _context.ConvitesGrupo.FirstOrDefault(c => c.IdConvite == inviteId)
+                ?? throw new Exception("Convite não encontrado.");
+
+            if (convite.Status != "PENDENTE")
+                throw new Exception("Este convite não está mais pendente.");
+
+            if (convite.EmailConvidado.Trim().ToLowerInvariant() != usuario.Email.Trim().ToLowerInvariant())
+                throw new Exception("Este convite não pertence ao seu e-mail.");
+
+            convite.Status = "CANCELADO";
+            _context.SaveChanges();
+        }
+
+        public List<GroupPendingInviteDTO> GetGroupPendingInvites(ulong adminUserId, ulong groupId)
+        {
+            EnsureAdmin(adminUserId, groupId);
+
+            var expirados = _context.ConvitesGrupo
+                .Where(c => c.IdGrupo == groupId && c.Status == "PENDENTE" && c.ExpiraEm < DateTime.UtcNow)
+                .ToList();
+
+            if (expirados.Count > 0)
+            {
+                foreach (var conviteExpirado in expirados)
+                    conviteExpirado.Status = "EXPIRADO";
+                _context.SaveChanges();
+            }
+
+            var convites = _context.ConvitesGrupo
+                .Where(c => c.IdGrupo == groupId && c.Status == "PENDENTE")
+                .OrderByDescending(c => c.CriadoEm)
+                .ToList();
+
+            return convites
+                .Select(c => new GroupPendingInviteDTO
+                {
+                    IdConvite = c.IdConvite,
+                    EmailConvidado = c.EmailConvidado,
+                    CodigoConvite = c.CodigoConvite,
+                    InviteLink = BuildInviteLink(c.EmailConvidado, c.CodigoConvite),
+                    ExpiraEm = c.ExpiraEm,
+                    CriadoEm = c.CriadoEm
+                })
+                .ToList();
         }
 
         // Admin remove um jogador do grupo

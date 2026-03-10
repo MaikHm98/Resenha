@@ -20,7 +20,7 @@ import api from '../api/api';
 import { useAuth } from '../contexts/AuthContext';
 import { AppStackParamList } from '../navigation/AppNavigator';
 import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
-import { AddGroupMemberResult, GroupMember } from '../types';
+import { AddGroupMemberResult, GroupMember, GroupPendingInvite } from '../types';
 import ClubLogo from '../components/ClubLogo';
 
 type Props = {
@@ -41,8 +41,9 @@ export default function ManageMembersScreen({ route }: Props) {
   const [roleLoadingIds, setRoleLoadingIds] = useState<Set<number>>(new Set());
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
-  const [lastInvite, setLastInvite] = useState<{ email: string; code: string; link?: string; expiresAt?: string } | null>(null);
+  const [pendingInvites, setPendingInvites] = useState<GroupPendingInvite[]>([]);
   const [canManage, setCanManage] = useState(isAdmin);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   async function carregar(silencioso = false) {
     if (!silencioso) setCarregando(true);
@@ -52,7 +53,14 @@ export default function ManageMembersScreen({ route }: Props) {
       const fetched: GroupMember[] = res.data;
       setMembers(fetched);
       const meuPerfil = fetched.find((m) => m.idUsuario === user?.idUsuario)?.perfil;
-      setCanManage(String(meuPerfil).toUpperCase() === 'ADMIN');
+      const isGroupAdmin = String(meuPerfil).toUpperCase() === 'ADMIN';
+      setCanManage(isGroupAdmin);
+      if (isGroupAdmin) {
+        const invitesRes = await api.get(`/api/groups/${groupId}/invites/pending`);
+        setPendingInvites((invitesRes.data as GroupPendingInvite[]) ?? []);
+      } else {
+        setPendingInvites([]);
+      }
     } catch (e: any) {
       setErro(e?.response?.data?.mensagem || 'Nao foi possivel carregar os membros.');
     } finally {
@@ -68,8 +76,8 @@ export default function ManageMembersScreen({ route }: Props) {
   );
 
   async function handleAddMember() {
-    const cleanEmail = email.trim();
-    if (!cleanEmail || !cleanEmail.includes('@')) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
       setErro('Informe um email valido para adicionar jogador.');
       setSucesso('');
       return;
@@ -77,7 +85,6 @@ export default function ManageMembersScreen({ route }: Props) {
 
     setErro('');
     setSucesso('');
-    setLastInvite(null);
     setAdicionando(true);
     try {
       const res = await api.post<AddGroupMemberResult>(`/api/groups/${groupId}/members`, { email: cleanEmail });
@@ -86,18 +93,9 @@ export default function ManageMembersScreen({ route }: Props) {
       setEmail('');
       await carregar(true);
       setSucesso(mensagem || 'Operacao realizada com sucesso.');
-      if (payload?.acao === 'INVITED' && payload?.codigoConvite) {
-        setLastInvite({
-          email: cleanEmail,
-          code: payload.codigoConvite,
-          link: payload.inviteLink,
-          expiresAt: payload.expiraEm,
-        });
-      }
     } catch (e: any) {
       setErro(e?.response?.data?.mensagem || 'Nao foi possivel adicionar o membro.');
       setSucesso('');
-      setLastInvite(null);
     } finally {
       setAdicionando(false);
     }
@@ -110,13 +108,11 @@ export default function ManageMembersScreen({ route }: Props) {
     return date.toLocaleString('pt-BR');
   }
 
-  async function shareInviteCode() {
-    if (!lastInvite) return;
-
-    const expiry = formatInviteExpiry(lastInvite.expiresAt);
+  async function shareInviteCode(invite: GroupPendingInvite) {
+    const expiry = formatInviteExpiry(invite.expiraEm);
     const text = expiry
-      ? `Codigo de convite do grupo: ${lastInvite.code}\nValido ate: ${expiry}${lastInvite.link ? `\nLink: ${lastInvite.link}` : ''}`
-      : `Codigo de convite do grupo: ${lastInvite.code}${lastInvite.link ? `\nLink: ${lastInvite.link}` : ''}`;
+      ? `Codigo de convite do grupo: ${invite.codigoConvite}\nValido ate: ${expiry}${invite.inviteLink ? `\nLink: ${invite.inviteLink}` : ''}`
+      : `Codigo de convite do grupo: ${invite.codigoConvite}${invite.inviteLink ? `\nLink: ${invite.inviteLink}` : ''}`;
 
     try {
       await Share.share({ message: text });
@@ -125,20 +121,19 @@ export default function ManageMembersScreen({ route }: Props) {
     }
   }
 
-  async function copyInviteCode() {
-    if (!lastInvite) return;
+  async function copyInviteCode(code: string) {
     try {
-      await Clipboard.setStringAsync(lastInvite.code);
+      await Clipboard.setStringAsync(code);
       Alert.alert('Convite', 'Codigo copiado para a area de transferencia.');
     } catch {
       Alert.alert('Convite', 'Nao foi possivel copiar o codigo.');
     }
   }
 
-  async function copyInviteLink() {
-    if (!lastInvite?.link) return;
+  async function copyInviteLink(link?: string) {
+    if (!link) return;
     try {
-      await Clipboard.setStringAsync(lastInvite.link);
+      await Clipboard.setStringAsync(link);
       Alert.alert('Convite', 'Link de convite copiado para a area de transferencia.');
     } catch {
       Alert.alert('Convite', 'Nao foi possivel copiar o link de convite.');
@@ -212,14 +207,22 @@ export default function ManageMembersScreen({ route }: Props) {
     return (
       <View style={styles.memberRow}>
         <View style={styles.memberAvatar}>
-          <Text style={styles.memberAvatarText}>
-            {item.nome
-              .split(' ')
-              .map((n) => n[0])
-              .slice(0, 2)
-              .join('')
-              .toUpperCase()}
-          </Text>
+          {item.timeCoracaoEscudoUrl ? (
+            <ClubLogo
+              uri={item.timeCoracaoEscudoUrl}
+              clubName={item.timeCoracaoNome ?? item.timeCoracaoCodigo ?? item.nome}
+              size={28}
+            />
+          ) : (
+            <Text style={styles.memberAvatarText}>
+              {item.nome
+                .split(' ')
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join('')
+                .toUpperCase()}
+            </Text>
+          )}
         </View>
 
         <View style={styles.memberInfo}>
@@ -227,18 +230,6 @@ export default function ManageMembersScreen({ route }: Props) {
             <Text style={styles.memberName} numberOfLines={1}>
               {item.nome}
             </Text>
-            {item.timeCoracaoEscudoUrl ? (
-              <View style={styles.clubChip}>
-                <ClubLogo
-                  uri={item.timeCoracaoEscudoUrl}
-                  clubName={item.timeCoracaoNome ?? item.timeCoracaoCodigo}
-                  size={14}
-                />
-                <Text style={styles.clubChipText} numberOfLines={1}>
-                  {item.timeCoracaoNome ?? item.timeCoracaoCodigo}
-                </Text>
-              </View>
-            ) : null}
             <View style={[styles.roleChip, isAdmin ? styles.roleChipAdmin : styles.roleChipMember]}>
               <Ionicons
                 name={isAdmin ? 'shield-checkmark-outline' : 'person-outline'}
@@ -352,38 +343,6 @@ export default function ManageMembersScreen({ route }: Props) {
           </View>
         )}
 
-        {lastInvite && (
-          <View style={styles.inviteBox}>
-            <View style={styles.inviteHeader}>
-              <Ionicons name="ticket-outline" size={16} color={Colors.primary} />
-              <Text style={styles.inviteTitle}>Codigo de convite gerado</Text>
-            </View>
-            <Text style={styles.inviteMeta}>Convidado: {lastInvite.email}</Text>
-            <Text selectable style={styles.inviteCode}>
-              {lastInvite.code}
-            </Text>
-            {formatInviteExpiry(lastInvite.expiresAt) !== '' && (
-              <Text style={styles.inviteMeta}>Valido ate: {formatInviteExpiry(lastInvite.expiresAt)}</Text>
-            )}
-            <Text style={styles.inviteHint}>Use os botoes abaixo para copiar ou compartilhar o codigo.</Text>
-            <View style={styles.inviteActions}>
-              <TouchableOpacity style={styles.inviteCopyButton} onPress={copyInviteCode}>
-                <Ionicons name="copy-outline" size={14} color={Colors.primary} />
-                <Text style={styles.inviteCopyButtonText}>Copiar codigo</Text>
-              </TouchableOpacity>
-              {lastInvite.link ? (
-                <TouchableOpacity style={styles.inviteCopyButton} onPress={copyInviteLink}>
-                  <Ionicons name="link-outline" size={14} color={Colors.primary} />
-                  <Text style={styles.inviteCopyButtonText}>Copiar link de convite</Text>
-                </TouchableOpacity>
-              ) : null}
-              <TouchableOpacity style={styles.inviteShareButton} onPress={shareInviteCode}>
-                <Ionicons name="share-social-outline" size={14} color={Colors.bg} />
-                <Text style={styles.inviteShareButtonText}>Compartilhar codigo</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
       </View>
 
       <FlatList
@@ -406,6 +365,47 @@ export default function ManageMembersScreen({ route }: Props) {
             <Ionicons name="person-remove-outline" size={34} color={Colors.textMuted} />
             <Text style={styles.emptyTitle}>Nenhum membro encontrado</Text>
           </View>
+        }
+        ListFooterComponent={
+          canManage ? (
+            <View style={styles.pendingSection}>
+              <Text style={styles.pendingTitle}>Convites pendentes</Text>
+              {pendingInvites.length === 0 ? (
+                <Text style={styles.pendingEmpty}>Nenhum convite pendente no momento.</Text>
+              ) : (
+                pendingInvites.map((invite) => (
+                  <View key={String(invite.idConvite)} style={styles.inviteBox}>
+                    <View style={styles.inviteHeader}>
+                      <Ionicons name="ticket-outline" size={16} color={Colors.primary} />
+                      <Text style={styles.inviteTitle}>{invite.emailConvidado}</Text>
+                    </View>
+                    <Text selectable style={styles.inviteCode}>
+                      {invite.codigoConvite}
+                    </Text>
+                    {formatInviteExpiry(invite.expiraEm) !== '' && (
+                      <Text style={styles.inviteMeta}>Valido ate: {formatInviteExpiry(invite.expiraEm)}</Text>
+                    )}
+                    <View style={styles.inviteActions}>
+                      <TouchableOpacity style={styles.inviteCopyButton} onPress={() => copyInviteCode(invite.codigoConvite)}>
+                        <Ionicons name="copy-outline" size={14} color={Colors.primary} />
+                        <Text style={styles.inviteCopyButtonText}>Copiar codigo</Text>
+                      </TouchableOpacity>
+                      {invite.inviteLink ? (
+                        <TouchableOpacity style={styles.inviteCopyButton} onPress={() => copyInviteLink(invite.inviteLink)}>
+                          <Ionicons name="link-outline" size={14} color={Colors.primary} />
+                          <Text style={styles.inviteCopyButtonText}>Copiar link</Text>
+                        </TouchableOpacity>
+                      ) : null}
+                      <TouchableOpacity style={styles.inviteShareButton} onPress={() => shareInviteCode(invite)}>
+                        <Ionicons name="share-social-outline" size={14} color={Colors.bg} />
+                        <Text style={styles.inviteShareButtonText}>Compartilhar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+          ) : null
         }
       />
     </View>
@@ -482,6 +482,20 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   successText: { color: Colors.success, fontSize: FontSize.sm, flex: 1 },
+  pendingSection: {
+    marginTop: Spacing.md,
+    gap: 8,
+    marginBottom: Spacing.md,
+  },
+  pendingTitle: {
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontWeight: '800',
+  },
+  pendingEmpty: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+  },
   inviteBox: {
     borderRadius: Radius.md,
     borderWidth: 1,
@@ -509,7 +523,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  inviteHint: { color: Colors.textMuted, fontSize: FontSize.xs },
   inviteActions: {
     marginTop: 2,
     gap: 6,
@@ -573,19 +586,6 @@ const styles = StyleSheet.create({
   roleChipAdmin: { borderColor: `${Colors.gold}66`, backgroundColor: `${Colors.gold}12` },
   roleChipMember: { borderColor: Colors.border, backgroundColor: Colors.surface2 },
   roleChipText: { color: Colors.textMuted, fontSize: FontSize.xs, fontWeight: '700' },
-  clubChip: {
-    borderRadius: Radius.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface2,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    maxWidth: 110,
-  },
-  clubChipText: { color: Colors.textMuted, fontSize: 10, fontWeight: '700', flexShrink: 1 },
   removeButton: {
     width: 34,
     height: 34,

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -43,6 +44,16 @@ function maskHora(v: string): string {
   const n = v.replace(/\D/g, '').substring(0, 4);
   if (n.length <= 2) return n;
   return `${n.slice(0, 2)}:${n.slice(2)}`;
+}
+
+function toLocalDateTimeString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const s = String(d.getSeconds()).padStart(2, '0');
+  return `${y}-${m}-${day}T${h}:${min}:${s}`;
 }
 
 export default function CreateMatchScreen({ navigation, route }: Props) {
@@ -106,7 +117,7 @@ export default function CreateMatchScreen({ navigation, route }: Props) {
     try {
       await api.post('/api/matches', {
         idGrupo: groupId,
-        dataHoraJogo: dataFinal.toISOString(),
+        dataHoraJogo: toLocalDateTimeString(dataFinal),
         limiteVagas: vagas,
         observacao: observacao.trim() || undefined,
       });
@@ -119,8 +130,19 @@ export default function CreateMatchScreen({ navigation, route }: Props) {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <View style={styles.card}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.select({ ios: 'padding', android: 'height', default: undefined })}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 84 : 0}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+      >
+        <View style={styles.card}>
         <View style={styles.headerRow}>
           <View style={styles.headerIcon}>
             <Ionicons name="calendar-outline" size={22} color={Colors.primary} />
@@ -140,15 +162,20 @@ export default function CreateMatchScreen({ navigation, route }: Props) {
         )}
 
         {Platform.OS === 'ios' ? (
-          <DateTimePicker
-            value={dataHoraIOS}
-            mode="datetime"
-            display="spinner"
-            minimumDate={new Date()}
-            onChange={(_, d) => d && setDataHoraIOS(d)}
-            style={{ marginBottom: Spacing.sm }}
-            locale="pt-BR"
-          />
+          <View style={styles.iosPickerWrap}>
+            <DateTimePicker
+              value={dataHoraIOS}
+              mode="datetime"
+              display="spinner"
+              minimumDate={new Date()}
+              onChange={(_, d) => d && setDataHoraIOS(d)}
+              style={styles.iosPicker}
+              locale="pt-BR"
+              themeVariant="dark"
+              textColor={Colors.text}
+              accentColor={Colors.primary}
+            />
+          </View>
         ) : (
           <View style={styles.dataHoraRow}>
             <View style={styles.dataHoraField}>
@@ -243,14 +270,15 @@ export default function CreateMatchScreen({ navigation, route }: Props) {
             <Text style={styles.botaoText}>Criar Partida</Text>
           )}
         </TouchableOpacity>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
-  content: { padding: Spacing.md },
+  content: { padding: Spacing.md, paddingBottom: Spacing.xl },
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.xl,
@@ -291,6 +319,17 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   hintInline: { color: Colors.primary, fontSize: FontSize.xs, fontWeight: '600' },
+  iosPickerWrap: {
+    backgroundColor: Colors.surface2,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    marginBottom: Spacing.sm,
+    overflow: 'hidden',
+  },
+  iosPicker: {
+    marginVertical: 4,
+  },
   dataHoraRow: {
     flexDirection: 'row',
     gap: Spacing.sm,

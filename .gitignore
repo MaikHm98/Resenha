@@ -36,3 +36,6 @@ Thumbs.db
 .claude/
 
 backend/Resenha.API/build_tmp/
+tmp_build_api/
+tmp_build_api_check/
+frontend/resenha-app/.env

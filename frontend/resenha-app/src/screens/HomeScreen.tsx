@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '../api/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Colors, FontSize, Radius, Spacing, Typography, gradients } from '../theme';
-import { Group } from '../types';
+import { Group, PendingGroupInvite } from '../types';
 import { AppStackParamList } from '../navigation/AppNavigator';
 import FeedbackBanner from '../components/FeedbackBanner';
 import ClubLogo from '../components/ClubLogo';
@@ -34,13 +34,19 @@ export default function HomeScreen({ navigation }: Props) {
   const [atualizando, setAtualizando] = useState(false);
   const [erro, setErro] = useState('');
   const [aviso, setAviso] = useState('');
+  const [convitesPendentes, setConvitesPendentes] = useState<PendingGroupInvite[]>([]);
+  const [loadingInviteIds, setLoadingInviteIds] = useState<Set<number>>(new Set());
 
   async function carregarGrupos(silencioso = false) {
     if (!silencioso) setCarregando(true);
     setErro('');
     try {
-      const response = await api.get('/api/groups/me');
-      setGrupos(response.data);
+      const [groupsResponse, invitesResponse] = await Promise.all([
+        api.get('/api/groups/me'),
+        api.get('/api/groups/invites/pending'),
+      ]);
+      setGrupos(groupsResponse.data);
+      setConvitesPendentes(invitesResponse.data);
 
       const flashWarning = await AsyncStorage.getItem('@resenha:flash_warning');
       if (flashWarning) {
@@ -52,6 +58,44 @@ export default function HomeScreen({ navigation }: Props) {
     } finally {
       setCarregando(false);
       setAtualizando(false);
+    }
+  }
+
+  async function handleAcceptInvite(inviteId: number) {
+    if (loadingInviteIds.has(inviteId)) return;
+    setLoadingInviteIds((prev) => new Set(prev).add(inviteId));
+    setErro('');
+    try {
+      await api.post(`/api/groups/invites/${inviteId}/accept`);
+      setAviso('Convite aceito com sucesso.');
+      await carregarGrupos(true);
+    } catch (e: any) {
+      setErro(e?.response?.data?.mensagem || 'Nao foi possivel aceitar o convite.');
+    } finally {
+      setLoadingInviteIds((prev) => {
+        const next = new Set(prev);
+        next.delete(inviteId);
+        return next;
+      });
+    }
+  }
+
+  async function handleRejectInvite(inviteId: number) {
+    if (loadingInviteIds.has(inviteId)) return;
+    setLoadingInviteIds((prev) => new Set(prev).add(inviteId));
+    setErro('');
+    try {
+      await api.post(`/api/groups/invites/${inviteId}/reject`);
+      setAviso('Convite recusado.');
+      await carregarGrupos(true);
+    } catch (e: any) {
+      setErro(e?.response?.data?.mensagem || 'Nao foi possivel recusar o convite.');
+    } finally {
+      setLoadingInviteIds((prev) => {
+        const next = new Set(prev);
+        next.delete(inviteId);
+        return next;
+      });
     }
   }
 
@@ -212,6 +256,46 @@ export default function HomeScreen({ navigation }: Props) {
         </View>
       )}
 
+      {convitesPendentes.length > 0 && (
+        <View style={styles.pendingWrap}>
+          <Text style={styles.pendingTitle}>Voce tem convites pendentes</Text>
+          {convitesPendentes.map((convite) => {
+            const loading = loadingInviteIds.has(convite.idConvite);
+            const expiraEm = new Date(convite.expiraEm);
+            const expiraTexto = Number.isNaN(expiraEm.getTime())
+              ? convite.expiraEm
+              : expiraEm.toLocaleString('pt-BR');
+            return (
+              <View key={String(convite.idConvite)} style={styles.pendingCard}>
+                <Text style={styles.pendingGroupName}>{convite.nomeGrupo}</Text>
+                <Text style={styles.pendingMeta}>Codigo: {convite.codigoConvite}</Text>
+                <Text style={styles.pendingMeta}>Expira em: {expiraTexto}</Text>
+                <View style={styles.pendingActions}>
+                  <TouchableOpacity
+                    style={[styles.pendingButton, styles.pendingButtonAccept]}
+                    onPress={() => handleAcceptInvite(convite.idConvite)}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size="small" color={Colors.bg} />
+                    ) : (
+                      <Text style={styles.pendingButtonAcceptText}>Aceitar</Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.pendingButton, styles.pendingButtonReject]}
+                    onPress={() => handleRejectInvite(convite.idConvite)}
+                    disabled={loading}
+                  >
+                    <Text style={styles.pendingButtonRejectText}>Recusar</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      )}
+
       {grupos.length === 0 ? (
         <View style={styles.vazio}>
           <View style={styles.ballBadge}>
@@ -316,6 +400,64 @@ const styles = StyleSheet.create({
   feedbackWrap: {
     marginHorizontal: Spacing.md,
     marginBottom: Spacing.sm,
+  },
+  pendingWrap: {
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  pendingTitle: {
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontWeight: '800',
+  },
+  pendingCard: {
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: `${Colors.gold}66`,
+    backgroundColor: Colors.surface,
+    padding: Spacing.sm,
+    gap: 4,
+  },
+  pendingGroupName: {
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontWeight: '800',
+  },
+  pendingMeta: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+  },
+  pendingActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  pendingButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Radius.sm,
+    paddingVertical: 9,
+    borderWidth: 1,
+  },
+  pendingButtonAccept: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  pendingButtonReject: {
+    backgroundColor: 'transparent',
+    borderColor: `${Colors.danger}66`,
+  },
+  pendingButtonAcceptText: {
+    color: Colors.bg,
+    fontSize: FontSize.xs,
+    fontWeight: '800',
+  },
+  pendingButtonRejectText: {
+    color: Colors.danger,
+    fontSize: FontSize.xs,
+    fontWeight: '700',
   },
   lista: { paddingHorizontal: Spacing.md, paddingBottom: Spacing.xl },
   cardWrapper: { marginBottom: Spacing.sm },

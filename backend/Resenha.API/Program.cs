@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MySqlConnector;
 using Resenha.API.Data;
 using Resenha.API.Services;
 using System.Security.Claims;
@@ -10,7 +11,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = NormalizeConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"));
 
 builder.Services.AddDbContext<ResenhaDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
@@ -161,3 +162,21 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static string NormalizeConnectionString(string? rawConnectionString)
+{
+    if (string.IsNullOrWhiteSpace(rawConnectionString))
+        throw new InvalidOperationException("Connection string 'DefaultConnection' nao configurada.");
+
+    var builder = new MySqlConnectionStringBuilder(rawConnectionString);
+    var server = builder.Server?.Trim();
+    var isLocalServer =
+        string.Equals(server, "localhost", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(server, "127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(server, "::1", StringComparison.OrdinalIgnoreCase);
+
+    if (isLocalServer && builder.SslMode == MySqlSslMode.Preferred)
+        builder.SslMode = MySqlSslMode.None;
+
+    return builder.ConnectionString;
+}

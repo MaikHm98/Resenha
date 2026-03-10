@@ -119,5 +119,21 @@ namespace Resenha.API.Controllers
                 return this.ToErrorResult(ex);
             }
         }
+
+        // DELETE /api/matches/{id}
+        // Admin exclui a partida e os dados vinculados.
+        [HttpDelete("api/matches/{id}")]
+        public IActionResult DeleteMatch(ulong id)
+        {
+            try
+            {
+                _matchService.DeleteMatch(GetUserId(), id);
+                return Ok(new { mensagem = "Partida excluida com sucesso." });
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
     }
 }
