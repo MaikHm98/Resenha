@@ -12,5 +12,11 @@ namespace Resenha.API.DTOs.Auth
 
         [MaxLength(20)]
         public string? TimeCoracaoCodigo { get; set; }
+
+        [MaxLength(20)]
+        public string? PosicaoPrincipal { get; set; }
+
+        [MaxLength(20)]
+        public string? PeDominante { get; set; }
     }
 }

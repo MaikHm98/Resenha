@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -126,128 +127,147 @@ export default function CreateGroupScreen({ navigation }: Props) {
   }
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
       style={styles.container}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 84 : 0}
+      enabled={Platform.OS === 'ios'}
     >
-      <View style={styles.card}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerIcon}>
-            <Ionicons name="people-circle-outline" size={24} color={Colors.primary} />
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+      >
+        <View style={styles.card}>
+          <View style={styles.headerRow}>
+            <View style={styles.headerIcon}>
+              <Ionicons name="people-circle-outline" size={24} color={Colors.primary} />
+            </View>
+            <View>
+              <Text style={styles.title}>Novo Grupo</Text>
+              <Text style={styles.subtitle}>Defina as configuracoes principais</Text>
+            </View>
           </View>
-          <View>
-            <Text style={styles.title}>Novo Grupo</Text>
-            <Text style={styles.subtitle}>Defina as configuracoes principais</Text>
+
+          <Text style={styles.label}>Nome do Grupo</Text>
+          <View style={styles.inputWrap}>
+            <Ionicons name="chatbubble-ellipses-outline" size={16} color={Colors.textMuted} />
+            <TextInput
+              style={styles.input}
+              placeholder="Ex: Resenha do Bairro"
+              placeholderTextColor={Colors.textMuted}
+              value={nome}
+              onChangeText={setNome}
+              autoCapitalize="words"
+              autoCorrect={false}
+              autoComplete="off"
+              textContentType="none"
+              keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+              returnKeyType="next"
+            />
           </View>
-        </View>
 
-        <Text style={styles.label}>Nome do Grupo</Text>
-        <View style={styles.inputWrap}>
-          <Ionicons name="chatbubble-ellipses-outline" size={16} color={Colors.textMuted} />
-          <TextInput
-            style={styles.input}
-            placeholder="Ex: Resenha do Bairro"
-            placeholderTextColor={Colors.textMuted}
-            value={nome}
-            onChangeText={setNome}
-            autoCapitalize="words"
-            autoCorrect={false}
-            autoComplete="off"
-            textContentType="none"
-            keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
-            returnKeyType="next"
-          />
-        </View>
+          <Text style={styles.label}>Limite de Jogadores</Text>
+          <View style={styles.inputWrap}>
+            <Ionicons name="people-outline" size={16} color={Colors.textMuted} />
+            <TextInput
+              style={styles.input}
+              placeholder="24"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="number-pad"
+              value={limite}
+              onChangeText={setLimite}
+              maxLength={3}
+              autoCorrect={false}
+              keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+              returnKeyType="done"
+            />
+          </View>
+          <Text style={styles.hint}>Maximo de membros que podem entrar no grupo.</Text>
 
-        <Text style={styles.label}>Limite de Jogadores</Text>
-        <View style={styles.inputWrap}>
-          <Ionicons name="people-outline" size={16} color={Colors.textMuted} />
-          <TextInput
-            style={styles.input}
-            placeholder="24"
-            placeholderTextColor={Colors.textMuted}
-            keyboardType="number-pad"
-            value={limite}
-            onChangeText={setLimite}
-            maxLength={3}
-            autoCorrect={false}
-            keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
-            returnKeyType="done"
-          />
-        </View>
-        <Text style={styles.hint}>Maximo de membros que podem entrar no grupo.</Text>
+          <Text style={styles.label}>Dia Fixo do Jogo (Opcional)</Text>
+          <View style={styles.diasRow}>
+            {DIAS.map((d, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[styles.diaBtn, diaSemana === i && styles.diaBtnAtivo]}
+                onPress={() => setDiaSemana(diaSemana === i ? undefined : i)}
+              >
+                <Text style={[styles.diaBtnText, diaSemana === i && styles.diaBtnTextAtivo]}>{d}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        <Text style={styles.label}>Dia Fixo do Jogo (Opcional)</Text>
-        <View style={styles.diasRow}>
-          {DIAS.map((d, i) => (
-            <TouchableOpacity
-              key={i}
-              style={[styles.diaBtn, diaSemana === i && styles.diaBtnAtivo]}
-              onPress={() => setDiaSemana(diaSemana === i ? undefined : i)}
-            >
-              <Text style={[styles.diaBtnText, diaSemana === i && styles.diaBtnTextAtivo]}>{d}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={styles.label}>Horario Fixo (Opcional)</Text>
-        {Platform.OS === 'ios' ? (
-          <DateTimePicker
-            value={horario ?? new Date()}
-            mode="time"
-            display="spinner"
-            is24Hour
-            locale="pt-BR"
-            onChange={(_, d) => d && setHorario(d)}
-            style={{ marginBottom: Spacing.sm }}
-          />
-        ) : (
-          <>
-            <TouchableOpacity style={styles.timeField} onPress={abrirSelecaoHorario}>
-              <View style={styles.timeLeft}>
-                <Ionicons name="time-outline" size={16} color={Colors.textMuted} />
-                <Text style={styles.timeText}>{horario ? formatHorario(horario) : 'Toque para definir'}</Text>
-              </View>
-              <Ionicons name="chevron-down" size={16} color={Colors.textMuted} />
-            </TouchableOpacity>
-            {showTimePicker && Platform.OS !== 'web' && (
+          <Text style={styles.label}>Horario Fixo (Opcional)</Text>
+          {Platform.OS === 'ios' ? (
+            <View style={styles.iosPickerWrap}>
               <DateTimePicker
                 value={horario ?? new Date()}
                 mode="time"
+                display="spinner"
                 is24Hour
-                display="default"
-                onChange={(_, d) => {
-                  setShowTimePicker(false);
-                  if (d) setHorario(d);
-                }}
+                locale="pt-BR"
+                onChange={(_, d) => d && setHorario(d)}
+                style={styles.iosPicker}
+                themeVariant="dark"
+                textColor={Colors.text}
+                accentColor={Colors.primary}
               />
-            )}
-          </>
-        )}
-        <Text style={styles.hint}>Usado para sugerir automaticamente a data ao criar partidas.</Text>
-
-        {erro !== '' && <FeedbackBanner variant="error" message={erro} />}
-
-        <TouchableOpacity
-          style={[styles.botao, carregando && { opacity: 0.6 }]}
-          onPress={handleCriar}
-          disabled={carregando}
-        >
-          {carregando ? (
-            <ActivityIndicator color={Colors.bg} />
+            </View>
           ) : (
-            <Text style={styles.botaoText}>Criar Grupo</Text>
+            <>
+              <TouchableOpacity style={styles.timeField} onPress={abrirSelecaoHorario}>
+                <View style={styles.timeLeft}>
+                  <Ionicons name="time-outline" size={16} color={Colors.textMuted} />
+                  <Text style={styles.timeText}>{horario ? formatHorario(horario) : 'Toque para definir'}</Text>
+                </View>
+                <Ionicons name="chevron-down" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
+              {showTimePicker && Platform.OS !== 'web' && (
+                <DateTimePicker
+                  value={horario ?? new Date()}
+                  mode="time"
+                  is24Hour
+                  display="default"
+                  onChange={(_, d) => {
+                    setShowTimePicker(false);
+                    if (d) setHorario(d);
+                  }}
+                />
+              )}
+            </>
           )}
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <Text style={styles.hint}>Usado para sugerir automaticamente a data ao criar partidas.</Text>
+
+          {erro !== '' && <FeedbackBanner variant="error" message={erro} />}
+
+          <TouchableOpacity
+            style={[styles.botao, carregando && { opacity: 0.6 }]}
+            onPress={handleCriar}
+            disabled={carregando}
+          >
+            {carregando ? (
+              <ActivityIndicator color={Colors.bg} />
+            ) : (
+              <Text style={styles.botaoText}>Criar Grupo</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
-  content: { padding: Spacing.md, justifyContent: 'center', flexGrow: 1 },
+  content: {
+    padding: Spacing.md,
+    justifyContent: Platform.OS === 'ios' ? 'center' : 'flex-start',
+    flexGrow: 1,
+    paddingTop: Platform.OS === 'ios' ? Spacing.md : Spacing.xl,
+  },
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.xl,
@@ -310,6 +330,17 @@ const styles = StyleSheet.create({
   diaBtnAtivo: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   diaBtnText: { color: Colors.textMuted, fontSize: FontSize.xs, fontWeight: '700' },
   diaBtnTextAtivo: { color: Colors.bg },
+  iosPickerWrap: {
+    backgroundColor: Colors.surface2,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    marginBottom: Spacing.sm,
+    overflow: 'hidden',
+  },
+  iosPicker: {
+    marginVertical: 4,
+  },
   timeField: {
     backgroundColor: Colors.surface2,
     borderRadius: Radius.md,

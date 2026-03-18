@@ -41,13 +41,21 @@ namespace Resenha.API.Services
             if (!string.IsNullOrWhiteSpace(request.TimeCoracaoCodigo) && club == null)
                 throw new Exception("Time do coracao invalido.");
 
+            var posicaoPrincipal = PlayerProfileCatalog.NormalizeOptionalPosicaoPrincipal(request.PosicaoPrincipal)
+                ?? throw new Exception("Posicao principal invalida.");
+
+            var peDominante = PlayerProfileCatalog.NormalizeOptionalPeDominante(request.PeDominante)
+                ?? throw new Exception("Pe dominante invalido.");
+
             var usuario = new Usuario
             {
                 Nome = request.Nome.Trim(),
                 Email = normalizedEmail,
                 SenhaHash = PasswordHelper.HashPassword(request.Senha),
-                Goleiro = request.Goleiro,
+                Goleiro = request.Goleiro || posicaoPrincipal == "GOLEIRO",
                 TimeCoracaoCodigo = club?.Codigo,
+                PosicaoPrincipal = posicaoPrincipal,
+                PeDominante = peDominante,
                 AtualizadoEm = DateTime.UtcNow
             };
 
@@ -242,10 +250,63 @@ namespace Resenha.API.Services
                 }
             }
 
+            if (request.PosicaoPrincipal != null)
+            {
+                if (string.IsNullOrWhiteSpace(request.PosicaoPrincipal))
+                {
+                    usuario.PosicaoPrincipal = null;
+                }
+                else
+                {
+                    usuario.PosicaoPrincipal = PlayerProfileCatalog.NormalizeOptionalPosicaoPrincipal(request.PosicaoPrincipal)
+                        ?? throw new Exception("Posicao principal invalida.");
+                }
+            }
+
+            if (request.PeDominante != null)
+            {
+                if (string.IsNullOrWhiteSpace(request.PeDominante))
+                {
+                    usuario.PeDominante = null;
+                }
+                else
+                {
+                    usuario.PeDominante = PlayerProfileCatalog.NormalizeOptionalPeDominante(request.PeDominante)
+                        ?? throw new Exception("Pe dominante invalido.");
+                }
+            }
+
+            if (usuario.PosicaoPrincipal == "GOLEIRO")
+                usuario.Goleiro = true;
+
             _context.SaveChanges();
 
             // Mantem o token atual. O front atualiza apenas metadados locais.
             return MapAuthResponse(usuario, string.Empty);
+        }
+
+        public AuthResponseDTO ChangePassword(ulong userId, ChangePasswordRequestDTO request, string? ipOrigem)
+        {
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.IdUsuario == userId && u.Ativo)
+                ?? throw new Exception("Usuario nao encontrado.");
+
+            if (!PasswordHelper.VerifyPassword(request.SenhaAtual, usuario.SenhaHash))
+                throw new Exception("Senha atual invalida.");
+
+            if (!PasswordPolicyHelper.IsStrong(request.NovaSenha))
+                throw new Exception("Senha deve ter no minimo 8 caracteres, 1 numero e 1 letra maiuscula.");
+
+            if (PasswordHelper.VerifyPassword(request.NovaSenha, usuario.SenhaHash))
+                throw new Exception("A nova senha deve ser diferente da senha atual.");
+
+            usuario.SenhaHash = PasswordHelper.HashPassword(request.NovaSenha);
+            usuario.AtualizadoEm = DateTime.UtcNow;
+
+            AddAudit("PASSWORD_CHANGE_SUCCESS", usuario.IdUsuario, usuario.Email, ipOrigem, "senha_alterada_perfil");
+            _context.SaveChanges();
+
+            var newToken = GenerateJwtToken(usuario);
+            return MapAuthResponse(usuario, newToken);
         }
 
         public List<ClubOptionDTO> GetClubOptions()
@@ -263,7 +324,9 @@ namespace Resenha.API.Services
                 Goleiro = usuario.Goleiro,
                 TimeCoracaoCodigo = club?.Codigo,
                 TimeCoracaoNome = club?.Nome,
-                TimeCoracaoEscudoUrl = club?.EscudoUrl
+                TimeCoracaoEscudoUrl = club?.EscudoUrl,
+                PosicaoPrincipal = usuario.PosicaoPrincipal,
+                PeDominante = usuario.PeDominante
             };
         }
 

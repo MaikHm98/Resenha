@@ -12,17 +12,36 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ClubPicker from '../components/ClubPicker';
+import OptionSelector from '../components/OptionSelector';
 import ClubLogo from '../components/ClubLogo';
 import FeedbackBanner from '../components/FeedbackBanner';
 import { useAuth } from '../contexts/AuthContext';
 import { ClubOption } from '../types';
 import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AppStackParamList } from '../navigation/AppNavigator';
+import {
+  DOMINANT_FOOT_OPTIONS,
+  getDominantFootLabel,
+  getPlayerPositionLabel,
+  PLAYER_POSITION_OPTIONS,
+  DominantFootCode,
+  PlayerPositionCode,
+} from '../constants/playerProfile';
 
-export default function ProfileScreen() {
+type Props = NativeStackScreenProps<AppStackParamList, 'Profile'>;
+
+export default function ProfileScreen({ navigation }: Props) {
   const { user, getClubOptions, updateProfile } = useAuth();
   const [nome, setNome] = useState(user?.nome ?? '');
   const [goleiro, setGoleiro] = useState(!!user?.goleiro);
   const [timeCoracaoCodigo, setTimeCoracaoCodigo] = useState<string | undefined>(user?.timeCoracaoCodigo);
+  const [posicaoPrincipal, setPosicaoPrincipal] = useState<PlayerPositionCode | undefined>(
+    user?.posicaoPrincipal as PlayerPositionCode | undefined
+  );
+  const [peDominante, setPeDominante] = useState<DominantFootCode | undefined>(
+    user?.peDominante as DominantFootCode | undefined
+  );
   const [clubes, setClubes] = useState<ClubOption[]>([]);
   const [carregandoClubes, setCarregandoClubes] = useState(true);
   const [salvando, setSalvando] = useState(false);
@@ -33,7 +52,9 @@ export default function ProfileScreen() {
     setNome(user?.nome ?? '');
     setGoleiro(!!user?.goleiro);
     setTimeCoracaoCodigo(user?.timeCoracaoCodigo);
-  }, [user?.nome, user?.goleiro, user?.timeCoracaoCodigo]);
+    setPosicaoPrincipal(user?.posicaoPrincipal as PlayerPositionCode | undefined);
+    setPeDominante(user?.peDominante as DominantFootCode | undefined);
+  }, [user?.nome, user?.goleiro, user?.timeCoracaoCodigo, user?.posicaoPrincipal, user?.peDominante]);
 
   useEffect(() => {
     async function carregarClubes() {
@@ -63,11 +84,23 @@ export default function ProfileScreen() {
       return;
     }
 
+    if (!posicaoPrincipal) {
+      setErro('Selecione sua posicao principal.');
+      setSucesso('');
+      return;
+    }
+
+    if (!peDominante) {
+      setErro('Selecione seu pe dominante.');
+      setSucesso('');
+      return;
+    }
+
     setErro('');
     setSucesso('');
     setSalvando(true);
     try {
-      await updateProfile({ nome: nomeNormalizado, goleiro, timeCoracaoCodigo });
+      await updateProfile({ nome: nomeNormalizado, goleiro, timeCoracaoCodigo, posicaoPrincipal, peDominante });
       setSucesso('Perfil atualizado com sucesso.');
     } catch (e: any) {
       setErro(e?.response?.data?.mensagem || 'Nao foi possivel atualizar o perfil.');
@@ -100,9 +133,14 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.headerInfo}>
             <View style={styles.nameRow}>
-              <Text style={styles.name}>{user?.nome}</Text>
+            <Text style={styles.name}>{user?.nome}</Text>
             </View>
             <Text style={styles.email}>{user?.email}</Text>
+            <Text style={styles.meta}>
+              {[getPlayerPositionLabel(user?.posicaoPrincipal), getDominantFootLabel(user?.peDominante)]
+                .filter(Boolean)
+                .join(' | ')}
+            </Text>
           </View>
         </View>
 
@@ -132,10 +170,29 @@ export default function ProfileScreen() {
           <Switch
             value={goleiro}
             onValueChange={setGoleiro}
+            disabled={posicaoPrincipal === 'GOLEIRO'}
             trackColor={{ false: Colors.primarySoft, true: Colors.primary }}
             thumbColor={goleiro ? Colors.bg : Colors.textMuted}
           />
         </View>
+        {posicaoPrincipal === 'GOLEIRO' && (
+          <Text style={styles.helperText}>Com posicao principal goleiro, este campo permanece ativo.</Text>
+        )}
+
+        <Text style={styles.label}>Posicao Principal</Text>
+        <OptionSelector
+          options={PLAYER_POSITION_OPTIONS}
+          selectedValue={posicaoPrincipal}
+          onSelect={(value) => {
+            setPosicaoPrincipal(value);
+            if (value === 'GOLEIRO') {
+              setGoleiro(true);
+            }
+          }}
+        />
+
+        <Text style={styles.label}>Pe Dominante</Text>
+        <OptionSelector options={DOMINANT_FOOT_OPTIONS} selectedValue={peDominante} onSelect={setPeDominante} />
 
         <Text style={styles.label}>Time do Coracao (Opcional)</Text>
         <ClubPicker
@@ -150,6 +207,11 @@ export default function ProfileScreen() {
 
         <TouchableOpacity style={[styles.botao, salvando && styles.botaoDesabilitado]} onPress={handleSalvar} disabled={salvando}>
           {salvando ? <ActivityIndicator color={Colors.bg} /> : <Text style={styles.botaoTexto}>Salvar perfil</Text>}
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate('ChangePassword')}>
+          <Ionicons name="shield-checkmark-outline" size={16} color={Colors.primary} />
+          <Text style={styles.secondaryButtonText}>Alterar senha</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -180,6 +242,7 @@ const styles = StyleSheet.create({
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   name: { ...Typography.title, fontSize: FontSize.lg },
   email: { color: Colors.textMuted, fontSize: FontSize.xs },
+  meta: { color: Colors.textMuted, fontSize: FontSize.xs, marginTop: 2 },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -211,12 +274,26 @@ const styles = StyleSheet.create({
   toggleTitle: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   toggleLabel: { color: Colors.textMuted, fontSize: FontSize.sm, fontWeight: '600' },
   label: { ...Typography.label, marginBottom: 6 },
+  helperText: { color: Colors.textMuted, fontSize: FontSize.xs, marginTop: -6, marginBottom: Spacing.md },
   botao: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.md,
     paddingVertical: 12,
     alignItems: 'center',
   },
+  secondaryButton: {
+    marginTop: Spacing.sm,
+    borderRadius: Radius.md,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primarySoft,
+  },
   botaoDesabilitado: { opacity: 0.6 },
   botaoTexto: { color: Colors.bg, fontWeight: '800', fontSize: FontSize.sm },
+  secondaryButtonText: { color: Colors.primary, fontWeight: '800', fontSize: FontSize.sm },
 });

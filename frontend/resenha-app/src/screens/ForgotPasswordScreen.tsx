@@ -27,7 +27,6 @@ type Props = {
 export default function ForgotPasswordScreen({ navigation, route }: Props) {
   const { forgotPassword } = useAuth();
   const [email, setEmail] = useState(route.params?.email ?? '');
-  const [foco, setFoco] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
   const [carregando, setCarregando] = useState(false);
@@ -65,6 +64,7 @@ export default function ForgotPasswordScreen({ navigation, route }: Props) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      enabled={Platform.OS === 'ios'}
     >
       <LinearGradient
         colors={['#040b07', '#071710', '#050f0a']}
@@ -85,7 +85,7 @@ export default function ForgotPasswordScreen({ navigation, route }: Props) {
             >
               <View style={styles.matchTag}>
                 <Ionicons name="key-outline" size={14} color="#7CFF4F" />
-                <Text style={styles.matchTagText}>PASSWORD RESET</Text>
+                <Text style={styles.matchTagText}>RECUPERAR SENHA</Text>
               </View>
 
               <View style={styles.brandRow}>
@@ -93,8 +93,8 @@ export default function ForgotPasswordScreen({ navigation, route }: Props) {
               </View>
 
               <Text style={styles.label}>E-mail</Text>
-              <View style={[styles.inputWrap, foco && styles.inputWrapFocus]}>
-                <Ionicons name="mail-outline" size={17} color={foco ? '#7CFF4F' : Colors.textMuted} />
+              <View style={styles.inputWrap}>
+                <Ionicons name="mail-outline" size={17} color={Colors.textMuted} />
                 <TextInput
                   style={styles.input}
                   placeholder="seuemail@dominio.com"
@@ -102,14 +102,14 @@ export default function ForgotPasswordScreen({ navigation, route }: Props) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
-                  autoComplete="email"
-                  textContentType="emailAddress"
+                  autoComplete={Platform.OS === 'ios' ? 'email' : 'off'}
+                  textContentType={Platform.OS === 'ios' ? 'emailAddress' : 'none'}
                   keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+                  importantForAutofill={Platform.OS === 'android' ? 'no' : 'auto'}
+                  disableFullscreenUI={Platform.OS === 'android'}
                   returnKeyType="send"
                   value={email}
                   onChangeText={setEmail}
-                  onFocus={() => setFoco(true)}
-                  onBlur={() => setFoco(false)}
                   onSubmitEditing={handleSend}
                 />
               </View>
@@ -156,7 +156,12 @@ const bubbleFamily = Platform.select({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#040b07' },
   bgGradient: { flex: 1 },
-  scrollContent: { justifyContent: 'center', flexGrow: 1, padding: Spacing.lg },
+  scrollContent: {
+    justifyContent: Platform.OS === 'ios' ? 'center' : 'flex-start',
+    flexGrow: 1,
+    padding: Spacing.lg,
+    paddingTop: Platform.OS === 'ios' ? Spacing.lg : Spacing.xl,
+  },
   stadiumGlowTop: {
     position: 'absolute',
     top: -120,
@@ -165,6 +170,7 @@ const styles = StyleSheet.create({
     height: 240,
     backgroundColor: '#7CFF4F18',
     borderRadius: 180,
+    pointerEvents: 'none',
   },
   stadiumGlowBottom: {
     position: 'absolute',
@@ -174,6 +180,7 @@ const styles = StyleSheet.create({
     height: 220,
     backgroundColor: '#35F57B14',
     borderRadius: 180,
+    pointerEvents: 'none',
   },
   card: {
     borderRadius: Radius.xl,
@@ -227,15 +234,6 @@ const styles = StyleSheet.create({
     borderColor: '#2e5c44',
     paddingHorizontal: Spacing.sm,
     marginBottom: Spacing.md,
-  },
-  inputWrapFocus: {
-    borderColor: '#7CFF4F',
-    backgroundColor: '#1d3d2c',
-    shadowColor: '#7CFF4F',
-    shadowOpacity: 0.22,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 3,
   },
   input: { flex: 1, color: Colors.text, paddingVertical: 13, fontSize: 16 },
   hint: { color: Colors.textMuted, fontSize: 12, marginTop: -4, marginBottom: Spacing.sm },

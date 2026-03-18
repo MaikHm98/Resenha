@@ -1,0 +1,20 @@
+[Unit]
+Description=Resenha API
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+WorkingDirectory=/opt/resenha/api/current
+ExecStart=/usr/bin/dotnet /opt/resenha/api/current/Resenha.API.dll
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+SyslogIdentifier=resenha-api
+User=resenha
+Group=resenha
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5276
+EnvironmentFile=-/etc/resenha/resenha-api.env
+
+[Install]
+WantedBy=multi-user.target

@@ -196,5 +196,22 @@ namespace Resenha.API.Controllers
                 return this.ToErrorResult(ex);
             }
         }
+
+        // PATCH /api/users/change-password
+        [HttpPatch("change-password")]
+        [Authorize]
+        public IActionResult ChangePassword([FromBody] ChangePasswordRequestDTO request)
+        {
+            try
+            {
+                var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+                var response = _authService.ChangePassword(GetUserId(), request, ip);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return this.ToErrorResult(ex);
+            }
+        }
     }
 }

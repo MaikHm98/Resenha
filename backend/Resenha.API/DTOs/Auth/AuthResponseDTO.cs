@@ -11,5 +11,7 @@ namespace Resenha.API.DTOs.Auth
         public string? TimeCoracaoCodigo { get; set; }
         public string? TimeCoracaoNome { get; set; }
         public string? TimeCoracaoEscudoUrl { get; set; }
+        public string? PosicaoPrincipal { get; set; }
+        public string? PeDominante { get; set; }
     }
 }

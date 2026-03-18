@@ -23,6 +23,7 @@ import ClassificationScreen from '../screens/ClassificationScreen';
 import MyPerformanceScreen from '../screens/MyPerformanceScreen';
 import ManageMembersScreen from '../screens/ManageMembersScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 import ClubLogo from '../components/ClubLogo';
 
 export type AuthStackParamList = {
@@ -51,6 +52,7 @@ export type AppStackParamList = {
   MyPerformance: { groupId: number };
   ManageMembers: { groupId: number; groupName: string; isAdmin: boolean };
   Profile: undefined;
+  ChangePassword: undefined;
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -132,6 +134,7 @@ function AppNavigatorStack() {
       <AppStack.Screen name="MyPerformance" component={MyPerformanceScreen} options={{ title: 'Meu Desempenho' }} />
       <AppStack.Screen name="ManageMembers" component={ManageMembersScreen} options={{ title: 'Membros' }} />
       <AppStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Meu Perfil' }} />
+      <AppStack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ title: 'Alterar Senha' }} />
     </AppStack.Navigator>
   );
 }

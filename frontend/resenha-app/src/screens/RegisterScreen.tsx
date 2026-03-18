@@ -20,6 +20,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { AuthStackParamList } from '../navigation/AppNavigator';
 import { Colors, FontSize, Radius, Spacing } from '../theme';
 import ClubPicker from '../components/ClubPicker';
+import OptionSelector from '../components/OptionSelector';
+import {
+  DOMINANT_FOOT_OPTIONS,
+  DominantFootCode,
+  PLAYER_POSITION_OPTIONS,
+  PlayerPositionCode,
+} from '../constants/playerProfile';
 import FeedbackBanner from '../components/FeedbackBanner';
 import { ClubOption } from '../types';
 
@@ -39,10 +46,11 @@ export default function RegisterScreen({ navigation, route }: Props) {
   const [aviso, setAviso] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
-  const [foco, setFoco] = useState<'nome' | 'email' | 'senha' | null>(null);
   const [clubes, setClubes] = useState<ClubOption[]>([]);
   const [carregandoClubes, setCarregandoClubes] = useState(false);
   const [timeCoracaoCodigo, setTimeCoracaoCodigo] = useState<string | undefined>(undefined);
+  const [posicaoPrincipal, setPosicaoPrincipal] = useState<PlayerPositionCode | undefined>(undefined);
+  const [peDominante, setPeDominante] = useState<DominantFootCode | undefined>(undefined);
 
   useEffect(() => {
     async function carregarClubes() {
@@ -102,6 +110,18 @@ export default function RegisterScreen({ navigation, route }: Props) {
       return;
     }
 
+    if (!posicaoPrincipal) {
+      setErro('Selecione sua posicao principal.');
+      setAviso('');
+      return;
+    }
+
+    if (!peDominante) {
+      setErro('Selecione seu pe dominante.');
+      setAviso('');
+      return;
+    }
+
     setErro('');
     setAviso('');
     setCarregando(true);
@@ -111,6 +131,8 @@ export default function RegisterScreen({ navigation, route }: Props) {
         nomeNormalizado,
         emailNormalizado,
         senha,
+        posicaoPrincipal,
+        peDominante,
         goleiro,
         inviteCode || undefined,
         timeCoracaoCodigo
@@ -130,6 +152,7 @@ export default function RegisterScreen({ navigation, route }: Props) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      enabled={Platform.OS === 'ios'}
     >
       <LinearGradient
         colors={['#040b07', '#071710', '#050f0a']}
@@ -150,7 +173,7 @@ export default function RegisterScreen({ navigation, route }: Props) {
             >
               <View style={styles.matchTag}>
                 <Ionicons name="person-add-outline" size={14} color="#7CFF4F" />
-                <Text style={styles.matchTagText}>MATCHDAY SIGNUP</Text>
+                <Text style={styles.matchTagText}>CRIAR CONTA</Text>
               </View>
 
               <View style={styles.brandRow}>
@@ -158,28 +181,28 @@ export default function RegisterScreen({ navigation, route }: Props) {
               </View>
 
               <Text style={styles.label}>Nome</Text>
-              <View style={[styles.inputWrap, foco === 'nome' && styles.inputWrapFocus]}>
-                <Ionicons name="person-outline" size={17} color={foco === 'nome' ? '#7CFF4F' : Colors.textMuted} />
+              <View style={styles.inputWrap}>
+                <Ionicons name="person-outline" size={17} color={Colors.textMuted} />
                 <TextInput
                   style={styles.input}
                   placeholder="Seu nome"
                   placeholderTextColor={Colors.textMuted}
                   autoCapitalize="words"
                   autoCorrect={false}
-                  autoComplete="name"
-                  textContentType="name"
+                  autoComplete={Platform.OS === 'ios' ? 'name' : 'off'}
+                  textContentType={Platform.OS === 'ios' ? 'name' : 'none'}
                   keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+                  importantForAutofill={Platform.OS === 'android' ? 'no' : 'auto'}
+                  disableFullscreenUI={Platform.OS === 'android'}
                   returnKeyType="next"
                   value={nome}
                   onChangeText={setNome}
-                  onFocus={() => setFoco('nome')}
-                  onBlur={() => setFoco(null)}
                 />
               </View>
 
               <Text style={styles.label}>E-mail</Text>
-              <View style={[styles.inputWrap, foco === 'email' && styles.inputWrapFocus]}>
-                <Ionicons name="mail-outline" size={17} color={foco === 'email' ? '#7CFF4F' : Colors.textMuted} />
+              <View style={styles.inputWrap}>
+                <Ionicons name="mail-outline" size={17} color={Colors.textMuted} />
                 <TextInput
                   style={styles.input}
                   placeholder="seuemail@dominio.com"
@@ -187,15 +210,15 @@ export default function RegisterScreen({ navigation, route }: Props) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
-                  autoComplete="email"
-                  textContentType="emailAddress"
+                  autoComplete={Platform.OS === 'ios' ? 'email' : 'off'}
+                  textContentType={Platform.OS === 'ios' ? 'emailAddress' : 'none'}
                   keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+                  importantForAutofill={Platform.OS === 'android' ? 'no' : 'auto'}
+                  disableFullscreenUI={Platform.OS === 'android'}
                   returnKeyType="next"
                   value={email}
                   onChangeText={setEmail}
                   editable={inviteCode === ''}
-                  onFocus={() => setFoco('email')}
-                  onBlur={() => setFoco(null)}
                 />
               </View>
               {inviteCode !== '' && (
@@ -206,8 +229,8 @@ export default function RegisterScreen({ navigation, route }: Props) {
               )}
 
               <Text style={styles.label}>Senha</Text>
-              <View style={[styles.inputWrap, foco === 'senha' && styles.inputWrapFocus]}>
-                <Ionicons name="lock-closed-outline" size={17} color={foco === 'senha' ? '#7CFF4F' : Colors.textMuted} />
+              <View style={styles.inputWrap}>
+                <Ionicons name="lock-closed-outline" size={17} color={Colors.textMuted} />
                 <TextInput
                   style={styles.input}
                   placeholder="Crie uma senha"
@@ -215,21 +238,21 @@ export default function RegisterScreen({ navigation, route }: Props) {
                   secureTextEntry={!showSenha}
                   autoCapitalize="none"
                   autoCorrect={false}
-                  autoComplete="new-password"
-                  textContentType="newPassword"
+                  autoComplete={Platform.OS === 'ios' ? 'new-password' : 'off'}
+                  textContentType={Platform.OS === 'ios' ? 'newPassword' : 'none'}
                   keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+                  importantForAutofill={Platform.OS === 'android' ? 'no' : 'auto'}
+                  disableFullscreenUI={Platform.OS === 'android'}
                   returnKeyType="done"
                   value={senha}
                   onChangeText={setSenha}
-                  onFocus={() => setFoco('senha')}
-                  onBlur={() => setFoco(null)}
                   onSubmitEditing={handleRegister}
                 />
                 <Pressable onPress={() => setShowSenha((prev) => !prev)}>
                   <Ionicons
                     name={showSenha ? 'eye-off-outline' : 'eye-outline'}
                     size={17}
-                    color={foco === 'senha' ? '#7CFF4F' : Colors.textMuted}
+                    color={Colors.textMuted}
                   />
                 </Pressable>
               </View>
@@ -243,10 +266,33 @@ export default function RegisterScreen({ navigation, route }: Props) {
                 <Switch
                   value={goleiro}
                   onValueChange={setGoleiro}
+                  disabled={posicaoPrincipal === 'GOLEIRO'}
                   trackColor={{ false: '#244332', true: '#7CFF4F' }}
                   thumbColor={goleiro ? '#0c1f14' : Colors.textMuted}
                 />
               </View>
+              {posicaoPrincipal === 'GOLEIRO' && (
+                <Text style={styles.hint}>Quem escolhe goleiro como posicao principal fica marcado como goleiro.</Text>
+              )}
+
+              <Text style={styles.label}>Posicao Principal</Text>
+              <OptionSelector
+                options={PLAYER_POSITION_OPTIONS}
+                selectedValue={posicaoPrincipal}
+                onSelect={(value) => {
+                  setPosicaoPrincipal(value);
+                  if (value === 'GOLEIRO') {
+                    setGoleiro(true);
+                  }
+                }}
+              />
+
+              <Text style={styles.label}>Pe Dominante</Text>
+              <OptionSelector
+                options={DOMINANT_FOOT_OPTIONS}
+                selectedValue={peDominante}
+                onSelect={setPeDominante}
+              />
 
               <Text style={styles.label}>Time do Coracao (opcional)</Text>
               <ClubPicker
@@ -303,9 +349,10 @@ const styles = StyleSheet.create({
   },
   bgGradient: { flex: 1 },
   scrollContent: {
-    justifyContent: 'center',
     flexGrow: 1,
     padding: Spacing.lg,
+    justifyContent: Platform.OS === 'ios' ? 'center' : 'flex-start',
+    paddingTop: Platform.OS === 'ios' ? Spacing.lg : Spacing.xl,
   },
   stadiumGlowTop: {
     position: 'absolute',
@@ -315,6 +362,7 @@ const styles = StyleSheet.create({
     height: 240,
     backgroundColor: '#7CFF4F18',
     borderRadius: 180,
+    pointerEvents: 'none',
   },
   stadiumGlowBottom: {
     position: 'absolute',
@@ -324,6 +372,7 @@ const styles = StyleSheet.create({
     height: 220,
     backgroundColor: '#35F57B14',
     borderRadius: 180,
+    pointerEvents: 'none',
   },
   card: {
     borderRadius: Radius.xl,
@@ -384,15 +433,6 @@ const styles = StyleSheet.create({
     borderColor: '#2e5c44',
     paddingHorizontal: Spacing.sm,
     marginBottom: Spacing.md,
-  },
-  inputWrapFocus: {
-    borderColor: '#7CFF4F',
-    backgroundColor: '#1d3d2c',
-    shadowColor: '#7CFF4F',
-    shadowOpacity: 0.22,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 3,
   },
   input: {
     flex: 1,

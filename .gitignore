@@ -19,6 +19,7 @@ node_modules/
 .expo/
 dist/
 build/
+publish/
 *.jks
 *.keystore
 *.p8

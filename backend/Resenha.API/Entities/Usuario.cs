@@ -38,6 +38,14 @@ namespace Resenha.API.Entities
         [Column("time_coracao_codigo")]
         public string? TimeCoracaoCodigo { get; set; }
 
+        [MaxLength(20)]
+        [Column("posicao_principal")]
+        public string? PosicaoPrincipal { get; set; }
+
+        [MaxLength(20)]
+        [Column("pe_dominante")]
+        public string? PeDominante { get; set; }
+
         [Column("atualizado_em")]
         public DateTime? AtualizadoEm { get; set; }
     }

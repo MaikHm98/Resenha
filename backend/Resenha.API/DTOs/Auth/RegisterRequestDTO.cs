@@ -24,5 +24,13 @@ namespace Resenha.API.DTOs.Auth
 
         [MaxLength(20)]
         public string? TimeCoracaoCodigo { get; set; }
+
+        [Required(ErrorMessage = "Posicao principal e obrigatoria.")]
+        [MaxLength(20, ErrorMessage = "Posicao principal invalida.")]
+        public string PosicaoPrincipal { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Pe dominante e obrigatorio.")]
+        [MaxLength(20, ErrorMessage = "Pe dominante invalido.")]
+        public string PeDominante { get; set; } = string.Empty;
     }
 }

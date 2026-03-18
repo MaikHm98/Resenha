@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../api/api';
 import { ClubOption, User } from '../types';
+import { DominantFootCode, PlayerPositionCode } from '../constants/playerProfile';
 
 interface AuthContextData {
   user: User | null;
@@ -12,6 +13,8 @@ interface AuthContextData {
     nome: string,
     email: string,
     password: string,
+    posicaoPrincipal: PlayerPositionCode,
+    peDominante: DominantFootCode,
     goleiro?: boolean,
     inviteCode?: string,
     timeCoracaoCodigo?: string
@@ -20,7 +23,14 @@ interface AuthContextData {
   validateResetToken: (token: string) => Promise<boolean>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
   getClubOptions: () => Promise<ClubOption[]>;
-  updateProfile: (payload: { nome?: string; goleiro?: boolean; timeCoracaoCodigo?: string }) => Promise<void>;
+  updateProfile: (payload: {
+    nome?: string;
+    goleiro?: boolean;
+    timeCoracaoCodigo?: string;
+    posicaoPrincipal?: PlayerPositionCode;
+    peDominante?: DominantFootCode;
+  }) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -63,6 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       timeCoracaoCodigo,
       timeCoracaoNome,
       timeCoracaoEscudoUrl,
+      posicaoPrincipal,
+      peDominante,
     } = response.data;
 
     const userData: User = {
@@ -73,6 +85,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       timeCoracaoCodigo,
       timeCoracaoNome,
       timeCoracaoEscudoUrl,
+      posicaoPrincipal,
+      peDominante,
     };
 
     await AsyncStorage.setItem('@resenha:token', newToken);
@@ -86,6 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     nome: string,
     email: string,
     password: string,
+    posicaoPrincipal: PlayerPositionCode,
+    peDominante: DominantFootCode,
     goleiro?: boolean,
     inviteCode?: string,
     timeCoracaoCodigo?: string
@@ -95,6 +111,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       nome,
       email: normalizedEmail,
       senha: password,
+      posicaoPrincipal,
+      peDominante,
       goleiro: goleiro ?? false,
       timeCoracaoCodigo: timeCoracaoCodigo ?? null,
     });
@@ -118,6 +136,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       timeCoracaoCodigo: clubCode,
       timeCoracaoNome: clubName,
       timeCoracaoEscudoUrl: clubLogo,
+      posicaoPrincipal: response.data.posicaoPrincipal,
+      peDominante: response.data.peDominante,
     };
 
     let inviteJoinWarning: string | undefined;
@@ -170,11 +190,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return response.data as ClubOption[];
   }
 
-  async function updateProfile(payload: { nome?: string; goleiro?: boolean; timeCoracaoCodigo?: string }) {
+  async function updateProfile(payload: {
+    nome?: string;
+    goleiro?: boolean;
+    timeCoracaoCodigo?: string;
+    posicaoPrincipal?: PlayerPositionCode;
+    peDominante?: DominantFootCode;
+  }) {
     const response = await api.patch('/api/users/profile', {
       nome: payload.nome,
       goleiro: payload.goleiro,
       timeCoracaoCodigo: payload.timeCoracaoCodigo ?? null,
+      posicaoPrincipal: payload.posicaoPrincipal ?? null,
+      peDominante: payload.peDominante ?? null,
     });
 
     const updated = response.data;
@@ -186,10 +214,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       timeCoracaoCodigo: updated.timeCoracaoCodigo,
       timeCoracaoNome: updated.timeCoracaoNome,
       timeCoracaoEscudoUrl: updated.timeCoracaoEscudoUrl,
+      posicaoPrincipal: updated.posicaoPrincipal,
+      peDominante: updated.peDominante,
     };
 
     setUser(nextUser);
     await AsyncStorage.setItem('@resenha:user', JSON.stringify(nextUser));
+  }
+
+  async function changePassword(currentPassword: string, newPassword: string) {
+    const response = await api.patch('/api/users/change-password', {
+      senhaAtual: currentPassword,
+      novaSenha: newPassword,
+    });
+
+    const updated = response.data;
+    const nextToken = updated.token as string;
+    const nextUser: User = {
+      idUsuario: updated.idUsuario ?? user?.idUsuario ?? 0,
+      nome: updated.nome ?? user?.nome ?? '',
+      email: updated.email ?? user?.email ?? '',
+      goleiro: updated.goleiro,
+      timeCoracaoCodigo: updated.timeCoracaoCodigo,
+      timeCoracaoNome: updated.timeCoracaoNome,
+      timeCoracaoEscudoUrl: updated.timeCoracaoEscudoUrl,
+      posicaoPrincipal: updated.posicaoPrincipal,
+      peDominante: updated.peDominante,
+    };
+
+    await AsyncStorage.setItem('@resenha:token', nextToken);
+    await AsyncStorage.setItem('@resenha:user', JSON.stringify(nextUser));
+
+    setToken(nextToken);
+    setUser(nextUser);
   }
 
   async function logout() {
@@ -212,6 +269,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         resetPassword,
         getClubOptions,
         updateProfile,
+        changePassword,
         logout,
       }}
     >

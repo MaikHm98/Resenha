@@ -132,8 +132,9 @@ export default function CreateMatchScreen({ navigation, route }: Props) {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.select({ ios: 'padding', android: 'height', default: undefined })}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 84 : 0}
+      enabled={Platform.OS === 'ios'}
     >
       <ScrollView
         style={styles.container}

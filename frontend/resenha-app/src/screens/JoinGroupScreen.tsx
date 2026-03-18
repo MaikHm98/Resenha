@@ -47,6 +47,7 @@ export default function JoinGroupScreen({ navigation }: Props) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      enabled={Platform.OS === 'ios'}
     >
       <View style={styles.card}>
         <View style={styles.iconBadge}>
@@ -96,7 +97,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.bg,
     padding: Spacing.md,
-    justifyContent: 'center',
+    justifyContent: Platform.OS === 'ios' ? 'center' : 'flex-start',
+    paddingTop: Platform.OS === 'ios' ? Spacing.md : Spacing.xl,
   },
   card: {
     backgroundColor: Colors.surface,

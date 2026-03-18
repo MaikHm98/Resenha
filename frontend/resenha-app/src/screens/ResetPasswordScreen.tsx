@@ -29,7 +29,6 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
   const { validateResetToken, resetPassword } = useAuth();
   const [token, setToken] = useState(route.params?.token ?? '');
   const [senha, setSenha] = useState('');
-  const [foco, setFoco] = useState<'token' | 'senha' | null>(null);
   const [showSenha, setShowSenha] = useState(false);
   const [tokenValido, setTokenValido] = useState(false);
   const [tokenValidado, setTokenValidado] = useState(false);
@@ -104,6 +103,7 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      enabled={Platform.OS === 'ios'}
     >
       <LinearGradient
         colors={['#040b07', '#071710', '#050f0a']}
@@ -124,7 +124,7 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
             >
               <View style={styles.matchTag}>
                 <Ionicons name="lock-open-outline" size={14} color="#7CFF4F" />
-                <Text style={styles.matchTagText}>RESET PASSWORD</Text>
+                <Text style={styles.matchTagText}>REDEFINIR SENHA</Text>
               </View>
 
               <View style={styles.brandRow}>
@@ -132,8 +132,8 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
               </View>
 
               <Text style={styles.label}>Token de recuperacao</Text>
-              <View style={[styles.inputWrap, foco === 'token' && styles.inputWrapFocus]}>
-                <Ionicons name="shield-outline" size={17} color={foco === 'token' ? '#7CFF4F' : Colors.textMuted} />
+              <View style={styles.inputWrap}>
+                <Ionicons name="shield-outline" size={17} color={Colors.textMuted} />
                 <TextInput
                   style={styles.input}
                   value={token}
@@ -151,16 +151,16 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
                   autoComplete="off"
                   textContentType="none"
                   keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+                  importantForAutofill={Platform.OS === 'android' ? 'no' : 'auto'}
+                  disableFullscreenUI={Platform.OS === 'android'}
                   returnKeyType="next"
-                  onFocus={() => setFoco('token')}
-                  onBlur={() => setFoco(null)}
                 />
               </View>
               <Text style={styles.info}>Passo 1: valide o token recebido por e-mail.</Text>
 
               <Text style={styles.label}>Nova senha</Text>
-              <View style={[styles.inputWrap, foco === 'senha' && styles.inputWrapFocus]}>
-                <Ionicons name="key-outline" size={17} color={foco === 'senha' ? '#7CFF4F' : Colors.textMuted} />
+              <View style={styles.inputWrap}>
+                <Ionicons name="key-outline" size={17} color={Colors.textMuted} />
                 <TextInput
                   style={styles.input}
                   value={senha}
@@ -170,16 +170,16 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
                   secureTextEntry={!showSenha}
                   autoCapitalize="none"
                   autoCorrect={false}
-                  autoComplete="new-password"
-                  textContentType="newPassword"
+                  autoComplete={Platform.OS === 'ios' ? 'new-password' : 'off'}
+                  textContentType={Platform.OS === 'ios' ? 'newPassword' : 'none'}
                   keyboardAppearance={Platform.OS === 'ios' ? 'default' : undefined}
+                  importantForAutofill={Platform.OS === 'android' ? 'no' : 'auto'}
+                  disableFullscreenUI={Platform.OS === 'android'}
                   returnKeyType="done"
-                  onFocus={() => setFoco('senha')}
-                  onBlur={() => setFoco(null)}
                   onSubmitEditing={handleReset}
                 />
                 <Pressable onPress={() => setShowSenha((prev) => !prev)}>
-                  <Ionicons name={showSenha ? 'eye-off-outline' : 'eye-outline'} size={17} color={foco === 'senha' ? '#7CFF4F' : Colors.textMuted} />
+                  <Ionicons name={showSenha ? 'eye-off-outline' : 'eye-outline'} size={17} color={Colors.textMuted} />
                 </Pressable>
               </View>
 
@@ -233,7 +233,12 @@ const bubbleFamily = Platform.select({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#040b07' },
   bgGradient: { flex: 1 },
-  scrollContent: { justifyContent: 'center', flexGrow: 1, padding: Spacing.lg },
+  scrollContent: {
+    justifyContent: Platform.OS === 'ios' ? 'center' : 'flex-start',
+    flexGrow: 1,
+    padding: Spacing.lg,
+    paddingTop: Platform.OS === 'ios' ? Spacing.lg : Spacing.xl,
+  },
   stadiumGlowTop: {
     position: 'absolute',
     top: -120,
@@ -242,6 +247,7 @@ const styles = StyleSheet.create({
     height: 240,
     backgroundColor: '#7CFF4F18',
     borderRadius: 180,
+    pointerEvents: 'none',
   },
   stadiumGlowBottom: {
     position: 'absolute',
@@ -251,6 +257,7 @@ const styles = StyleSheet.create({
     height: 220,
     backgroundColor: '#35F57B14',
     borderRadius: 180,
+    pointerEvents: 'none',
   },
   card: {
     borderRadius: Radius.xl,
@@ -304,15 +311,6 @@ const styles = StyleSheet.create({
     borderColor: '#2e5c44',
     paddingHorizontal: Spacing.sm,
     marginBottom: Spacing.md,
-  },
-  inputWrapFocus: {
-    borderColor: '#7CFF4F',
-    backgroundColor: '#1d3d2c',
-    shadowColor: '#7CFF4F',
-    shadowOpacity: 0.22,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 3,
   },
   input: { flex: 1, color: Colors.text, paddingVertical: 13, fontSize: 16 },
   hint: { color: Colors.textMuted, fontSize: 12, marginBottom: Spacing.sm },

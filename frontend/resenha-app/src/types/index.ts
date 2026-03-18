@@ -6,6 +6,8 @@ export interface User {
   timeCoracaoCodigo?: string;
   timeCoracaoNome?: string;
   timeCoracaoEscudoUrl?: string;
+  posicaoPrincipal?: string;
+  peDominante?: string;
 }
 
 export interface AuthResponse {
@@ -17,6 +19,8 @@ export interface AuthResponse {
   timeCoracaoCodigo?: string;
   timeCoracaoNome?: string;
   timeCoracaoEscudoUrl?: string;
+  posicaoPrincipal?: string;
+  peDominante?: string;
 }
 
 export interface Group {
