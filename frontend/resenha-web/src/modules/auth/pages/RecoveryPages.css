@@ -1,0 +1,19 @@
+.recovery-inline-actions {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.recovery-secondary-action {
+  align-self: end;
+}
+
+@media (min-width: 640px) {
+  .recovery-inline-actions {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+  }
+
+  .recovery-secondary-action {
+    min-width: 9.5rem;
+  }
+}

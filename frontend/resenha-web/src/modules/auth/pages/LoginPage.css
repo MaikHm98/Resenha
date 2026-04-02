@@ -1,0 +1,32 @@
+.auth-card {
+  width: min(100%, 28rem);
+  margin-inline: auto;
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-form {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.auth-footer-links {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.auth-footer-links a {
+  font-size: 0.875rem;
+  color: var(--color-brand-primary);
+}
+
+.auth-footer-links a:hover {
+  text-decoration: underline;
+}
