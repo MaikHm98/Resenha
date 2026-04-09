@@ -12,6 +12,7 @@ namespace Resenha.API.DTOs.Captain
 
         // Jogadores bloqueados neste ciclo (já foram derrotados pelo capitão)
         public List<BlockedPlayerDTO> Bloqueados { get; set; } = new();
+        public List<HistoricoCapitaoDTO> Historico { get; set; } = new();
 
         public string Status { get; set; } = string.Empty;
         public DateTime IniciadoEm { get; set; }
@@ -21,5 +22,21 @@ namespace Resenha.API.DTOs.Captain
     {
         public ulong IdUsuario { get; set; }
         public string Nome { get; set; } = string.Empty;
+    }
+
+    public class HistoricoCapitaoDTO
+    {
+        public ulong IdHistorico { get; set; }
+        public ulong IdPartida { get; set; }
+        public ulong IdCapitao { get; set; }
+        public string NomeCapitao { get; set; } = string.Empty;
+        public ulong IdDesafiante { get; set; }
+        public string NomeDesafiante { get; set; } = string.Empty;
+        public ulong IdVencedor { get; set; }
+        public string NomeVencedor { get; set; } = string.Empty;
+        public ulong IdDerrotado { get; set; }
+        public string NomeDerrotado { get; set; } = string.Empty;
+        public string Resultado { get; set; } = string.Empty;
+        public DateTime RegistradoEm { get; set; }
     }
 }

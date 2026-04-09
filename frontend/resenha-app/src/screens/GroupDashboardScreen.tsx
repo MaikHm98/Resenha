@@ -19,6 +19,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import api from '../api/api';
 import { AppStackParamList } from '../navigation/AppNavigator';
+import { useAuth } from '../contexts/AuthContext';
 import { Colors, FontSize, Radius, Spacing, Typography } from '../theme';
 import { Match } from '../types';
 
@@ -56,6 +57,7 @@ function formatDate(iso: string): string {
 
 export default function GroupDashboardScreen({ navigation, route }: Props) {
   const { groupId, groupName, isAdmin, diaSemana, horarioFixo, limiteJogadores } = route.params;
+  const { user } = useAuth();
   const [isAdminAtual, setIsAdminAtual] = useState(isAdmin);
   const [diaSemanaAtual, setDiaSemanaAtual] = useState<number | undefined>(diaSemana);
   const [horarioFixoAtual, setHorarioFixoAtual] = useState(horarioFixo ?? '');
@@ -74,6 +76,10 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
   const [editDia, setEditDia] = useState<number | undefined>(diaSemanaAtual);
   const [editHorario, setEditHorario] = useState(horarioFixoAtual);
   const [savingSchedule, setSavingSchedule] = useState(false);
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const [guestName, setGuestName] = useState('');
+  const [guestMatchId, setGuestMatchId] = useState<number | null>(null);
+  const [savingGuest, setSavingGuest] = useState(false);
 
   async function carregarPartidas(silencioso = false) {
     if (!silencioso) setCarregando(true);
@@ -108,6 +114,19 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
 
   async function handlePresenca(partida: Match) {
     if (loadingIds.has(partida.idPartida)) return;
+
+    const goleirosConfirmados = partida.confirmados.filter((c) => c.goleiro).length;
+    const usuarioEhGoleiro = !!user?.goleiro;
+    const bloqueioTerceiroGoleiro = !partida.usuarioConfirmado && usuarioEhGoleiro && goleirosConfirmados >= 2;
+
+    if (bloqueioTerceiroGoleiro) {
+      const mensagem =
+        'Esta partida ja atingiu o limite de 2 goleiros confirmados. Voce so podera confirmar presenca se um dos goleiros sair da lista.';
+      setErro(mensagem);
+      Alert.alert('Limite de goleiros atingido', mensagem);
+      return;
+    }
+
     setLoadingIds((prev) => new Set(prev).add(partida.idPartida));
     try {
       if (partida.usuarioConfirmado) {
@@ -171,12 +190,12 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
 
   function confirmDeleteMatch(partida: Match) {
     Alert.alert(
-      'Excluir partida',
-      'Essa acao remove a partida e os dados relacionados. Deseja continuar?',
+      'Cancelar partida',
+      'Essa acao remove presencas, times, escolhas e sorteios da partida. O capitao atual sera mantido, mas o desafiante atual sera zerado. Deseja continuar?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Excluir',
+          text: 'Cancelar partida',
           style: 'destructive',
           onPress: () => handleDeleteMatch(partida.idPartida),
         },
@@ -203,6 +222,50 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
     }
   }
 
+  function openGuestModal(matchId: number) {
+    const partida = partidas.find((item) => item.idPartida === matchId);
+    if (partida?.limiteCheio) {
+      setErro(`A lista desta partida ja foi fechada em ${partida.limiteVagas} jogadores.`);
+      Alert.alert('Lista fechada', 'Nao e mais possivel adicionar convidado enquanto a lista estiver cheia.');
+      return;
+    }
+
+    setGuestMatchId(matchId);
+    setGuestName('');
+    setShowGuestModal(true);
+  }
+
+  function showListaFechadaInfo(limiteVagas: number) {
+    Alert.alert(
+      'Lista fechada',
+      `Esta partida atingiu o limite de ${limiteVagas} jogadores. Novas confirmacoes e convidados ficam bloqueados ate surgir uma vaga.`
+    );
+  }
+
+  async function handleAddGuest() {
+    if (!guestMatchId || !guestName.trim()) return;
+
+    setSavingGuest(true);
+    setErro('');
+    try {
+      await api.post(`/api/matches/${guestMatchId}/guests`, {
+        nome: guestName.trim(),
+      });
+      setShowGuestModal(false);
+      setGuestName('');
+      setGuestMatchId(null);
+      await carregarPartidas(true);
+    } catch (e: any) {
+      setErro(e?.response?.data?.mensagem || 'Nao foi possivel adicionar o convidado.');
+    } finally {
+      setSavingGuest(false);
+    }
+  }
+
+  function getPartidaDesafio() {
+    return partidas.find((p) => p.status === 'ABERTA' || p.status === 'EM_ANDAMENTO') ?? null;
+  }
+
   function renderToolbar() {
     return (
       <FlatList
@@ -211,6 +274,7 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
         contentContainerStyle={styles.toolbarContent}
         data={[
           { key: 'classification', label: 'Classificacao', icon: 'bar-chart-outline' as const },
+          { key: 'history', label: 'Historico', icon: 'albums-outline' as const },
           { key: 'captain', label: 'Capitao', icon: 'shield-outline' as const },
           { key: 'my-performance', label: 'Desempenho', icon: 'pulse-outline' as const },
           { key: 'schedule', label: 'Horario', icon: 'time-outline' as const },
@@ -224,6 +288,8 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
             onPress={() => {
               if (item.key === 'classification') {
                 navigation.navigate('Classification', { groupId });
+              } else if (item.key === 'history') {
+                navigation.navigate('HistoricoPartidas', { groupId, groupName });
               } else if (item.key === 'captain') {
                 navigation.navigate('Captain', { groupId, isAdmin: isAdminAtual });
               } else if (item.key === 'my-performance') {
@@ -261,7 +327,8 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
   function renderCaptainBanner() {
     if (!captainStatus) return null;
     const hasDesafiante = !!captainStatus.nomeDesafiante;
-    return (
+    const partidaDesafio = hasDesafiante ? getPartidaDesafio() : null;
+    const content = (
       <View style={[styles.captainBanner, hasDesafiante ? styles.captainBannerAlert : styles.captainBannerInfo]}>
         <View style={styles.captainBannerHeader}>
           <Ionicons name={hasDesafiante ? 'flash-outline' : 'ribbon-outline'} size={16} color={Colors.textMuted} />
@@ -269,12 +336,32 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
             {hasDesafiante ? 'Desafio em andamento' : 'Capitao atual'}
           </Text>
         </View>
-        <Text style={styles.captainBannerText}>
-          {captainStatus.nomeCapitao}
-          {'  x  '}
-          {captainStatus.nomeDesafiante ?? 'Desafio nao lancado'}
-        </Text>
+        <View style={styles.captainBannerBody}>
+          <Text style={styles.captainBannerText}>
+            {captainStatus.nomeCapitao}
+            {'  x  '}
+            {captainStatus.nomeDesafiante ?? 'Desafio nao lancado'}
+          </Text>
+          {partidaDesafio && <Ionicons name="chevron-forward-outline" size={18} color={Colors.textMuted} />}
+        </View>
       </View>
+    );
+
+    if (!partidaDesafio) return content;
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() =>
+          navigation.navigate('DesafioEmAndamento', {
+            matchId: partidaDesafio.idPartida,
+            groupId,
+            groupName,
+          })
+        }
+      >
+        {content}
+      </TouchableOpacity>
     );
   }
 
@@ -283,6 +370,7 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
     const isLoadingAusente = loadingAusenteIds.has(item.idPartida);
     const isDeleting = deletingMatchIds.has(item.idPartida);
     const podeConfirmar = item.status === 'ABERTA' && (!item.limiteCheio || item.usuarioConfirmado);
+    const listaFechada = item.status === 'ABERTA' && item.limiteCheio;
     const progress = Math.min(100, (item.totalConfirmados / item.limiteVagas) * 100);
     const vagasColor = item.usuarioConfirmado
       ? Colors.success
@@ -293,6 +381,13 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
     const goleiros = item.confirmados.filter((c) => c.goleiro);
     const linha = item.confirmados.filter((c) => !c.goleiro);
     const totalAusentes = item.ausentesNomes.length + item.naoConfirmaramNomes.length;
+    const usuarioEhGoleiro = !!user?.goleiro;
+    const bloqueioTerceiroGoleiro = !item.usuarioConfirmado && usuarioEhGoleiro && goleiros.length >= 2;
+    const podeConfirmarFinal = podeConfirmar && !bloqueioTerceiroGoleiro;
+    const podeAdicionarConvidado = isAdminAtual && item.status === 'ABERTA' && !item.limiteCheio;
+    const mostrarApenasSaidaDaLista = listaFechada && item.usuarioConfirmado;
+    const statusVisual = listaFechada ? 'LISTA FECHADA' : STATUS_LABEL[item.status];
+    const statusVisualColor = listaFechada ? Colors.danger : STATUS_COLOR[item.status];
 
     return (
       <View style={styles.card}>
@@ -302,22 +397,14 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
             <Text style={styles.cardDate}>{formatDate(item.dataHoraJogo)}</Text>
           </View>
           <View style={styles.cardHeaderRight}>
-            <View style={[styles.statusBadge, { backgroundColor: `${STATUS_COLOR[item.status]}22` }]}>
-              <Text style={[styles.statusText, { color: STATUS_COLOR[item.status] }]}>
-                {STATUS_LABEL[item.status]}
+            <View style={[styles.statusBadge, { backgroundColor: `${statusVisualColor}22` }]}>
+              <Text style={[styles.statusText, { color: statusVisualColor }]}>
+                {statusVisual}
               </Text>
             </View>
-            {isAdminAtual && (
-              <TouchableOpacity
-                style={[styles.deleteMatchButton, isDeleting && { opacity: 0.7 }]}
-                onPress={() => confirmDeleteMatch(item)}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <ActivityIndicator size="small" color={Colors.danger} />
-                ) : (
-                  <Ionicons name="trash-outline" size={14} color={Colors.danger} />
-                )}
+            {listaFechada && (
+              <TouchableOpacity style={styles.infoBadgeButton} onPress={() => showListaFechadaInfo(item.limiteVagas)}>
+                <Ionicons name="information-circle-outline" size={18} color={Colors.textMuted} />
               </TouchableOpacity>
             )}
           </View>
@@ -399,22 +486,28 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
 
             {!!item.observacao && <Text style={styles.observation}>{item.observacao}</Text>}
 
-            {item.status === 'ABERTA' && (
+            {item.status === 'ABERTA' && !mostrarApenasSaidaDaLista && (
               <View style={styles.actionRow}>
                 <TouchableOpacity
                   style={[
                     styles.actionButton,
                     item.usuarioConfirmado ? styles.actionButtonSuccess : styles.actionButtonOutline,
-                    (!podeConfirmar && !item.usuarioConfirmado) && styles.actionDisabled,
+                    (!podeConfirmarFinal && !item.usuarioConfirmado) && styles.actionDisabled,
                   ]}
                   onPress={() => handlePresenca(item)}
-                  disabled={isLoadingConfirm || isLoadingAusente || (!podeConfirmar && !item.usuarioConfirmado)}
+                  disabled={isLoadingConfirm || isLoadingAusente || (!podeConfirmarFinal && !item.usuarioConfirmado)}
                 >
                   {isLoadingConfirm ? (
                     <ActivityIndicator size="small" color={item.usuarioConfirmado ? Colors.bg : Colors.text} />
                   ) : (
                     <Text style={[styles.actionText, !item.usuarioConfirmado && styles.actionTextOutline]}>
-                      {item.usuarioConfirmado ? 'Confirmado' : item.limiteCheio ? 'Lista cheia' : 'Confirmar'}
+                      {item.usuarioConfirmado
+                        ? 'Confirmado'
+                        : bloqueioTerceiroGoleiro
+                        ? 'Limite de goleiros'
+                        : item.limiteCheio
+                        ? 'Lista cheia'
+                        : 'Confirmar'}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -434,6 +527,60 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
                     <Text style={[styles.actionText, !item.usuarioAusente && styles.actionTextOutline]}>
                       Marcar ausencia
                     </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {mostrarApenasSaidaDaLista && (
+              <View style={styles.singleActionWrap}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.actionButtonDanger]}
+                  onPress={() => handlePresenca(item)}
+                  disabled={isLoadingConfirm || isLoadingAusente}
+                >
+                  {isLoadingConfirm ? (
+                    <ActivityIndicator size="small" color={Colors.bg} />
+                  ) : (
+                    <Text style={styles.actionText}>Sair da lista</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {item.status === 'ABERTA' && bloqueioTerceiroGoleiro && (
+              <Text style={styles.warningText}>
+                Ja existem 2 goleiros confirmados. Voce so podera confirmar se um goleiro sair da lista.
+              </Text>
+            )}
+
+            {listaFechada && !item.usuarioConfirmado && !bloqueioTerceiroGoleiro && (
+              <Text style={styles.closedListHint}>
+                Lista fechada no momento. Se alguem sair, a vaga reabre para qualquer jogador do grupo.
+              </Text>
+            )}
+
+            {isAdminAtual && item.status === 'ABERTA' && (
+              <View style={styles.adminFooterActions}>
+                {podeAdicionarConvidado && (
+                  <TouchableOpacity style={styles.guestActionButton} onPress={() => openGuestModal(item.idPartida)}>
+                    <Ionicons name="person-add-outline" size={14} color={Colors.text} />
+                    <Text style={styles.guestActionText}>Adicionar convidado</Text>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                  style={[styles.adminDangerButton, isDeleting && { opacity: 0.7 }]}
+                  onPress={() => confirmDeleteMatch(item)}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <ActivityIndicator size="small" color={Colors.danger} />
+                  ) : (
+                    <>
+                      <Ionicons name="trash-outline" size={14} color={Colors.danger} />
+                      <Text style={styles.adminDangerButtonText}>Cancelar partida</Text>
+                    </>
                   )}
                 </TouchableOpacity>
               </View>
@@ -590,6 +737,54 @@ export default function GroupDashboardScreen({ navigation, route }: Props) {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <Modal visible={showGuestModal} transparent animationType="fade" onRequestClose={() => !savingGuest && setShowGuestModal(false)}>
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Adicionar convidado</Text>
+            <Text style={styles.readOnlyHint}>
+              O convidado entra direto na lista como confirmado e aparecera como Nome (Convidado).
+            </Text>
+            <Text style={styles.modalLabel}>Nome do convidado</Text>
+            <View style={styles.modalInputWrap}>
+              <Ionicons name="person-add-outline" size={16} color={Colors.textMuted} />
+              <TextInput
+                style={styles.modalInput}
+                value={guestName}
+                onChangeText={setGuestName}
+                placeholder="Ex.: Carlos"
+                placeholderTextColor={Colors.textMuted}
+                editable={!savingGuest}
+                autoCorrect={false}
+                autoComplete="off"
+                textContentType="none"
+                returnKeyType="done"
+                onSubmitEditing={handleAddGuest}
+              />
+            </View>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowGuestModal(false)}
+                disabled={savingGuest}
+              >
+                <Text style={styles.modalCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalSaveButton, (!guestName.trim() || savingGuest) && { opacity: 0.7 }]}
+                onPress={handleAddGuest}
+                disabled={!guestName.trim() || savingGuest}
+              >
+                {savingGuest ? (
+                  <ActivityIndicator size="small" color={Colors.bg} />
+                ) : (
+                  <Text style={styles.modalSaveText}>Adicionar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -649,8 +844,14 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 4,
   },
+  captainBannerBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
   captainBannerLabel: { ...Typography.label, marginBottom: 0 },
-  captainBannerText: { color: Colors.text, fontWeight: '700', fontSize: FontSize.sm },
+  captainBannerText: { color: Colors.text, fontWeight: '700', fontSize: FontSize.sm, flex: 1 },
 
   card: {
     backgroundColor: Colors.surface,
@@ -677,16 +878,47 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   cardHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  infoBadgeButton: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   statusText: { fontSize: FontSize.xs, fontWeight: '800' },
-  deleteMatchButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  guestActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 28,
+    paddingHorizontal: 10,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface2,
+  },
+  guestActionButtonDisabled: { opacity: 0.55 },
+  guestActionText: { color: Colors.text, fontSize: FontSize.xs, fontWeight: '700' },
+  adminFooterActions: {
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  adminDangerButton: {
+    minHeight: 38,
+    borderRadius: Radius.md,
     borderWidth: 1,
     borderColor: `${Colors.danger}66`,
     backgroundColor: `${Colors.danger}10`,
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: Spacing.sm,
+  },
+  adminDangerButtonText: {
+    color: Colors.danger,
+    fontSize: FontSize.sm,
+    fontWeight: '800',
   },
 
   presencaHeader: {
@@ -708,6 +940,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   progressFill: { height: 5, borderRadius: Radius.sm },
+  closedListHint: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    marginTop: 8,
+  },
 
   section: { marginBottom: Spacing.sm },
   sectionTitle: { ...Typography.label, color: Colors.primary, marginBottom: 4 },
@@ -727,6 +964,7 @@ const styles = StyleSheet.create({
 
   observation: { color: Colors.textMuted, fontSize: FontSize.xs, fontStyle: 'italic', marginBottom: Spacing.sm },
   actionRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: 2 },
+  singleActionWrap: { marginTop: 2 },
   actionButton: {
     flex: 1,
     borderRadius: Radius.md,

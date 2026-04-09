@@ -22,6 +22,16 @@ Esta pasta concentra a documentacao oficial do projeto `Resenha`, cobrindo produ
   Regras de negocio por modulo, permissao, estados validos, restricoes e efeitos de cada fluxo.
 - `09-fluxos-e-casos-limite.md`
   Fluxos ponta a ponta, cenarios de erro, bloqueios esperados e comportamento em situacoes de borda.
+- `10-carga-fut-da-ressaca.md`
+  Registro da carga inicial do grupo Fut da Ressaca, com usuarios, partidas, capitainia e classificacao seedada.
+- `11-plano-de-acao-produto-release.md`
+  Backlog priorizado, roadmap de produto e plano de preparacao para Android, Play Store, iOS e App Store.
+- `12-cola-comandos-projeto.md`
+  Cola operacional com comandos recorrentes de frontend, backend, SSH, banco, deploy e diagnostico.
+- `13-desafio-em-andamento.md`
+  Especificacao funcional e tecnica do fluxo de montagem dos times em tempo real, com regras de confirmacao, goleiros, par ou impar e permissoes.
+- `14-backlog-desafio-em-andamento.md`
+  Backlog tecnico detalhado da feature de montagem dos times, separado por backend, frontend, validacoes, estados e testes.
 
 ## Estado Atual do Projeto
 

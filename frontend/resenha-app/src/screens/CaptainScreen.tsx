@@ -17,7 +17,7 @@ import { RouteProp } from '@react-navigation/native';
 import api from '../api/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Colors, FontSize, Radius, Spacing, Typography, getInitials } from '../theme';
-import { CaptainStatus, Match } from '../types';
+import { CaptainHistoryEntry, CaptainStatus, Match } from '../types';
 import { AppStackParamList } from '../navigation/AppNavigator';
 
 type Props = {
@@ -30,7 +30,19 @@ interface EligiblePlayer {
   nome: string;
 }
 
-export default function CaptainScreen({ route }: Props) {
+function formatarDataCurta(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR');
+}
+
+function renderResultadoHistorico(item: CaptainHistoryEntry) {
+  return `${item.nomeVencedor} venceu ${item.nomeDerrotado}`;
+}
+
+function formatarNomeCaps(nome: string) {
+  return nome.toUpperCase();
+}
+
+export default function CaptainScreen({ navigation, route }: Props) {
   const { groupId, isAdmin } = route.params;
   const { user } = useAuth();
 
@@ -43,6 +55,7 @@ export default function CaptainScreen({ route }: Props) {
   const [loadingElegiveis, setLoadingElegiveis] = useState(false);
   const [elegiveis, setElegiveis] = useState<EligiblePlayer[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [erro, setErro] = useState('');
 
   async function carregar(silencioso = false) {
@@ -154,20 +167,75 @@ export default function CaptainScreen({ route }: Props) {
     if (temDesafio) {
       if (isAdmin) {
         return (
-          <View style={styles.rowActions}>
-            <TouchableOpacity style={[styles.halfButton, styles.successButton]} onPress={() => registrarResultado('CAPITAO')}>
-              <Text style={styles.primaryButtonText}>Capitao venceu</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.halfButton, styles.goldButton]} onPress={() => registrarResultado('DESAFIANTE')}>
-              <Text style={styles.goldButtonText}>Desafiante venceu</Text>
-            </TouchableOpacity>
+          <View style={styles.actionStack}>
+            {partidaAberta && (
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() =>
+                  navigation.navigate('DesafioEmAndamento', {
+                    matchId: partidaAberta.idPartida,
+                    groupId,
+                    groupName: 'Desafio',
+                  })
+                }
+              >
+                <Ionicons name="game-controller-outline" size={16} color={Colors.text} />
+                <Text style={styles.secondaryButtonText}>Abrir desafio em andamento</Text>
+              </TouchableOpacity>
+            )}
+            <View style={styles.rowActions}>
+              <TouchableOpacity style={[styles.halfButton, styles.successButton]} onPress={() => registrarResultado('CAPITAO')}>
+                <Text style={styles.primaryButtonText}>Capitao venceu</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.halfButton, styles.goldButton]} onPress={() => registrarResultado('DESAFIANTE')}>
+                <Text style={styles.goldButtonText}>Desafiante venceu</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         );
       }
       if (ehDesafiante) {
-        return <Text style={styles.infoText}>Voce foi escolhido como desafiante. Aguarde o admin registrar o resultado.</Text>;
+        return (
+          <View style={styles.actionStack}>
+            {partidaAberta && (
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() =>
+                  navigation.navigate('DesafioEmAndamento', {
+                    matchId: partidaAberta.idPartida,
+                    groupId,
+                    groupName: 'Desafio',
+                  })
+                }
+              >
+                <Ionicons name="game-controller-outline" size={16} color={Colors.text} />
+                <Text style={styles.secondaryButtonText}>Acompanhar desafio</Text>
+              </TouchableOpacity>
+            )}
+            <Text style={styles.infoText}>Voce foi escolhido como desafiante. Aguarde o admin registrar o resultado.</Text>
+          </View>
+        );
       }
-      return <Text style={styles.infoText}>Desafio em andamento. Aguarde o resultado.</Text>;
+      return (
+        <View style={styles.actionStack}>
+          {partidaAberta && (
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() =>
+                navigation.navigate('DesafioEmAndamento', {
+                  matchId: partidaAberta.idPartida,
+                  groupId,
+                  groupName: 'Desafio',
+                })
+              }
+            >
+              <Ionicons name="game-controller-outline" size={16} color={Colors.text} />
+              <Text style={styles.secondaryButtonText}>Acompanhar desafio</Text>
+            </TouchableOpacity>
+          )}
+          <Text style={styles.infoText}>Desafio em andamento. Aguarde o resultado.</Text>
+        </View>
+      );
     }
 
     if (ehCapitao) {
@@ -276,15 +344,64 @@ export default function CaptainScreen({ route }: Props) {
           <View style={styles.blockedCard}>
             <View style={styles.sectionHeader}>
               <Ionicons name="close-circle-outline" size={16} color={Colors.danger} />
-              <Text style={styles.sectionLabel}>Ja derrotados ({status.bloqueados.length})</Text>
+              <Text style={styles.sectionLabel}>Historico do capitao atual</Text>
             </View>
+            <Text style={styles.blockedSubtitle}>
+              {formatarNomeCaps(status.nomeCapitao)} ja derrotou os jogadores abaixo neste ciclo ({status.bloqueados.length})
+            </Text>
             <View style={styles.chipWrap}>
               {status.bloqueados.map((b) => (
                 <View key={b.idUsuario} style={styles.chip}>
-                  <Text style={styles.chipText}>{b.nome}</Text>
+                  <Text style={styles.chipTextStriked}>{b.nome}</Text>
                 </View>
               ))}
             </View>
+          </View>
+        )}
+
+        {status && status.historico.length > 0 && (
+          <View style={styles.historyCard}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="trail-sign-outline" size={16} color={Colors.primary} />
+              <Text style={styles.sectionLabel}>Historico de capitoes</Text>
+            </View>
+
+            <View style={styles.historyList}>
+              {status.historico.slice(0, 3).map((item) => (
+                <View key={item.idHistorico} style={styles.historyItem}>
+                  <View style={styles.historyHeader}>
+                    <Text style={styles.historyResult}>{renderResultadoHistorico(item)}</Text>
+                    <Text style={styles.historyDate}>{formatarDataCurta(item.registradoEm)}</Text>
+                  </View>
+                  <View style={styles.historyDuelRow}>
+                    <Text
+                      style={[
+                        styles.historyName,
+                        item.idDerrotado === item.idCapitao && styles.historyNameStriked,
+                      ]}
+                    >
+                      {item.nomeCapitao}
+                    </Text>
+                    <Text style={styles.historyVs}>x</Text>
+                    <Text
+                      style={[
+                        styles.historyName,
+                        item.idDerrotado === item.idDesafiante && styles.historyNameStriked,
+                      ]}
+                    >
+                      {item.nomeDesafiante}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            {status.historico.length > 0 && (
+              <TouchableOpacity style={styles.secondaryButton} onPress={() => setShowHistoryModal(true)}>
+                <Ionicons name="albums-outline" size={16} color={Colors.text} />
+                <Text style={styles.secondaryButtonText}>Ver historico completo</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -329,6 +446,52 @@ export default function CaptainScreen({ route }: Props) {
           </View>
         </View>
       </Modal>
+
+      <Modal visible={showHistoryModal} transparent animationType="fade" onRequestClose={() => setShowHistoryModal(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Historico completo do capitao</Text>
+            <Text style={styles.modalSubtitle}>Todos os duelos registrados neste grupo.</Text>
+
+            <FlatList
+              data={status?.historico ?? []}
+              keyExtractor={(item) => String(item.idHistorico)}
+              style={styles.eligibleList}
+              renderItem={({ item }) => (
+                <View style={styles.historyItem}>
+                  <View style={styles.historyHeader}>
+                    <Text style={styles.historyResult}>{renderResultadoHistorico(item)}</Text>
+                    <Text style={styles.historyDate}>{formatarDataCurta(item.registradoEm)}</Text>
+                  </View>
+                  <View style={styles.historyDuelRow}>
+                    <Text
+                      style={[
+                        styles.historyName,
+                        item.idDerrotado === item.idCapitao && styles.historyNameStriked,
+                      ]}
+                    >
+                      {item.nomeCapitao}
+                    </Text>
+                    <Text style={styles.historyVs}>x</Text>
+                    <Text
+                      style={[
+                        styles.historyName,
+                        item.idDerrotado === item.idDesafiante && styles.historyNameStriked,
+                      ]}
+                    >
+                      {item.nomeDesafiante}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            />
+
+            <TouchableOpacity style={styles.modalCancelButton} onPress={() => setShowHistoryModal(false)}>
+              <Text style={styles.modalCancelText}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -359,6 +522,13 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     padding: Spacing.md,
   },
+  historyCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -383,6 +553,12 @@ const styles = StyleSheet.create({
   profileMeta: { color: Colors.textMuted, fontSize: FontSize.xs, marginTop: 2 },
 
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs },
+  blockedSubtitle: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    marginBottom: Spacing.sm,
+    lineHeight: 18,
+  },
   chip: {
     backgroundColor: Colors.surface2,
     borderRadius: Radius.sm,
@@ -392,6 +568,60 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   chipText: { color: Colors.danger, fontSize: FontSize.xs, fontWeight: '700' },
+  chipTextStriked: {
+    color: Colors.danger,
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    textDecorationLine: 'line-through',
+  },
+  historyList: {
+    gap: Spacing.sm,
+  },
+  historyItem: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surface2,
+    padding: Spacing.sm,
+    gap: 6,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  historyResult: {
+    color: Colors.text,
+    fontSize: FontSize.sm,
+    fontWeight: '800',
+    flex: 1,
+  },
+  historyDate: {
+    color: Colors.textMuted,
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+  },
+  historyDuelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  historyName: {
+    flex: 1,
+    color: Colors.textMuted,
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+  },
+  historyNameStriked: {
+    color: Colors.danger,
+    textDecorationLine: 'line-through',
+  },
+  historyVs: {
+    color: Colors.gold,
+    fontSize: FontSize.sm,
+    fontWeight: '900',
+  },
 
   errorBox: {
     borderRadius: Radius.md,
@@ -419,6 +649,7 @@ const styles = StyleSheet.create({
   waitCounter: { color: Colors.primary, fontWeight: '900', fontSize: FontSize.lg },
 
   actionsWrap: { marginTop: Spacing.sm },
+  actionStack: { gap: Spacing.sm },
   rowActions: { flexDirection: 'row', gap: Spacing.sm },
   primaryButton: {
     borderRadius: Radius.md,
@@ -438,6 +669,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
   },
+  secondaryButton: {
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface2,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  secondaryButtonText: { color: Colors.text, fontSize: FontSize.sm, fontWeight: '800' },
   halfButton: {
     flex: 1,
     borderRadius: Radius.md,

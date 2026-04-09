@@ -23,10 +23,12 @@ namespace Resenha.API.Data
         public DbSet<Temporada> Temporadas { get; set; } = null!;
         public DbSet<Partida> Partidas { get; set; } = null!;
         public DbSet<PresencaPartida> PresencasPartida { get; set; } = null!;
+        public DbSet<DesafioPartida> DesafiosPartida { get; set; } = null!;
 
         // ── Sistema de Capitão ─────────────────────────────────────
         public DbSet<CicloCapitao> CiclosCapitao { get; set; } = null!;
         public DbSet<CicloCapitaoBloqueado> CiclosCapitaoBloqueados { get; set; } = null!;
+        public DbSet<HistoricoCapitao> HistoricosCapitao { get; set; } = null!;
 
         // ── Times e Resultado ──────────────────────────────────────
         public DbSet<TimePartida> TimesPartida { get; set; } = null!;
@@ -55,8 +57,16 @@ namespace Resenha.API.Data
                 .HasIndex(p => new { p.IdPartida, p.IdUsuario })
                 .IsUnique();
 
+            modelBuilder.Entity<DesafioPartida>()
+                .HasIndex(d => d.IdPartida)
+                .IsUnique();
+
             modelBuilder.Entity<CicloCapitaoBloqueado>()
                 .HasIndex(c => new { c.IdCiclo, c.IdUsuarioBloqueado })
+                .IsUnique();
+
+            modelBuilder.Entity<HistoricoCapitao>()
+                .HasIndex(h => new { h.IdPartida, h.IdCiclo })
                 .IsUnique();
 
             modelBuilder.Entity<TimePartida>()

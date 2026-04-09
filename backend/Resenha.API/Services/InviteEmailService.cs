@@ -18,6 +18,7 @@ namespace Resenha.API.Services
     {
         InviteSendResult SendGroupInvite(string toEmail, string inviterName, string groupName, string inviteLink, DateTime expiresAtUtc);
         InviteSendResult SendPasswordReset(string toEmail, string userName, string resetLink, DateTime expiresAtUtc);
+        InviteSendResult SendMatchSlotReopened(string toEmail, string userName, string groupName, string playerWhoLeft, DateTime matchDateTimeLocal);
     }
 
     public class InviteEmailService : IInviteEmailService
@@ -60,6 +61,23 @@ namespace Resenha.API.Services
             {
                 "sendgrid" => SendPasswordResetWithSendGrid(toEmail, userName, resetLink, expiresAtUtc),
                 "smtp" => SendPasswordResetWithSmtp(toEmail, userName, resetLink, expiresAtUtc),
+                _ => new InviteSendResult
+                {
+                    Sent = false,
+                    Configured = false,
+                    Provider = provider,
+                    Error = "Provider de e-mail invalido."
+                }
+            };
+        }
+
+        public InviteSendResult SendMatchSlotReopened(string toEmail, string userName, string groupName, string playerWhoLeft, DateTime matchDateTimeLocal)
+        {
+            var provider = (GetSetting("EmailSettings:Provider", "EMAIL_PROVIDER") ?? "smtp").Trim().ToLowerInvariant();
+            return provider switch
+            {
+                "sendgrid" => SendMatchSlotReopenedWithSendGrid(toEmail, userName, groupName, playerWhoLeft, matchDateTimeLocal),
+                "smtp" => SendMatchSlotReopenedWithSmtp(toEmail, userName, groupName, playerWhoLeft, matchDateTimeLocal),
                 _ => new InviteSendResult
                 {
                     Sent = false,
@@ -339,6 +357,134 @@ namespace Resenha.API.Services
             }
         }
 
+        private InviteSendResult SendMatchSlotReopenedWithSmtp(string toEmail, string userName, string groupName, string playerWhoLeft, DateTime matchDateTimeLocal)
+        {
+            var host = GetSetting("EmailSettings:Host", "EMAIL_SMTP_HOST");
+            var fromEmail = GetSetting("EmailSettings:FromEmail", "EMAIL_FROM");
+            var fromName = GetSetting("EmailSettings:FromName", "EMAIL_FROM_NAME") ?? "Resenha";
+            var username = GetSetting("EmailSettings:Username", "EMAIL_SMTP_USERNAME");
+            var password = GetSetting("EmailSettings:Password", "EMAIL_SMTP_PASSWORD");
+            var portText = GetSetting("EmailSettings:Port", "EMAIL_SMTP_PORT");
+            var sslText = GetSetting("EmailSettings:EnableSsl", "EMAIL_SMTP_ENABLE_SSL");
+
+            if (string.IsNullOrWhiteSpace(host) ||
+                string.IsNullOrWhiteSpace(fromEmail) ||
+                string.IsNullOrWhiteSpace(username) ||
+                string.IsNullOrWhiteSpace(password))
+            {
+                _logger.LogWarning(
+                    "MATCH_SLOT_EMAIL_SKIPPED_NO_SMTP_CONFIG | to={ToEmail} group={GroupName} playerWhoLeft={PlayerWhoLeft}",
+                    toEmail,
+                    groupName,
+                    playerWhoLeft);
+                return new InviteSendResult { Sent = false, Configured = false, Provider = "smtp", Error = "SMTP nao configurado." };
+            }
+
+            var port = 587;
+            if (!string.IsNullOrWhiteSpace(portText) && int.TryParse(portText, out var parsedPort))
+                port = parsedPort;
+
+            var enableSsl = true;
+            if (!string.IsNullOrWhiteSpace(sslText) && bool.TryParse(sslText, out var parsedSsl))
+                enableSsl = parsedSsl;
+
+            var subject = $"Uma vaga abriu no jogo de {groupName}";
+            var body = BuildMatchSlotReopenedTextBody(userName, groupName, playerWhoLeft, matchDateTimeLocal);
+
+            try
+            {
+                using var message = new MailMessage
+                {
+                    From = new MailAddress(fromEmail, fromName),
+                    Subject = subject,
+                    Body = body
+                };
+                message.To.Add(toEmail);
+
+                using var smtp = new SmtpClient(host, port)
+                {
+                    EnableSsl = enableSsl,
+                    Credentials = new NetworkCredential(username, password)
+                };
+
+                smtp.Send(message);
+                _logger.LogInformation("MATCH_SLOT_EMAIL_SENT | provider=smtp to={ToEmail} group={GroupName}", toEmail, groupName);
+                return new InviteSendResult { Sent = true, Configured = true, Provider = "smtp" };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "MATCH_SLOT_EMAIL_SEND_FAILED | provider=smtp to={ToEmail} group={GroupName}", toEmail, groupName);
+                return new InviteSendResult { Sent = false, Configured = true, Provider = "smtp", Error = ex.Message };
+            }
+        }
+
+        private InviteSendResult SendMatchSlotReopenedWithSendGrid(string toEmail, string userName, string groupName, string playerWhoLeft, DateTime matchDateTimeLocal)
+        {
+            var apiKey = GetSetting("EmailSettings:SendGrid:ApiKey", "EMAIL_SENDGRID_API_KEY");
+            var fromEmail = GetSetting("EmailSettings:FromEmail", "EMAIL_FROM");
+            var fromName = GetSetting("EmailSettings:FromName", "EMAIL_FROM_NAME") ?? "Resenha";
+
+            if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(fromEmail))
+            {
+                _logger.LogWarning("MATCH_SLOT_EMAIL_SKIPPED_NO_SENDGRID_CONFIG | to={ToEmail} group={GroupName}", toEmail, groupName);
+                return new InviteSendResult { Sent = false, Configured = false, Provider = "sendgrid", Error = "SendGrid nao configurado." };
+            }
+
+            var subject = $"Uma vaga abriu no jogo de {groupName}";
+            var textBody = BuildMatchSlotReopenedTextBody(userName, groupName, playerWhoLeft, matchDateTimeLocal);
+            var htmlBody = BuildMatchSlotReopenedHtmlBody(userName, groupName, playerWhoLeft, matchDateTimeLocal);
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+
+                var payload = new
+                {
+                    personalizations = new[]
+                    {
+                        new
+                        {
+                            to = new[] { new { email = toEmail } },
+                            subject
+                        }
+                    },
+                    from = new { email = fromEmail, name = fromName },
+                    content = new[]
+                    {
+                        new { type = "text/plain", value = textBody },
+                        new { type = "text/html", value = htmlBody }
+                    }
+                };
+
+                var response = client.PostAsJsonAsync("https://api.sendgrid.com/v3/mail/send", payload).GetAwaiter().GetResult();
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("MATCH_SLOT_EMAIL_SENT | provider=sendgrid to={ToEmail} group={GroupName}", toEmail, groupName);
+                    return new InviteSendResult { Sent = true, Configured = true, Provider = "sendgrid" };
+                }
+
+                var errorText = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                _logger.LogError(
+                    "MATCH_SLOT_EMAIL_SEND_FAILED | provider=sendgrid status={Status} to={ToEmail} group={GroupName} error={Error}",
+                    (int)response.StatusCode, toEmail, groupName, errorText);
+
+                return new InviteSendResult
+                {
+                    Sent = false,
+                    Configured = true,
+                    Provider = "sendgrid",
+                    Error = $"Status {(int)response.StatusCode}: {SafeTruncate(errorText, 300)}"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "MATCH_SLOT_EMAIL_SEND_FAILED | provider=sendgrid to={ToEmail} group={GroupName}", toEmail, groupName);
+                return new InviteSendResult { Sent = false, Configured = true, Provider = "sendgrid", Error = ex.Message };
+            }
+        }
+
         private static string BuildTextBody(string inviterName, string groupName, string inviteLink, DateTime expiresAtUtc)
         {
             return
@@ -394,6 +540,30 @@ namespace Resenha.API.Services
     <p>Ou copie e cole este link:<br/>{WebUtility.HtmlEncode(resetLink)}</p>
     <p>Este link expira em {expiresAtUtc:dd/MM/yyyy HH:mm} UTC.</p>
     <p>Se voce nao solicitou esta acao, ignore este e-mail.</p>
+  </body>
+</html>";
+        }
+
+        private static string BuildMatchSlotReopenedTextBody(string userName, string groupName, string playerWhoLeft, DateTime matchDateTimeLocal)
+        {
+            return
+                $"Ola, {userName}!\n\n" +
+                $"Uma vaga acabou de abrir no jogo do grupo {groupName}.\n\n" +
+                $"{playerWhoLeft} saiu da lista, e agora voce pode tentar confirmar sua presenca.\n\n" +
+                $"Partida: {matchDateTimeLocal:dd/MM/yyyy HH:mm}\n\n" +
+                $"Corra para garantir sua vaga no app Resenha.";
+        }
+
+        private static string BuildMatchSlotReopenedHtmlBody(string userName, string groupName, string playerWhoLeft, DateTime matchDateTimeLocal)
+        {
+            return $@"
+<html>
+  <body style='font-family: Arial, sans-serif; color: #111;'>
+    <p>Ola, <strong>{WebUtility.HtmlEncode(userName)}</strong>!</p>
+    <p>Uma vaga acabou de abrir no jogo do grupo <strong>{WebUtility.HtmlEncode(groupName)}</strong>.</p>
+    <p><strong>{WebUtility.HtmlEncode(playerWhoLeft)}</strong> saiu da lista, e agora voce pode tentar confirmar sua presenca.</p>
+    <p>Partida: <strong>{matchDateTimeLocal:dd/MM/yyyy HH:mm}</strong></p>
+    <p>Corra para garantir sua vaga no app Resenha.</p>
   </body>
 </html>";
         }

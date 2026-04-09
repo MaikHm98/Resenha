@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="66062585-f696-449d-b299-5202a352eccb" name="Michael@DESKTOP-F2CP7ET 2026-03-21 15:06:06" runUser="DESKTOP-F2CP7ET\CodexSandboxOffline" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-03-21T15:06:06.6986792-03:00" queuing="2026-03-21T15:06:06.6986797-03:00" start="2026-03-21T15:06:04.1930975-03:00" finish="2026-03-21T15:06:07.0598716-03:00" />
+  <TestSettings name="default" id="a7669ea7-b90c-4fb4-a242-1029c67809cf">
+    <Deployment runDeploymentRoot="Michael_DESKTOP-F2CP7ET_2026-03-21_15_06_06" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="358fb082-d3d4-4eb2-aee5-6be5d86d32b4" testId="b19adab8-ebe3-86bf-a9b4-be1bb650c13b" testName="Resenha.API.Tests.MatchServiceChallengeTests.PickLinePlayer_DeveEscolherJogadorEAlternarTurno" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0381520" startTime="2026-03-21T15:06:06.7119384-03:00" endTime="2026-03-21T15:06:06.7119385-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="358fb082-d3d4-4eb2-aee5-6be5d86d32b4" />
+    <UnitTestResult executionId="712c627b-8e02-46e2-ad43-28b46d8cb670" testId="025683bb-812f-51a9-9130-58e15df91947" testName="Resenha.API.Tests.MatchServiceChallengeTests.PickLinePlayer_DeveBloquearCapitaoForaDaVez" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0412750" startTime="2026-03-21T15:06:06.5557387-03:00" endTime="2026-03-21T15:06:06.5557388-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="712c627b-8e02-46e2-ad43-28b46d8cb670" />
+    <UnitTestResult executionId="8e1bb3ed-2515-4d72-b315-9c04a9a71052" testId="40bb4a08-87c2-d840-694a-ff2e54fc353a" testName="Resenha.API.Tests.MatchServiceChallengeTests.StartLineDraw_DeveBloquearUsuarioQueNaoEhCapitaoAtual" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0470706" startTime="2026-03-21T15:06:06.3908441-03:00" endTime="2026-03-21T15:06:06.3908442-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8e1bb3ed-2515-4d72-b315-9c04a9a71052" />
+    <UnitTestResult executionId="746e5288-396f-4044-8c50-c67c91c64f6c" testId="665c37ec-b208-39cb-a656-dd3a14f7e673" testName="Resenha.API.Tests.MatchServiceChallengeTests.GetChallengeStatus_NaoDeveExporNumeroDoOutroCapitaoAntesDoSorteioFechar" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0246653" startTime="2026-03-21T15:06:06.9908870-03:00" endTime="2026-03-21T15:06:06.9908871-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="746e5288-396f-4044-8c50-c67c91c64f6c" />
+    <UnitTestResult executionId="0351f4e2-4526-4c65-bc1e-0a9a309240fd" testId="051e1d3c-40bf-b291-53fe-34c5c233cdc4" testName="Resenha.API.Tests.MatchServiceChallengeTests.SubmitGoalkeeperDrawNumber_DeveDefinirVencedorDoSorteioDosGoleiros" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0339984" startTime="2026-03-21T15:06:06.6455143-03:00" endTime="2026-03-21T15:06:06.6455144-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0351f4e2-4526-4c65-bc1e-0a9a309240fd" />
+    <UnitTestResult executionId="fa6494c3-7844-4aa8-a2c4-fcbdd9c91a4c" testId="8d8b957b-3233-9fcd-793a-ba3851f7b0d8" testName="Resenha.API.Tests.MatchServiceChallengeTests.SubmitGoalkeeperDrawNumber_DeveReaproveitarParidadePrincipalMesmoSemCampoDosGoleirosPreenchido" computerName="DESKTOP-F2CP7ET" duration="00:00:01.3710955" startTime="2026-03-21T15:06:06.3128309-03:00" endTime="2026-03-21T15:06:06.3128496-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fa6494c3-7844-4aa8-a2c4-fcbdd9c91a4c" />
+    <UnitTestResult executionId="1e021849-8ed0-47f2-ad95-5795fd18c7c8" testId="b173131b-36e9-3667-350a-ffc0f8488c56" testName="Resenha.API.Tests.MatchServiceChallengeTests.StartGoalkeeperDraw_DeveReaproveitarParidadeDosJogadores" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0314156" startTime="2026-03-21T15:06:06.3437399-03:00" endTime="2026-03-21T15:06:06.3437400-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1e021849-8ed0-47f2-ad95-5795fd18c7c8" />
+    <UnitTestResult executionId="ac5cb9b0-79c1-43d8-bbbd-166b57a460d2" testId="fcced76c-e63a-10e5-9b4b-aee277a4a431" testName="Resenha.API.Tests.MatchServiceChallengeTests.ConfirmPresence_DeveBloquearConfirmacaoComMenosDeVinteMinutos" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0263965" startTime="2026-03-21T15:06:06.6114458-03:00" endTime="2026-03-21T15:06:06.6114459-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ac5cb9b0-79c1-43d8-bbbd-166b57a460d2" />
+    <UnitTestResult executionId="00e50a63-4fdb-4a2a-a433-2727e9007d1f" testId="5f094c16-a991-ece9-cba4-29a95486d9e7" testName="Resenha.API.Tests.MatchServiceChallengeTests.ConfirmPresence_DeveBloquearTerceiroGoleiro" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0212600" startTime="2026-03-21T15:06:06.8685534-03:00" endTime="2026-03-21T15:06:06.8685535-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="00e50a63-4fdb-4a2a-a433-2727e9007d1f" />
+    <UnitTestResult executionId="955a6ce1-efe5-409c-96de-1bb256a462bc" testId="863614bb-e6cd-4fe2-f005-aeccc23423dc" testName="Resenha.API.Tests.MatchServiceChallengeTests.SubmitLineDrawNumber_DeveDefinirVencedorEPrimeiraEscolha" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0291650" startTime="2026-03-21T15:06:06.5849624-03:00" endTime="2026-03-21T15:06:06.5849625-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="955a6ce1-efe5-409c-96de-1bb256a462bc" />
+    <UnitTestResult executionId="aabadad9-8f11-4bd5-9fcb-406a1e72ce8a" testId="cac0cf90-e3d1-f559-7588-2d51b8211521" testName="Resenha.API.Tests.MatchServiceChallengeTests.DeleteMatch_DeveZerarDesafianteAtualESemEncerrarOCiclo" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0711054" startTime="2026-03-21T15:06:06.9397580-03:00" endTime="2026-03-21T15:06:06.9397582-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="aabadad9-8f11-4bd5-9fcb-406a1e72ce8a" />
+    <UnitTestResult executionId="299518ea-0225-47b2-9fba-bf323f99d06b" testId="46df835c-b0bf-2a91-30f5-36ef2faa58c9" testName="Resenha.API.Tests.MatchServiceChallengeTests.SubmitLineDrawNumber_DeveInicializarTimesEDisponiveisAposFecharSorteio" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0281385" startTime="2026-03-21T15:06:06.6737101-03:00" endTime="2026-03-21T15:06:06.6737104-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="299518ea-0225-47b2-9fba-bf323f99d06b" />
+    <UnitTestResult executionId="05f21e15-20c9-446f-bf79-7bf6576e5444" testId="c427f600-b356-5509-34cb-7a1b7f4dd043" testName="Resenha.API.Tests.MatchServiceChallengeTests.PickGoalkeeper_DeveAtribuirOsDoisGoleirosEFecharTimes" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0453055" startTime="2026-03-21T15:06:06.8472239-03:00" endTime="2026-03-21T15:06:06.8472240-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="05f21e15-20c9-446f-bf79-7bf6576e5444" />
+    <UnitTestResult executionId="ea32e0cb-2a15-4c74-9833-1fd58ad5b202" testId="f6480782-2754-8270-fb6d-4cfdeaa27c13" testName="Resenha.API.Tests.MatchServiceChallengeTests.AddGuestToMatch_DevePermitirAdminAdicionarConvidado" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0399449" startTime="2026-03-21T15:06:06.8018412-03:00" endTime="2026-03-21T15:06:06.8018413-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ea32e0cb-2a15-4c74-9833-1fd58ad5b202" />
+    <UnitTestResult executionId="31d7fba2-2153-4b8c-aed4-5a4e92e90e12" testId="7ac629d7-b182-981b-d33a-1cab741fe091" testName="Resenha.API.Tests.MatchServiceChallengeTests.GetChallengeStatus_DeveRetomarEscolhaDeLinhaQuandoEntraremNovosJogadores" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0498108" startTime="2026-03-21T15:06:06.7618362-03:00" endTime="2026-03-21T15:06:06.7618363-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="31d7fba2-2153-4b8c-aed4-5a4e92e90e12" />
+    <UnitTestResult executionId="f197b5ec-2a56-4f68-83e9-751fbeccfcd0" testId="605a7bbc-43ca-8cf7-c076-c2e57c81f79e" testName="Resenha.API.Tests.MatchServiceChallengeTests.PickLinePlayer_DeveFecharTimesQuandoNaoRestaremLinhasNemGoleirosDisponiveis" computerName="DESKTOP-F2CP7ET" duration="00:00:00.1234784" startTime="2026-03-21T15:06:06.5143956-03:00" endTime="2026-03-21T15:06:06.5143957-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f197b5ec-2a56-4f68-83e9-751fbeccfcd0" />
+    <UnitTestResult executionId="b535b98d-a5b3-4d58-ad46-481409563f6d" testId="0efdd556-899d-75ac-478a-f48e0077e834" testName="Resenha.API.Tests.MatchServiceChallengeTests.StartLineDraw_DevePermitirCapitaoAtualEscolherParidade" computerName="DESKTOP-F2CP7ET" duration="00:00:00.0263310" startTime="2026-03-21T15:06:06.9661706-03:00" endTime="2026-03-21T15:06:06.9661707-03:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b535b98d-a5b3-4d58-ad46-481409563f6d" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.GetChallengeStatus_DeveRetomarEscolhaDeLinhaQuandoEntraremNovosJogadores" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="7ac629d7-b182-981b-d33a-1cab741fe091">
+      <Execution id="31d7fba2-2153-4b8c-aed4-5a4e92e90e12" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="GetChallengeStatus_DeveRetomarEscolhaDeLinhaQuandoEntraremNovosJogadores" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.StartLineDraw_DevePermitirCapitaoAtualEscolherParidade" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="0efdd556-899d-75ac-478a-f48e0077e834">
+      <Execution id="b535b98d-a5b3-4d58-ad46-481409563f6d" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="StartLineDraw_DevePermitirCapitaoAtualEscolherParidade" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.GetChallengeStatus_NaoDeveExporNumeroDoOutroCapitaoAntesDoSorteioFechar" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="665c37ec-b208-39cb-a656-dd3a14f7e673">
+      <Execution id="746e5288-396f-4044-8c50-c67c91c64f6c" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="GetChallengeStatus_NaoDeveExporNumeroDoOutroCapitaoAntesDoSorteioFechar" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.SubmitLineDrawNumber_DeveInicializarTimesEDisponiveisAposFecharSorteio" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="46df835c-b0bf-2a91-30f5-36ef2faa58c9">
+      <Execution id="299518ea-0225-47b2-9fba-bf323f99d06b" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="SubmitLineDrawNumber_DeveInicializarTimesEDisponiveisAposFecharSorteio" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.PickLinePlayer_DeveEscolherJogadorEAlternarTurno" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="b19adab8-ebe3-86bf-a9b4-be1bb650c13b">
+      <Execution id="358fb082-d3d4-4eb2-aee5-6be5d86d32b4" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="PickLinePlayer_DeveEscolherJogadorEAlternarTurno" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.AddGuestToMatch_DevePermitirAdminAdicionarConvidado" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="f6480782-2754-8270-fb6d-4cfdeaa27c13">
+      <Execution id="ea32e0cb-2a15-4c74-9833-1fd58ad5b202" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="AddGuestToMatch_DevePermitirAdminAdicionarConvidado" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.DeleteMatch_DeveZerarDesafianteAtualESemEncerrarOCiclo" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="cac0cf90-e3d1-f559-7588-2d51b8211521">
+      <Execution id="aabadad9-8f11-4bd5-9fcb-406a1e72ce8a" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="DeleteMatch_DeveZerarDesafianteAtualESemEncerrarOCiclo" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.PickGoalkeeper_DeveAtribuirOsDoisGoleirosEFecharTimes" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="c427f600-b356-5509-34cb-7a1b7f4dd043">
+      <Execution id="05f21e15-20c9-446f-bf79-7bf6576e5444" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="PickGoalkeeper_DeveAtribuirOsDoisGoleirosEFecharTimes" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.ConfirmPresence_DeveBloquearConfirmacaoComMenosDeVinteMinutos" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="fcced76c-e63a-10e5-9b4b-aee277a4a431">
+      <Execution id="ac5cb9b0-79c1-43d8-bbbd-166b57a460d2" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="ConfirmPresence_DeveBloquearConfirmacaoComMenosDeVinteMinutos" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.SubmitGoalkeeperDrawNumber_DeveDefinirVencedorDoSorteioDosGoleiros" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="051e1d3c-40bf-b291-53fe-34c5c233cdc4">
+      <Execution id="0351f4e2-4526-4c65-bc1e-0a9a309240fd" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="SubmitGoalkeeperDrawNumber_DeveDefinirVencedorDoSorteioDosGoleiros" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.SubmitGoalkeeperDrawNumber_DeveReaproveitarParidadePrincipalMesmoSemCampoDosGoleirosPreenchido" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="8d8b957b-3233-9fcd-793a-ba3851f7b0d8">
+      <Execution id="fa6494c3-7844-4aa8-a2c4-fcbdd9c91a4c" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="SubmitGoalkeeperDrawNumber_DeveReaproveitarParidadePrincipalMesmoSemCampoDosGoleirosPreenchido" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.PickLinePlayer_DeveFecharTimesQuandoNaoRestaremLinhasNemGoleirosDisponiveis" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="605a7bbc-43ca-8cf7-c076-c2e57c81f79e">
+      <Execution id="f197b5ec-2a56-4f68-83e9-751fbeccfcd0" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="PickLinePlayer_DeveFecharTimesQuandoNaoRestaremLinhasNemGoleirosDisponiveis" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.SubmitLineDrawNumber_DeveDefinirVencedorEPrimeiraEscolha" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="863614bb-e6cd-4fe2-f005-aeccc23423dc">
+      <Execution id="955a6ce1-efe5-409c-96de-1bb256a462bc" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="SubmitLineDrawNumber_DeveDefinirVencedorEPrimeiraEscolha" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.StartLineDraw_DeveBloquearUsuarioQueNaoEhCapitaoAtual" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="40bb4a08-87c2-d840-694a-ff2e54fc353a">
+      <Execution id="8e1bb3ed-2515-4d72-b315-9c04a9a71052" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="StartLineDraw_DeveBloquearUsuarioQueNaoEhCapitaoAtual" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.ConfirmPresence_DeveBloquearTerceiroGoleiro" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="5f094c16-a991-ece9-cba4-29a95486d9e7">
+      <Execution id="00e50a63-4fdb-4a2a-a433-2727e9007d1f" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="ConfirmPresence_DeveBloquearTerceiroGoleiro" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.PickLinePlayer_DeveBloquearCapitaoForaDaVez" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="025683bb-812f-51a9-9130-58e15df91947">
+      <Execution id="712c627b-8e02-46e2-ad43-28b46d8cb670" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="PickLinePlayer_DeveBloquearCapitaoForaDaVez" />
+    </UnitTest>
+    <UnitTest name="Resenha.API.Tests.MatchServiceChallengeTests.StartGoalkeeperDraw_DeveReaproveitarParidadeDosJogadores" storage="c:\resenha\backend\resenha.api.tests\bin\debug\net6.0\resenha.api.tests.dll" id="b173131b-36e9-3667-350a-ffc0f8488c56">
+      <Execution id="1e021849-8ed0-47f2-ad95-5795fd18c7c8" />
+      <TestMethod codeBase="C:\Resenha\backend\Resenha.API.Tests\bin\Debug\net6.0\Resenha.API.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="Resenha.API.Tests.MatchServiceChallengeTests" name="StartGoalkeeperDraw_DeveReaproveitarParidadeDosJogadores" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="b19adab8-ebe3-86bf-a9b4-be1bb650c13b" executionId="358fb082-d3d4-4eb2-aee5-6be5d86d32b4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="025683bb-812f-51a9-9130-58e15df91947" executionId="712c627b-8e02-46e2-ad43-28b46d8cb670" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="40bb4a08-87c2-d840-694a-ff2e54fc353a" executionId="8e1bb3ed-2515-4d72-b315-9c04a9a71052" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="665c37ec-b208-39cb-a656-dd3a14f7e673" executionId="746e5288-396f-4044-8c50-c67c91c64f6c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="051e1d3c-40bf-b291-53fe-34c5c233cdc4" executionId="0351f4e2-4526-4c65-bc1e-0a9a309240fd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8d8b957b-3233-9fcd-793a-ba3851f7b0d8" executionId="fa6494c3-7844-4aa8-a2c4-fcbdd9c91a4c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b173131b-36e9-3667-350a-ffc0f8488c56" executionId="1e021849-8ed0-47f2-ad95-5795fd18c7c8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fcced76c-e63a-10e5-9b4b-aee277a4a431" executionId="ac5cb9b0-79c1-43d8-bbbd-166b57a460d2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5f094c16-a991-ece9-cba4-29a95486d9e7" executionId="00e50a63-4fdb-4a2a-a433-2727e9007d1f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="863614bb-e6cd-4fe2-f005-aeccc23423dc" executionId="955a6ce1-efe5-409c-96de-1bb256a462bc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cac0cf90-e3d1-f559-7588-2d51b8211521" executionId="aabadad9-8f11-4bd5-9fcb-406a1e72ce8a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="46df835c-b0bf-2a91-30f5-36ef2faa58c9" executionId="299518ea-0225-47b2-9fba-bf323f99d06b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c427f600-b356-5509-34cb-7a1b7f4dd043" executionId="05f21e15-20c9-446f-bf79-7bf6576e5444" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f6480782-2754-8270-fb6d-4cfdeaa27c13" executionId="ea32e0cb-2a15-4c74-9833-1fd58ad5b202" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7ac629d7-b182-981b-d33a-1cab741fe091" executionId="31d7fba2-2153-4b8c-aed4-5a4e92e90e12" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="605a7bbc-43ca-8cf7-c076-c2e57c81f79e" executionId="f197b5ec-2a56-4f68-83e9-751fbeccfcd0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0efdd556-899d-75ac-478a-f48e0077e834" executionId="b535b98d-a5b3-4d58-ad46-481409563f6d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Resultados que não estão em uma lista" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="Todos os resultados carregados" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="17" executed="17" passed="17" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 6.0.36)&#xD;
+[xUnit.net 00:00:00.15]   Discovering: Resenha.API.Tests&#xD;
+[xUnit.net 00:00:00.18]   Discovered:  Resenha.API.Tests&#xD;
+[xUnit.net 00:00:00.18]   Starting:    Resenha.API.Tests&#xD;
+[xUnit.net 00:00:02.28]   Finished:    Resenha.API.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

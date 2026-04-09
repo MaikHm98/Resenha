@@ -24,6 +24,9 @@ import MyPerformanceScreen from '../screens/MyPerformanceScreen';
 import ManageMembersScreen from '../screens/ManageMembersScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
+import HistoricoPartidasScreen from '../screens/HistoricoPartidasScreen';
+import DetalhePartidaScreen from '../screens/DetalhePartidaScreen';
+import DesafioEmAndamentoScreen from '../screens/DesafioEmAndamentoScreen';
 import ClubLogo from '../components/ClubLogo';
 
 export type AuthStackParamList = {
@@ -51,6 +54,9 @@ export type AppStackParamList = {
   Classification: { groupId: number };
   MyPerformance: { groupId: number };
   ManageMembers: { groupId: number; groupName: string; isAdmin: boolean };
+  HistoricoPartidas: { groupId: number; groupName: string };
+  DetalhePartida: { matchId: number };
+  DesafioEmAndamento: { matchId: number; groupId: number; groupName: string };
   Profile: undefined;
   ChangePassword: undefined;
 };
@@ -133,6 +139,9 @@ function AppNavigatorStack() {
       <AppStack.Screen name="Classification" component={ClassificationScreen} options={{ title: 'Classificacao' }} />
       <AppStack.Screen name="MyPerformance" component={MyPerformanceScreen} options={{ title: 'Meu Desempenho' }} />
       <AppStack.Screen name="ManageMembers" component={ManageMembersScreen} options={{ title: 'Membros' }} />
+      <AppStack.Screen name="HistoricoPartidas" component={HistoricoPartidasScreen} options={{ title: 'Histórico de Partidas' }} />
+      <AppStack.Screen name="DetalhePartida" component={DetalhePartidaScreen} options={{ title: 'Detalhe da Partida' }} />
+      <AppStack.Screen name="DesafioEmAndamento" component={DesafioEmAndamentoScreen} options={{ title: 'Desafio em Andamento' }} />
       <AppStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Meu Perfil' }} />
       <AppStack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ title: 'Alterar Senha' }} />
     </AppStack.Navigator>

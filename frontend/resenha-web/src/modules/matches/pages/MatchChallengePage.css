@@ -1,0 +1,482 @@
+.match-challenge-page {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.match-challenge-page__hero,
+.match-challenge-page__panel,
+.match-challenge-page__state-panel {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.match-challenge-page__hero {
+  background:
+    radial-gradient(circle at top left, rgba(9, 72, 132, 0.14), transparent 28%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.98), rgba(239, 245, 251, 0.95));
+}
+
+.match-challenge-page__breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.match-challenge-page__breadcrumbs a,
+.match-challenge-page__route {
+  color: var(--color-brand-primary);
+}
+
+.match-challenge-page__route {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-family-mono);
+  font-size: 0.85rem;
+}
+
+.match-challenge-page__hero-content,
+.match-challenge-page__panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.match-challenge-page__hero-content {
+  margin-top: var(--space-5);
+}
+
+.match-challenge-page__hero-actions,
+.match-challenge-page__alert-stack,
+.match-challenge-page__alert-actions,
+.match-challenge-page__state-actions {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.match-challenge-page__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-bg-surface);
+  font-weight: 600;
+}
+
+.match-challenge-page__link--primary {
+  border-color: transparent;
+  background-color: var(--color-brand-primary);
+  color: var(--color-brand-primary-contrast);
+}
+
+.match-challenge-page__content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.match-challenge-page__panel {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.match-challenge-page__panel--wide {
+  grid-column: 1 / -1;
+}
+
+.match-challenge-page__state-panel {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+}
+
+.match-challenge-page__panel-header h2,
+.challenge-status-panel__title,
+.challenge-teams-panel__team-title,
+.challenge-alerts-panel__group-title,
+.challenge-available-players-panel__title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+}
+
+.match-challenge-page__panel-header p,
+.challenge-status-panel__description,
+.challenge-status-panel__meta,
+.challenge-teams-panel__team-meta,
+.challenge-alerts-panel__empty p,
+.challenge-alerts-panel__list-item,
+.challenge-available-players-panel__description,
+.challenge-available-players-panel__empty p {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+}
+
+.match-challenge-page__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  width: fit-content;
+  padding: 0 var(--space-3);
+  border-radius: 999px;
+  background-color: rgba(23, 92, 211, 0.12);
+  color: var(--color-feedback-info);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.match-challenge-page__badge--outline {
+  border: 1px solid var(--color-border-default);
+  background-color: transparent;
+  color: var(--color-text-primary);
+}
+
+.match-challenge-page__badge--danger {
+  background-color: rgba(163, 27, 50, 0.12);
+  color: var(--color-feedback-danger);
+}
+
+.challenge-status-panel,
+.challenge-line-draw-section,
+.challenge-line-picks-section,
+.challenge-goalkeeper-section,
+.challenge-teams-panel,
+.challenge-alerts-panel,
+.challenge-available-players-panel {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.challenge-status-panel__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.challenge-line-draw-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.challenge-line-picks-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.challenge-goalkeeper-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.challenge-status-panel__status-stack {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.challenge-status-panel__status,
+.challenge-teams-panel__team-count,
+.challenge-alerts-panel__group-count,
+.challenge-available-players-panel__count,
+.challenge-teams-panel__player-badge,
+.challenge-available-players-panel__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 2rem;
+  padding: 0 var(--space-3);
+  border-radius: 999px;
+  background-color: rgba(23, 92, 211, 0.12);
+  color: var(--color-feedback-info);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.challenge-status-panel__status--outline {
+  border: 1px solid var(--color-border-default);
+  background-color: transparent;
+  color: var(--color-text-primary);
+}
+
+.challenge-line-draw-section__feedback,
+.challenge-line-draw-section__feedback-actions,
+.challenge-line-picks-section__feedback,
+.challenge-line-picks-section__feedback-actions,
+.challenge-goalkeeper-section__feedback,
+.challenge-goalkeeper-section__feedback-actions,
+.challenge-goalkeeper-section__number-form,
+.challenge-line-draw-section__number-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.challenge-line-draw-section__summary,
+.challenge-goalkeeper-section__summary,
+.challenge-status-panel__highlight-grid,
+.challenge-status-panel__details,
+.challenge-teams-panel,
+.challenge-alerts-panel {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.challenge-status-panel__highlight-grid,
+.challenge-line-draw-section__summary,
+.challenge-goalkeeper-section__summary,
+.challenge-teams-panel,
+.challenge-alerts-panel {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.challenge-status-panel__card,
+.challenge-line-draw-section__summary-card,
+.challenge-line-draw-section__action-card,
+.challenge-goalkeeper-section__summary-card,
+.challenge-goalkeeper-section__action-card,
+.challenge-goalkeeper-section__manual-state,
+.challenge-status-panel__detail-card,
+.challenge-teams-panel__team-card,
+.challenge-alerts-panel__group,
+.challenge-alerts-panel__manual-state,
+.challenge-available-players-panel__item,
+.challenge-available-players-panel__empty,
+.challenge-teams-panel__empty {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 245, 251, 0.94));
+}
+
+.challenge-status-panel__label {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.challenge-line-draw-section__title,
+.challenge-line-picks-section__title,
+.challenge-goalkeeper-section__title,
+.challenge-goalkeeper-section__action-copy h4,
+.challenge-line-draw-section__action-copy h4 {
+  margin: 0;
+  font-family: var(--font-family-heading);
+}
+
+.challenge-status-panel__name {
+  font-family: var(--font-family-heading);
+  font-size: 1.1rem;
+}
+
+.challenge-line-draw-section__description,
+.challenge-line-picks-section__description,
+.challenge-goalkeeper-section__description,
+.challenge-line-draw-section__action-copy p,
+.challenge-goalkeeper-section__action-copy p,
+.challenge-line-draw-section__notice p,
+.challenge-line-picks-section__notice p,
+.challenge-goalkeeper-section__notice p,
+.challenge-alerts-panel__manual-state-copy,
+.challenge-line-draw-section__summary-card span,
+.challenge-goalkeeper-section__summary-card span {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+}
+
+.challenge-line-draw-section__summary-card strong,
+.challenge-goalkeeper-section__summary-card strong {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+}
+
+.challenge-status-panel__details {
+  margin: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.challenge-status-panel__detail-card dt {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.challenge-status-panel__detail-card dd {
+  margin: 0;
+}
+
+.challenge-teams-panel__team-header,
+.challenge-alerts-panel__group-header,
+.challenge-available-players-panel__header,
+.challenge-available-players-panel__item,
+.challenge-teams-panel__player-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.challenge-teams-panel__players-list,
+.challenge-alerts-panel__list,
+.challenge-available-players-panel__list {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.challenge-teams-panel__player-item,
+.challenge-alerts-panel__list-item,
+.challenge-available-players-panel__item {
+  margin: 0;
+}
+
+.challenge-line-draw-section__actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.challenge-goalkeeper-section__actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.challenge-line-draw-section__button-row,
+.challenge-goalkeeper-section__button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.challenge-line-draw-section__notice,
+.challenge-goalkeeper-section__notice {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 245, 251, 0.94));
+}
+
+.challenge-line-picks-section__notice {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 245, 251, 0.94));
+}
+
+.challenge-alerts-panel__group--bloqueios {
+  border-color: rgba(163, 27, 50, 0.2);
+}
+
+.challenge-alerts-panel__group--alertas {
+  border-color: rgba(181, 71, 8, 0.18);
+}
+
+.challenge-goalkeeper-section__manual-state,
+.challenge-alerts-panel__manual-state {
+  border-color: rgba(181, 71, 8, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 251, 245, 0.98), rgba(255, 245, 231, 0.94));
+}
+
+.challenge-alerts-panel__manual-state-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.challenge-available-players-panel__item--goleiros {
+  border-color: rgba(23, 92, 211, 0.18);
+}
+
+.challenge-available-players-panel__item--linha {
+  border-color: rgba(23, 104, 58, 0.14);
+}
+
+.challenge-available-players-panel__item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+@media (max-width: 960px) {
+  .match-challenge-page__content,
+  .challenge-line-draw-section__summary,
+  .challenge-goalkeeper-section__summary,
+  .challenge-line-draw-section__actions-grid,
+  .challenge-goalkeeper-section__actions-grid,
+  .challenge-status-panel__highlight-grid,
+  .challenge-status-panel__details,
+  .challenge-teams-panel,
+  .challenge-alerts-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .match-challenge-page__hero,
+  .match-challenge-page__panel,
+  .match-challenge-page__state-panel {
+    padding: var(--space-5);
+  }
+
+  .match-challenge-page__hero-actions,
+  .match-challenge-page__state-actions,
+  .match-challenge-page__alert-actions {
+    width: 100%;
+  }
+
+  .match-challenge-page__link,
+  .match-challenge-page__hero-actions .ui-button,
+  .match-challenge-page__state-actions .ui-button,
+  .match-challenge-page__alert-actions .ui-button,
+  .challenge-line-draw-section__feedback-actions .ui-button,
+  .challenge-line-picks-section__feedback-actions .ui-button,
+  .challenge-goalkeeper-section__feedback-actions .ui-button,
+  .challenge-line-draw-section__button-row .ui-button,
+  .challenge-goalkeeper-section__button-row .ui-button,
+  .challenge-available-players-panel__item-actions .ui-button {
+    width: 100%;
+  }
+
+  .challenge-line-draw-section__button-row,
+  .challenge-goalkeeper-section__button-row,
+  .challenge-teams-panel__team-header,
+  .challenge-available-players-panel__header,
+  .challenge-available-players-panel__item-actions,
+  .challenge-available-players-panel__item,
+  .challenge-teams-panel__player-item {
+    align-items: stretch;
+  }
+}

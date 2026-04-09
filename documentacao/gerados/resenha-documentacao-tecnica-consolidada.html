@@ -1,0 +1,347 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Resenha - Documentacao Tecnica Consolidada</title>
+<style>
+@page { size:A4; margin:16mm 14mm 18mm 14mm; }
+:root{--ink:#1d2d22;--ink-soft:#44574a;--accent:#1f6b42;--accent-soft:#e9f5ed;--accent-2:#d8efe0;--line:#c9d8cd;--surface:#f8fbf9;--surface-2:#f1f7f3;--muted:#677b6d;}
+*{box-sizing:border-box} html{print-color-adjust:exact;-webkit-print-color-adjust:exact} body{margin:0;font-family:"Segoe UI",Arial,Helvetica,sans-serif;color:var(--ink);font-size:10.5pt;line-height:1.55;background:#fff} h1,h2,h3,h4{margin:0 0 8px;line-height:1.2;color:#153622} h1{font-size:28pt;letter-spacing:-.6px} h2{font-size:18pt;margin-top:26px;padding-top:10px;border-top:2px solid var(--accent-2)} h3{font-size:13pt;margin-top:18px} h4{font-size:11pt;margin-top:14px} p{margin:0 0 10px} ul,ol{margin:8px 0 12px 20px;padding:0} li{margin:0 0 5px} a{color:var(--accent);text-decoration:none} code{font-family:Consolas,"Courier New",monospace;font-size:9.3pt;background:var(--surface-2);border:1px solid #d8e6dc;border-radius:4px;padding:1px 5px} pre{margin:10px 0 14px;padding:12px 14px;white-space:pre-wrap;word-break:break-word;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-family:Consolas,"Courier New",monospace;font-size:9.2pt;line-height:1.45} table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:9.5pt} thead{display:table-header-group} th,td{border:1px solid var(--line);padding:8px 9px;vertical-align:top;text-align:left} th{background:var(--accent-soft);color:#18402a;font-weight:700} tr:nth-child(even) td{background:#fbfdfb}.cover{min-height:255mm;display:flex;flex-direction:column;justify-content:space-between;page-break-after:always}.cover-top{background:linear-gradient(135deg,#0f2a1c 0%,#1b5133 100%);color:#f4fff7;padding:24mm 18mm 16mm;border-radius:0 0 18px 18px}.cover-kicker{display:inline-block;margin-bottom:18px;padding:5px 10px;border:1px solid rgba(255,255,255,.22);border-radius:999px;font-size:9pt;letter-spacing:.8px;text-transform:uppercase}.cover-subtitle{max-width:620px;margin-top:10px;font-size:12pt;color:#d8f5df}.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:26px}.meta-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 12px}.meta-label{display:block;font-size:8.6pt;text-transform:uppercase;letter-spacing:.7px;color:#c3e6ce;margin-bottom:3px}.meta-value{font-size:10pt;font-weight:600;color:#fff}.cover-bottom{padding:0 4mm 0}.cover-note{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink-soft)}.toc{page-break-after:always}.toc ol{margin-left:18px}.toc li{padding:3px 0}.lead{font-size:11.2pt;color:#2b4033}.callout,.callout-warning,.callout-danger{padding:11px 12px;border-radius:10px;margin:12px 0 14px;border:1px solid var(--line);background:var(--surface)}.callout strong,.callout-warning strong,.callout-danger strong{display:inline-block;margin-bottom:4px}.callout-warning{background:#fff8ec;border-color:#ecd8ad;color:#6b4d12}.callout-danger{background:#fff0f0;border-color:#e4bcbc;color:#6d2626}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}.section-card{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:12px 0}.small{font-size:9pt;color:var(--muted)}.footer-note{margin-top:28px;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:8.8pt}.matrix td:first-child,.matrix th:first-child{width:28%;font-weight:700}
+</style>
+</head>
+<body>
+<main>
+<section class="cover">
+<div class="cover-top">
+<span class="cover-kicker">Documentacao Tecnica Consolidada</span>
+<h1>Resenha</h1>
+<p class="cover-subtitle">Documento mestre de arquitetura, dominio de negocio, API, aplicativo mobile, dados, testes e operacao. Elaborado a partir da leitura do codigo do workspace e da validacao dos artefatos tecnicos presentes no repositorio.</p>
+<div class="meta-grid">
+<div class="meta-card"><span class="meta-label">Baseline analisada</span><span class="meta-value">Workspace em 01/04/2026</span></div>
+<div class="meta-card"><span class="meta-label">Escopo</span><span class="meta-value">Backend, frontend, testes, scripts e deploy</span></div>
+<div class="meta-card"><span class="meta-label">Audiencia</span><span class="meta-value">Engenharia, produto, operacao e onboarding tecnico</span></div>
+<div class="meta-card"><span class="meta-label">Artefato final</span><span class="meta-value">PDF consolidado para consulta e repasse</span></div>
+</div>
+</div>
+<div class="cover-bottom">
+<div class="cover-note"><strong>Escopo efetivamente lido</strong><br /> <code>backend/Resenha.API</code>, <code>backend/Resenha.API.Tests</code>, <code>frontend/resenha-app</code>, <code>backend/deploy/linux</code>, <code>scripts/</code> e a pasta <code>documentacao/</code> existente. Este documento privilegia o comportamento implementado no codigo-fonte atual, inclusive a feature de <em>desafio em andamento</em>, convidados por partida, historico detalhado, testes automatizados .NET e os fluxos mobile associados.</div>
+</div>
+</section>
+<section class="toc">
+<h2>Sumario</h2>
+<ol>
+<li><a href="#resumo">Resumo Executivo</a></li>
+<li><a href="#repositorio">Escopo do Repositorio</a></li>
+<li><a href="#arquitetura">Arquitetura da Solucao</a></li>
+<li><a href="#backend">Backend e API</a></li>
+<li><a href="#dados">Modelo de Dados</a></li>
+<li><a href="#negocio">Fluxos e Regras de Negocio</a></li>
+<li><a href="#api">Referencia de Endpoints</a></li>
+<li><a href="#frontend">Aplicativo Mobile</a></li>
+<li><a href="#qualidade">Qualidade, Testes e Validacao</a></li>
+<li><a href="#infra">Infraestrutura e Operacao</a></li>
+<li><a href="#recomendacoes">Observacoes Tecnicas e Recomendacoes</a></li>
+<li><a href="#anexos">Anexos Tecnicos</a></li>
+</ol>
+</section>
+<section id="resumo">
+<h2>1. Resumo Executivo</h2>
+<p class="lead">O <strong>Resenha</strong> e uma plataforma para organizacao de peladas e grupos amadores de futebol. A solucao centraliza o que normalmente fica espalhado entre mensagens, planilhas e acordos informais: membros do grupo, convites, agenda, lista de presenca, definicao de capitaes, montagem dos times, encerramento da partida, classificacao e votacao de premios.</p>
+<p>No estado atual, a solucao e composta por um <strong>backend monolitico modular em ASP.NET Core 6</strong>, um <strong>aplicativo mobile em Expo/React Native</strong>, persistencia em <strong>MySQL</strong>, deploy em <strong>Oracle Cloud</strong> com <strong>nginx</strong> e TLS, alem de artefatos operacionais e de teste que suportam regressao funcional e publicacao.</p>
+<div class="two-col">
+<div class="section-card"><h3>Capacidades ja implementadas</h3><ul><li>Cadastro, login e sessao JWT com invalidacao por troca de senha.</li><li>Recuperacao de senha com auditoria, expiracao, limite por IP e limite por usuario.</li><li>Perfil do jogador com clube do coracao, posicao principal e pe dominante.</li><li>Criacao de grupos, convites, aceite, recusa, reativacao de membership e gestao de papeis.</li><li>Criacao de partidas, presenca, ausencia, convidados e reabertura de vaga com notificacao por e-mail.</li><li>Ciclo de capitao, bloqueio de desafiantes derrotados e historico de desafios.</li><li>Montagem dos times por desafio com par ou impar, picks alternados e etapa separada de goleiros.</li><li>Finalizacao da partida, estatisticas individuais, classificacao da temporada e historico geral.</li><li>Votacao de <code>MVP</code> e <code>BOLA_MURCHA</code> com rodadas de desempate.</li></ul></div>
+<div class="section-card"><h3>Posicionamento tecnico atual</h3><ul><li>Arquitetura adequada para beta controlado e operacao de pequeno porte.</li><li>Regras de negocio concentradas nos servicos do backend, o que simplifica leitura e testes.</li><li>Sincronizacao de estado do app baseada em chamadas REST e recarga de tela, sem WebSocket ou push.</li><li>Deploy funcional em producao, porem ainda com divida operacional em observabilidade e automacao.</li><li>Conjunto inicial de testes automatizados .NET ja cobrindo ciclo de capitao e desafio em andamento.</li></ul></div>
+</div>
+<div class="callout"><strong>Conclusao executiva</strong><br />O projeto ja ultrapassou a fase de prototipo raso: ha dominio esportivo modelado, consistencia transacional em fluxos criticos, artefatos de deploy e testes automatizados. O proximo salto de maturidade esta menos em criar modulos novos e mais em endurecer seguranca, telemetria, governanca de versao e automacao de entrega.</div>
+</section>
+<section id="repositorio">
+<h2>2. Escopo do Repositorio</h2>
+<p>O repositorio esta organizado por camadas e ja contem documentacao operacional, scripts de teste, templates de deploy Linux e um projeto de testes de backend. A tabela a seguir resume a responsabilidade de cada diretorio principal.</p>
+<table><thead><tr><th>Diretorio</th><th>Papel no sistema</th><th>Observacoes relevantes</th></tr></thead><tbody>
+<tr><td><code>backend/Resenha.API</code></td><td>API REST principal, regras de negocio, EF Core, DTOs, entidades e bootstrap.</td><td>Contem controladores, servicos, helpers, SQLs utilitarios e configuracao de ambiente.</td></tr>
+<tr><td><code>backend/Resenha.API.Tests</code></td><td>Testes automatizados .NET com <code>xUnit</code> e SQLite in-memory.</td><td>Foco atual em ciclo de capitao e desafio em andamento.</td></tr>
+<tr><td><code>backend/deploy/linux</code></td><td>Templates de publicacao em Linux com <code>systemd</code>, <code>nginx</code> e ambiente.</td><td>Servem como baseline, mas parte da configuracao real de producao ja divergiu dos templates.</td></tr>
+<tr><td><code>frontend/resenha-app</code></td><td>Aplicativo Expo/React Native consumindo a API.</td><td>Inclui navegacao, contexto de autenticacao, cliente HTTP, telas operacionais e build EAS.</td></tr>
+<tr><td><code>documentacao</code></td><td>Capitulos em Markdown sobre produto, arquitetura, banco, operacao e backlog.</td><td>Esta documentacao consolidada reaproveita e valida esse material contra o codigo atual.</td></tr>
+<tr><td><code>scripts</code></td><td>Scripts de regressao, seed e deploy complementar.</td><td>Inclui fluxos de votacao, capitao, recuperacao de senha e regresses especificas.</td></tr>
+</tbody></table>
+<pre>backend/
+  Resenha.API/
+  Resenha.API.Tests/
+  deploy/linux/
+frontend/
+  resenha-app/
+documentacao/
+scripts/
+Resenha.sln</pre>
+<p class="small">Nota: o workspace analisado contem alteracoes locais ja presentes em codigo e documentacao. Este documento foi produzido com base nesse estado corrente, e nao apenas em arquivos previamente versionados.</p>
+</section>
+<section id="arquitetura">
+<h2>3. Arquitetura da Solucao</h2>
+<h3>3.1 Visao macro</h3>
+<p>A solucao adota um desenho pragmatico, centrado em um backend monolitico modular. Esse formato reduz overhead operacional, simplifica debugging e acelera evolucao funcional para o estagio atual do produto.</p>
+<pre>Aplicativo Android / Expo
+  |
+  | HTTPS + JSON + JWT Bearer
+  v
+api.resenhaapp.com
+  |
+  v
+nginx (terminacao TLS / reverse proxy)
+  |
+  v
+Resenha.API (ASP.NET Core 6)
+  |
+  v
+MySQL</pre>
+<table><thead><tr><th>Componente</th><th>Responsabilidade primaria</th><th>Comentario arquitetural</th></tr></thead><tbody>
+<tr><td>App mobile Expo</td><td>Experiencia do usuario, sessao local, navegacao e consumo da API.</td><td>Estado da interface e recarregado por navegacao, refresh manual e pos-acao; nao ha canal realtime dedicado.</td></tr>
+<tr><td>Resenha.API</td><td>Aplicar regra de negocio, autorizar acoes e persistir dados.</td><td>Concentra quase toda a inteligencia de dominio em servicos coesos por modulo.</td></tr>
+<tr><td>MySQL</td><td>Persistencia transacional de usuarios, grupos, partidas, desafios, votacao e classificacao.</td><td>Indices unicos e validacoes de servico sustentam integridade funcional.</td></tr>
+<tr><td>nginx</td><td>Receber trafego externo, encerrar TLS e encaminhar para a API interna.</td><td>Permite expor somente portas publicas necessarias e ocultar a porta do processo .NET.</td></tr>
+<tr><td>Oracle Cloud VM</td><td>Hospedagem da API e do banco.</td><td>Modelo economico para beta, porem com menor isolamento entre aplicacao e banco.</td></tr>
+</tbody></table>
+<h3>3.2 Estilo de integracao</h3>
+<ul><li><strong>Cliente -> API:</strong> HTTPS, JSON, timeout de 10 segundos, autenticacao JWT Bearer.</li><li><strong>API -> banco:</strong> Entity Framework Core com provider MySQL (<code>Pomelo.EntityFrameworkCore.MySql</code>).</li><li><strong>Notificacoes por e-mail:</strong> provider configuravel entre SMTP e SendGrid.</li><li><strong>Deep linking mobile:</strong> esquema <code>resenha://</code> para convite e redefinicao de senha.</li></ul>
+<h3>3.3 Caracteristicas importantes observadas</h3>
+<ul><li>O backend ja considera o fuso <code>America/Sao_Paulo</code> para regras de janela de confirmacao.</li><li>A montagem dos times e orientada por estado de dominio, nao por telas soltas.</li><li>O app usa <code>useFocusEffect</code> e <code>RefreshControl</code> para sincronizacao; nao existe polling continuo nem socket.</li><li>O design favorece consistencia funcional antes de otimizacoes de escala.</li></ul>
+</section>
+<section id="backend">
+<h2>4. Backend e API</h2>
+<h3>4.1 Stack e bootstrap</h3>
+<p>O backend esta em <code>.NET 6</code> e usa um bootstrap enxuto em <code>Program.cs</code>. Os pontos mais relevantes sao:</p>
+<ul><li>Normalizacao da <code>DefaultConnection</code>, desabilitando SSL local quando o host e <code>localhost</code> e o provider estiver em <code>Preferred</code>.</li><li>Registro do <code>ResenhaDbContext</code> com <code>ServerVersion.AutoDetect</code>.</li><li>Autenticacao JWT com validacao de emissor, audiencia, assinatura, expiracao e claim customizada <code>pwd_at</code>.</li><li>Revalidacao do usuario a cada token autenticado: usuario precisa existir, estar ativo e ter o mesmo timestamp de senha que originou o token.</li><li><code>CORS</code> permissivo em desenvolvimento e restrito por lista de origens em producao.</li><li>Suporte a <code>X-Forwarded-For</code> e <code>X-Forwarded-Proto</code> para operacao atras de <code>nginx</code>.</li><li>Resposta padronizada de <code>ModelState</code> invalido com payload <code>{ mensagem }</code>.</li><li>Swagger habilitado apenas em desenvolvimento.</li></ul>
+<div class="callout-warning"><strong>Nuance de seguranca relevante</strong><br />A invalidacao de sessao por troca de senha esta bem resolvida pelo uso da claim <code>pwd_at</code>, porem o hash de senha atual usa apenas <code>SHA-256</code> sem salt dedicado nem algoritmo de custo adaptativo. Para producao madura, o correto e migrar para <code>Argon2</code>, <code>bcrypt</code> ou <code>PBKDF2</code>.</div>
+<h3>4.2 Controladores e modulos expostos</h3>
+<table><thead><tr><th>Controller</th><th>Dominio coberto</th><th>Pontos notaveis</th></tr></thead><tbody>
+<tr><td><code>UserController</code></td><td>Autenticacao, perfil, reset de senha e catalogo de clubes.</td><td>Possui proxy de logos de clubes e modo debug de token de reset apenas em desenvolvimento.</td></tr>
+<tr><td><code>GroupController</code></td><td>Grupos, convites, membros, papeis, agenda e exclusao logica.</td><td>Ha dois estilos de convite: um endpoint simples por codigo e outro com tentativa de envio por e-mail.</td></tr>
+<tr><td><code>MatchController</code></td><td>Partidas, presenca, convidados, historico, detalhes e desafio em andamento.</td><td>E hoje o controller mais rico do sistema, porque concentra o fluxo operacional da partida.</td></tr>
+<tr><td><code>CaptainController</code></td><td>Ciclo de capitao, desafio, elegibilidade e resultado.</td><td>Modela o campeao da vez e a progressao de desafios no grupo.</td></tr>
+<tr><td><code>ClassificationController</code></td><td>Montagem tradicional de times, finalizacao, ranking e estatistica pessoal.</td><td>Coexiste com a montagem via desafio; ambos desembocam no fechamento/classificacao.</td></tr>
+<tr><td><code>VoteController</code></td><td>Votacao de premios da partida.</td><td>Suporta multiplas rodadas de desempate e aprovacao final pelo administrador.</td></tr>
+</tbody></table>
+<h3>4.3 Servicos de dominio</h3>
+<table><thead><tr><th>Servico</th><th>Escopo</th><th>Observacoes de implementacao</th></tr></thead><tbody>
+<tr><td><code>AuthService</code></td><td>Cadastro, login, perfil, troca de senha e recuperacao.</td><td>Normaliza e-mail, valida clube/posicao/pe dominante, audita reset e gera JWT.</td></tr>
+<tr><td><code>GroupService</code></td><td>Grupos, convites, aceite, papeis, schedule e remocao.</td><td>Reativa membership antiga quando aplicavel e protege o ultimo admin do grupo.</td></tr>
+<tr><td><code>MatchService</code></td><td>Partidas, presenca, convidados, historico, detalhes e desafio em andamento.</td><td>E o servico mais complexo; usa transacao serializavel em presenca e rollback de classificacao na exclusao.</td></tr>
+<tr><td><code>CaptainService</code></td><td>Ciclo de capitao e historico de desafios.</td><td>Bloqueia desafiantes derrotados e registra historico da disputa por partida.</td></tr>
+<tr><td><code>ClassificationService</code></td><td>Times, resultado, ranking da temporada, historico geral e estatistica pessoal.</td><td>Atualiza ranking por upsert e aplica pontuacao base por vitoria/derrota.</td></tr>
+<tr><td><code>VoteService</code></td><td>MVP, bola murcha, desempate e aprovacao.</td><td>Usa rodadas sucessivas e restringe candidatos empatados por <code>Observacao</code>.</td></tr>
+<tr><td><code>InviteEmailService</code></td><td>Envio de convites, reset e aviso de vaga reaberta.</td><td>Provider configuravel entre SMTP e SendGrid; falhas de e-mail nao bloqueiam o fluxo principal.</td></tr>
+</tbody></table>
+<h3>4.4 Tratamento de erros e contrato de resposta</h3>
+<p>O projeto utiliza uma extensao centralizada (<code>ApiErrorMapper</code>) para transformar mensagens de excecao em respostas HTTP. O payload de erro e simples e consistente: <code>{ mensagem: "..." }</code>.</p>
+<ul><li><strong>404</strong> quando a mensagem indica nao encontrado.</li><li><strong>403</strong> para violacao de membership, permissao administrativa ou convite pertencente a outro e-mail.</li><li><strong>409</strong> para conflitos como duplicidade, limite, lista cheia ou voto ja iniciado.</li><li><strong>400</strong> para demais erros de regra ou validacao.</li></ul>
+<div class="callout"><strong>Observacao pratica</strong><br />O mapeamento e heuristico, baseado em fragmentos de texto de excecao. Funciona para o estagio atual, mas e um ponto natural de evolucao para erros tipados por codigo interno.</div>
+<h3>4.5 Autenticacao e identidade do usuario</h3>
+<ul><li>O cadastro exige <code>nome</code>, <code>email</code>, <code>senha</code>, <code>posicaoPrincipal</code> e <code>peDominante</code>.</li><li><code>Goleiro</code> pode ser marcado explicitamente ou inferido quando a posicao principal e <code>GOLEIRO</code>.</li><li>O catalogo de clubes e local ao backend e retorna codigo, nome e URL do escudo.</li><li>O endpoint <code>GET /api/users/clubs/logo</code> faz proxy apenas para hosts aprovados, evitando bloqueios em clientes moveis.</li><li>A recuperacao de senha usa token hashado no banco, expiracao de 15 minutos e bloqueio apos mais de 5 tentativas de validacao.</li></ul>
+</section>
+<section id="dados">
+<h2>5. Modelo de Dados</h2>
+<p>O <code>ResenhaDbContext</code> concentra o modelo relacional do sistema e define indices unicos que sustentam regras funcionais criticas. O desenho e orientado a agregados pequenos e claros, com estados codificados por strings.</p>
+<h3>5.1 Agrupamento das entidades</h3>
+<table><thead><tr><th>Dominio</th><th>Entidades</th><th>Finalidade pratica</th></tr></thead><tbody>
+<tr><td>Usuario e seguranca</td><td><code>Usuario</code>, <code>TokenRecuperacaoSenha</code>, <code>AuditoriaSeguranca</code></td><td>Identidade, credenciais, metadados esportivos e trilha de acoes sensiveis.</td></tr>
+<tr><td>Grupo</td><td><code>Grupo</code>, <code>GrupoUsuario</code>, <code>ConviteGrupo</code></td><td>Governanca do grupo, membership, agenda e entrada por convite.</td></tr>
+<tr><td>Temporada e partida</td><td><code>Temporada</code>, <code>Partida</code>, <code>PresencaPartida</code>, <code>DesafioPartida</code></td><td>Agenda, ocupacao de vagas e estado operacional do desafio da montagem.</td></tr>
+<tr><td>Capitao</td><td><code>CicloCapitao</code>, <code>CicloCapitaoBloqueado</code>, <code>HistoricoCapitao</code></td><td>Persistencia do campeao do grupo, derrotados do ciclo e historico das disputas.</td></tr>
+<tr><td>Times e resultado</td><td><code>TimePartida</code>, <code>JogadorTimePartida</code>, <code>ResultadoPartida</code>, <code>EstatisticaPartida</code></td><td>Composicao dos times, placar e estatisticas por jogador.</td></tr>
+<tr><td>Votacao</td><td><code>VotacaoPartida</code>, <code>Voto</code></td><td>Rodadas de votacao, desempates e aprovacao final.</td></tr>
+<tr><td>Classificacao</td><td><code>ClassificacaoTemporada</code>, <code>ClassificacaoGeralGrupo</code></td><td>Ranking anual e acumulado historico do grupo.</td></tr>
+</tbody></table>
+<h3>5.2 Indices de integridade mais relevantes</h3>
+<ul><li><code>GrupoUsuario(IdGrupo, IdUsuario)</code>: impede membership duplicada no mesmo grupo.</li><li><code>PresencaPartida(IdPartida, IdUsuario)</code>: impede dupla presenca/ausencia para a mesma pessoa.</li><li><code>DesafioPartida(IdPartida)</code>: garante um unico estado de desafio por partida.</li><li><code>CicloCapitaoBloqueado(IdCiclo, IdUsuarioBloqueado)</code>: impede bloqueio duplicado.</li><li><code>HistoricoCapitao(IdPartida, IdCiclo)</code>: garante um registro historico consistente por disputa.</li><li><code>TimePartida(IdPartida, NumeroTime)</code>: protege os dois slots de time da partida.</li><li><code>JogadorTimePartida(IdTime, IdUsuario)</code>: impede o mesmo jogador duplicado no mesmo time.</li><li><code>ResultadoPartida(IdPartida)</code>: protege o placar unico da partida.</li><li><code>VotacaoPartida(IdPartida, Tipo, Rodada)</code>: garante unicidade de rodada por tipo de premio.</li><li><code>Voto(IdVotacao, IdUsuarioEleitor)</code>: impede voto repetido na mesma rodada.</li><li><code>ClassificacaoTemporada(IdTemporada, IdUsuario)</code> e <code>ClassificacaoGeralGrupo(IdGrupo, IdUsuario)</code>: base para upsert seguro de ranking.</li><li><code>ConviteGrupo(CodigoConvite)</code> e <code>Usuario(Email)</code>: unicidade de convite e identidade.</li></ul>
+<h3>5.3 Estados persistidos</h3>
+<table class="matrix"><thead><tr><th>Objeto</th><th>Estados identificados no codigo</th></tr></thead><tbody>
+<tr><td>ConviteGrupo</td><td><code>PENDENTE</code>, <code>ACEITO</code>, <code>CANCELADO</code>, <code>EXPIRADO</code></td></tr>
+<tr><td>Partida</td><td><code>ABERTA</code>, <code>EM_ANDAMENTO</code>, <code>FINALIZADA</code>, <code>CANCELADA</code></td></tr>
+<tr><td>CicloCapitao</td><td><code>ATIVO</code>, <code>ENCERRADO</code></td></tr>
+<tr><td>VotacaoPartida</td><td><code>ABERTA</code>, <code>ENCERRADA</code>, <code>APURADA</code>, <code>APROVADA</code></td></tr>
+<tr><td>DesafioPartida</td><td><code>AGUARDANDO_CONFIRMACOES</code>, <code>PRONTA_PARA_MONTAGEM</code>, <code>PAR_IMPAR_LINHA</code>, <code>ESCOLHA_EM_ANDAMENTO</code>, <code>PAR_IMPAR_GOLEIROS</code>, <code>ESCOLHA_GOLEIRO_EM_ANDAMENTO</code>, <code>DEFINICAO_MANUAL_GOLEIRO</code>, <code>TIMES_FECHADOS</code></td></tr>
+</tbody></table>
+<div class="callout-warning"><strong>Observacao de modelagem</strong><br />O dominio usa strings literais para varios estados e papeis. Isso facilita leitura inicial, mas aumenta o risco de drift entre backend, frontend, testes e documentacao. Uma evolucao natural seria consolidar essas constantes em enums ou catalogos compartilhados.</div>
+</section>
+<section id="negocio">
+<h2>6. Fluxos e Regras de Negocio</h2>
+<h3>6.1 Usuario, autenticacao e perfil</h3>
+<ul><li>Cadastro bloqueia e-mail duplicado e exige senha forte: minimo de 8 caracteres, ao menos 1 numero e 1 letra maiuscula.</li><li>Posicao principal e pe dominante sao validados contra catalogos fixos.</li><li>O token JWT carrega <code>pwd_at</code>; ao trocar a senha, tokens antigos deixam de ser validos.</li><li>Recuperacao de senha aplica dois rate limits: por IP e por usuario.</li><li>O reset invalida os demais tokens ainda nao usados daquele usuario.</li></ul>
+<h3>6.2 Grupos e membership</h3>
+<ul><li>O criador do grupo entra automaticamente como <code>ADMIN</code>.</li><li>Convites pendentes antigos para o mesmo e-mail e grupo sao cancelados antes de gerar um novo.</li><li>O grupo respeita <code>LimiteJogadores</code> tanto na entrada por convite quanto na aceitacao de pendentes.</li><li>Aceitar convite pode criar uma nova membership ou reativar uma antiga, sempre como <code>JOGADOR</code>.</li><li>O sistema protege o ultimo administrador contra rebaixamento.</li><li>Excluir grupo e exclusao logica: inativa o grupo, os membros e os convites pendentes.</li></ul>
+<h3>6.3 Partidas, presenca, ausencias e convidados</h3>
+<ul><li>Somente administradores criam partida.</li><li>Nao pode existir mais de uma partida nao cancelada por dia no mesmo grupo.</li><li>Se nao houver temporada ativa, a criacao da partida abre automaticamente uma nova temporada.</li><li>Confirmacao de presenca e adicao de convidado so podem ocorrer ate <strong>20 minutos antes do horario da partida</strong>.</li><li>A confirmacao usa transacao serializavel para evitar overbooking concorrente nas ultimas vagas.</li><li>Goleiros seguem regra especial: a partida aceita no maximo <strong>2 goleiros confirmados</strong>.</li><li>Se a lista estava cheia e alguem cancela ou marca ausencia, o sistema tenta notificar os demais membros por e-mail sobre a vaga reaberta.</li><li>Convidados sao persistidos como usuarios sinteticos com e-mail <code>@resenha.local</code>, sem ativacao de conta e vinculados a presenca da partida.</li></ul>
+<div class="callout"><strong>Detalhe operacional importante</strong><br />O fluxo de convidados nao cria membership no grupo. O convidado existe para efeitos de presenca e composicao da partida, e pode ser limpo do banco quando a partida e removida e nao ha outras referencias para esse usuario sintetico.</div>
+<h3>6.4 Ciclo de capitao</h3>
+<ul><li>Um grupo so pode ter um ciclo <code>ATIVO</code> por vez.</li><li>Para abrir ciclo, precisa haver temporada ativa.</li><li>O admin que inicia o ciclo vira automaticamente o capitao atual.</li><li>Somente o capitao atual escolhe o desafiante.</li><li>O desafiante precisa estar confirmado na partida, nao pode ser convidado e nao pode estar bloqueado no ciclo.</li><li>Se o capitao vence, o desafiante e bloqueado dentro daquele ciclo.</li><li>Se o desafiante vence, o ciclo atual e encerrado e um novo nasce com ele como capitao.</li><li>O historico de capitao registra a disputa por partida, com vencedor, derrotado e data.</li></ul>
+<h3>6.5 Desafio em andamento e montagem dos times</h3>
+<p>Esta e a feature mais sofisticada do estado atual. O backend persiste o fluxo na entidade <code>DesafioPartida</code> e expoe um DTO rico, pensado para dirigir a UI do app sem logica duplicada no cliente.</p>
+<ul><li>A montagem so e liberada com pelo menos <strong>12 confirmados</strong> e ao menos <strong>1 goleiro confirmado</strong>.</li><li>Se houver apenas 1 goleiro, o sistema permite seguir, mas sinaliza que a definicao final do goleiro sera manual.</li><li>O capitao atual escolhe <code>PAR</code> ou <code>IMPAR</code> para a etapa dos jogadores de linha.</li><li>Cada capitao informa um numero de 0 a 10. Os valores ficam ocultos ate que ambos concluam o sorteio.</li><li>O vencedor do par ou impar faz a primeira escolha; depois a vez alterna entre os capitaes.</li><li>Os capitaes ja pertencem aos proprios times e nao entram na lista de escolha.</li><li>Goleiros nao entram na fase de linha; eles sao tratados separadamente ao final.</li><li>Quando restam 2 goleiros, o sistema reaproveita a paridade do sorteio principal para o sorteio dos goleiros.</li><li>O vencedor da etapa dos goleiros escolhe um; o outro vai automaticamente para o time adversario.</li><li>Se novos jogadores de linha confirmarem depois de os times estarem fechados, o fluxo pode voltar para <code>ESCOLHA_EM_ANDAMENTO</code>.</li></ul>
+<div class="callout-warning"><strong>Nuance de implementacao</strong><br />Embora a feature seja apresentada como desafio em andamento, a sincronizacao visual no app ainda e baseada em recarga de tela e refresh manual. Nao ha WebSocket, SignalR ou polling continuo. Em termos de produto, o comportamento e estado compartilhado com atualizacao por requisicao, e nao realtime estrito.</div>
+<h3>6.6 Encerramento da partida e classificacao</h3>
+<ul><li>Ha dois caminhos para chegar aos times: montagem tradicional por <code>AssignTeams</code> ou via desafio.</li><li>A finalizacao so ocorre com a partida em <code>EM_ANDAMENTO</code> e sem empate.</li><li>O sistema grava placar, estatisticas individuais e atualiza classificacao da temporada e geral.</li><li>Pontuacao base: <strong>4 pontos</strong> para cada jogador do time vencedor e <strong>1 ponto</strong> para cada jogador do time perdedor.</li><li>Todos os jogadores participantes recebem presenca; vencedores recebem vitoria e perdedores derrota.</li><li>A exclusao de uma partida finalizada executa rollback de pontos, presencas, gols, assistencias e premios aprovados, sempre com clamp em zero.</li></ul>
+<h3>6.7 Votacao de MVP e Bola Murcha</h3>
+<ul><li>A votacao so pode ser aberta apos a partida estar <code>FINALIZADA</code>.</li><li>A abertura cria duas votacoes em paralelo: <code>MVP</code> e <code>BOLA_MURCHA</code>, ambas na rodada 1.</li><li>Somente participantes confirmados podem votar, e nao e permitido votar em si mesmo.</li><li>Empate nao encerra o processo: a rodada atual vira <code>ENCERRADA</code> e uma nova rodada aberta restringe os candidatos empatados.</li><li>O premio so impacta ranking quando a rodada apurada e explicitamente aprovada por admin.</li><li>Uma vez iniciada, a votacao da partida nao pode ser reaberta do zero.</li></ul>
+</section>
+<section id="api">
+<h2>7. Referencia de Endpoints</h2>
+<p>A seguir esta o contrato REST efetivamente identificado no codigo. Todos os endpoints abaixo devolvem JSON. Quando exigem autenticacao, o token deve ser enviado em <code>Authorization: Bearer &lt;jwt&gt;</code>.</p>
+<h3>7.1 Usuarios e autenticacao</h3>
+<table><thead><tr><th>Metodo</th><th>Rota</th><th>Auth</th><th>Finalidade</th></tr></thead><tbody>
+<tr><td>POST</td><td><code>/api/users/register</code></td><td>Nao</td><td>Cria conta e retorna JWT ja autenticado.</td></tr>
+<tr><td>POST</td><td><code>/api/users/login</code></td><td>Nao</td><td>Autentica o usuario e devolve token.</td></tr>
+<tr><td>POST</td><td><code>/api/users/forgot-password</code></td><td>Nao</td><td>Solicita reset de senha sem expor se o e-mail existe.</td></tr>
+<tr><td>GET</td><td><code>/api/users/reset-password/validate?token=...</code></td><td>Nao</td><td>Valida se o token de reset ainda esta apto para uso.</td></tr>
+<tr><td>POST</td><td><code>/api/users/reset-password</code></td><td>Nao</td><td>Redefine a senha usando token valido.</td></tr>
+<tr><td>GET</td><td><code>/api/users/clubs</code></td><td>Nao</td><td>Lista clubes disponiveis para o perfil.</td></tr>
+<tr><td>GET</td><td><code>/api/users/clubs/logo?url=...</code></td><td>Nao</td><td>Proxy seguro para carregar escudo do clube.</td></tr>
+<tr><td>PATCH</td><td><code>/api/users/profile</code></td><td>Sim</td><td>Atualiza nome, clube, posicao, pe dominante e flag de goleiro.</td></tr>
+<tr><td>PATCH</td><td><code>/api/users/change-password</code></td><td>Sim</td><td>Troca senha autenticada e ja devolve um novo token.</td></tr>
+</tbody></table>
+<h3>7.2 Grupos</h3>
+<table><thead><tr><th>Metodo</th><th>Rota</th><th>Auth</th><th>Finalidade</th></tr></thead><tbody>
+<tr><td>POST</td><td><code>/api/groups</code></td><td>Sim</td><td>Cria grupo e ja inclui o criador como admin.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/me</code></td><td>Sim</td><td>Lista grupos ativos do usuario.</td></tr>
+<tr><td>POST</td><td><code>/api/groups/{id}/invite</code></td><td>Sim</td><td>Cria convite simples por codigo para um e-mail.</td></tr>
+<tr><td>POST</td><td><code>/api/groups/join</code></td><td>Sim</td><td>Entra no grupo usando codigo de convite.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/invites/pending</code></td><td>Sim</td><td>Lista convites pendentes do usuario logado.</td></tr>
+<tr><td>POST</td><td><code>/api/groups/invites/{inviteId}/accept</code></td><td>Sim</td><td>Aceita convite pendente.</td></tr>
+<tr><td>POST</td><td><code>/api/groups/invites/{inviteId}/reject</code></td><td>Sim</td><td>Recusa convite pendente.</td></tr>
+<tr><td>PATCH</td><td><code>/api/groups/{id}/schedule</code></td><td>Sim</td><td>Atualiza dia da semana e horario fixo do grupo.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/{id}/members</code></td><td>Sim</td><td>Lista membros ativos do grupo.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/{id}/invites/pending</code></td><td>Sim</td><td>Lista convites pendentes daquele grupo.</td></tr>
+<tr><td>POST</td><td><code>/api/groups/{id}/members</code></td><td>Sim</td><td>Convida membro por e-mail e tenta disparar comunicacao.</td></tr>
+<tr><td>DELETE</td><td><code>/api/groups/{id}/members/{memberUserId}</code></td><td>Sim</td><td>Remove membro do grupo.</td></tr>
+<tr><td>PATCH</td><td><code>/api/groups/{id}/members/{memberUserId}/role</code></td><td>Sim</td><td>Promove ou rebaixa papel do membro.</td></tr>
+<tr><td>DELETE</td><td><code>/api/groups/{id}</code></td><td>Sim</td><td>Exclusao logica do grupo.</td></tr>
+</tbody></table>
+<h3>7.3 Partidas e desafio em andamento</h3>
+<table><thead><tr><th>Metodo</th><th>Rota</th><th>Auth</th><th>Finalidade</th></tr></thead><tbody>
+<tr><td>POST</td><td><code>/api/matches</code></td><td>Sim</td><td>Cria partida e temporada ativa quando necessario.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/{groupId}/matches</code></td><td>Sim</td><td>Lista partidas com status de presenca, ausencias e vencedores.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/{groupId}/matches/history</code></td><td>Sim</td><td>Historico resumido das partidas do grupo.</td></tr>
+<tr><td>GET</td><td><code>/api/matches/{id}/details</code></td><td>Sim</td><td>Detalhe completo da partida, com placar, times, estatisticas e premios.</td></tr>
+<tr><td>GET</td><td><code>/api/matches/{id}/challenge-status</code></td><td>Sim</td><td>Snapshot completo do desafio em andamento para a UI.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/challenge/line-draw/start</code></td><td>Sim</td><td>Capitao atual escolhe <code>PAR</code> ou <code>IMPAR</code>.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/challenge/line-draw/number</code></td><td>Sim</td><td>Capitao informa numero de 0 a 10 na etapa de linha.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/challenge/line-picks</code></td><td>Sim</td><td>Capitao da vez escolhe jogador de linha.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/challenge/goalkeeper-draw/start</code></td><td>Sim</td><td>Reinicializa a etapa dos goleiros reutilizando a paridade principal.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/challenge/goalkeeper-draw/number</code></td><td>Sim</td><td>Capitao informa numero na etapa dos goleiros.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/challenge/goalkeeper-pick</code></td><td>Sim</td><td>Capitao vencedor escolhe um goleiro; o outro e alocado automaticamente.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/confirm</code></td><td>Sim</td><td>Confirma presenca do usuario logado.</td></tr>
+<tr><td>DELETE</td><td><code>/api/matches/{id}/confirm</code></td><td>Sim</td><td>Cancela presenca confirmada.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/absent</code></td><td>Sim</td><td>Marca ausencia.</td></tr>
+<tr><td>DELETE</td><td><code>/api/matches/{id}/absent</code></td><td>Sim</td><td>Remove ausencia.</td></tr>
+<tr><td>DELETE</td><td><code>/api/matches/{id}</code></td><td>Sim</td><td>Exclui partida e dados relacionados, com rollback quando necessario.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/guests</code></td><td>Sim</td><td>Admin adiciona convidado diretamente a lista da partida.</td></tr>
+</tbody></table>
+<h3>7.4 Ciclo de capitao</h3>
+<table><thead><tr><th>Metodo</th><th>Rota</th><th>Auth</th><th>Finalidade</th></tr></thead><tbody>
+<tr><td>POST</td><td><code>/api/groups/{groupId}/captain/draw</code></td><td>Sim</td><td>Inicia ciclo de capitao.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/{groupId}/captain</code></td><td>Sim</td><td>Le status atual do ciclo.</td></tr>
+<tr><td>POST</td><td><code>/api/groups/{groupId}/captain/challenge</code></td><td>Sim</td><td>Capitao escolhe desafiante para uma partida.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/{groupId}/captain/eligible/{matchId}</code></td><td>Sim</td><td>Lista elegiveis confirmados e nao bloqueados.</td></tr>
+<tr><td>POST</td><td><code>/api/groups/{groupId}/captain/result</code></td><td>Sim</td><td>Admin registra vencedor do desafio.</td></tr>
+</tbody></table>
+<h3>7.5 Classificacao e votacao</h3>
+<table><thead><tr><th>Metodo</th><th>Rota</th><th>Auth</th><th>Finalidade</th></tr></thead><tbody>
+<tr><td>POST</td><td><code>/api/matches/{id}/teams</code></td><td>Sim</td><td>Monta manualmente os dois times.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/finalize</code></td><td>Sim</td><td>Encerra a partida e atualiza ranking.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/{groupId}/classification</code></td><td>Sim</td><td>Ranking da temporada ativa.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/{groupId}/classification/all-time</code></td><td>Sim</td><td>Ranking historico do grupo.</td></tr>
+<tr><td>GET</td><td><code>/api/groups/{groupId}/classification/me</code></td><td>Sim</td><td>Estatistica do usuario logado (temporada + geral).</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/vote/open</code></td><td>Sim</td><td>Abre votacao de premios.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/vote</code></td><td>Sim</td><td>Registra voto.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/vote/close</code></td><td>Sim</td><td>Fecha rodada e apura ou abre desempate.</td></tr>
+<tr><td>POST</td><td><code>/api/matches/{id}/vote/approve</code></td><td>Sim</td><td>Aprova vencedor provisorio e grava premio no ranking.</td></tr>
+<tr><td>GET</td><td><code>/api/matches/{id}/vote</code></td><td>Sim</td><td>Consulta estado atual e historico das rodadas.</td></tr>
+</tbody></table>
+</section>
+<section id="frontend">
+<h2>8. Aplicativo Mobile</h2>
+<h3>8.1 Stack e configuracao</h3>
+<ul><li><code>Expo 54</code>, <code>React Native 0.81</code>, <code>React 19</code>, <code>TypeScript</code>.</li><li>Navegacao com <code>@react-navigation/native</code> e stack nativa.</li><li>Persistencia de sessao com <code>AsyncStorage</code>.</li><li>HTTP com <code>axios</code>, timeout de 10 segundos e interceptor para injetar JWT.</li><li>Variavel principal de ambiente: <code>EXPO_PUBLIC_API_BASE_URL</code>.</li><li>Fallback local por plataforma quando a variavel nao esta definida.</li></ul>
+<h3>8.2 Navegacao</h3>
+<p>O app mantem dois stacks:</p>
+<ul><li><strong>Auth stack:</strong> login, cadastro, esqueci a senha e reset de senha.</li><li><strong>App stack:</strong> home, grupos, partidas, capitao, votacao, classificacao, perfil e historico.</li></ul>
+<p>O deep linking esta configurado para <code>resenha://</code>, o que conversa diretamente com os templates padrao de convite e reset gerados pelo backend.</p>
+<h3>8.3 Contexto de autenticacao</h3>
+<ul><li>Restaura sessao persistida ao abrir o app.</li><li>Login e registro escrevem <code>@resenha:token</code> e <code>@resenha:user</code>.</li><li>O registro pode tentar entrar automaticamente em um grupo quando a tela e aberta por convite.</li><li>Troca de senha atualiza o token local imediatamente.</li><li>Reset de senha forca logout local apos sucesso.</li></ul>
+<h3>8.4 Telas principais e papel funcional</h3>
+<table><thead><tr><th>Tela</th><th>Papel</th><th>Chamadas principais</th></tr></thead><tbody>
+<tr><td><code>HomeScreen</code></td><td>Lista grupos e convites pendentes; tambem permite aceitar, recusar e excluir grupo.</td><td><code>/api/groups/me</code>, <code>/api/groups/invites/pending</code></td></tr>
+<tr><td><code>CreateGroupScreen</code></td><td>Criacao do grupo com nome, descricao, limite e agenda base.</td><td><code>POST /api/groups</code></td></tr>
+<tr><td><code>JoinGroupScreen</code></td><td>Entrada manual por codigo de convite.</td><td><code>POST /api/groups/join</code></td></tr>
+<tr><td><code>GroupDashboardScreen</code></td><td>Centro operacional do grupo: partidas, presenca, ausencia, convidados, agenda e acesso as demais areas.</td><td><code>/matches</code>, <code>/captain</code>, <code>/groups/me</code>, confirm/absent/guests</td></tr>
+<tr><td><code>CaptainScreen</code></td><td>Acompanha o ciclo de capitao, abre desafio e registra resultado.</td><td><code>/captain</code>, <code>/captain/eligible</code>, <code>/captain/challenge</code></td></tr>
+<tr><td><code>DesafioEmAndamentoScreen</code></td><td>Mostra o snapshot do desafio, picks, goleiros, alertas e bloqueios.</td><td><code>/challenge-status</code> e endpoints de pick/sorteio</td></tr>
+<tr><td><code>CreateMatchScreen</code></td><td>Abre nova partida para o grupo.</td><td><code>POST /api/matches</code></td></tr>
+<tr><td><code>ClassificationScreen</code> / <code>MyPerformanceScreen</code></td><td>Exibem ranking coletivo e visao individual do usuario.</td><td><code>/classification</code>, <code>/classification/all-time</code>, <code>/classification/me</code></td></tr>
+<tr><td><code>VoteScreen</code></td><td>Opera votos, desempates e aprovacao.</td><td><code>/vote</code>, <code>/vote/open</code>, <code>/vote/close</code>, <code>/vote/approve</code></td></tr>
+<tr><td><code>HistoricoPartidasScreen</code> / <code>DetalhePartidaScreen</code></td><td>Consultam historico e detalhe completo da partida.</td><td><code>/matches/history</code>, <code>/matches/{id}/details</code></td></tr>
+<tr><td><code>ManageMembersScreen</code></td><td>Lista membros, convites pendentes, remocao e alteracao de papel.</td><td><code>/members</code>, <code>/invites/pending</code>, <code>/role</code></td></tr>
+<tr><td><code>ProfileScreen</code> / <code>ChangePasswordScreen</code></td><td>Perfil esportivo do usuario e seguranca da conta.</td><td><code>/api/users/profile</code>, <code>/api/users/change-password</code></td></tr>
+</tbody></table>
+<h3>8.5 Linguagem visual</h3>
+<p>O app usa uma identidade visual escura, com base verde/preta e acento neon-lime. O tema concentra cores, raios, espacamentos e tipografia em um unico modulo, facilitando consistencia visual entre telas.</p>
+<h3>8.6 Nuances de implementacao importantes</h3>
+<ul><li>O frontend sabe diferenciar goleiros na lista de presenca e aplica bloqueio visual ao terceiro goleiro.</li><li>O dashboard do grupo ja expoe um banner para navegar ao desafio em andamento quando ha capitao e desafiante.</li><li>A experiencia de desafio ja foi desenhada com flags de permissao devolvidas pelo backend, o que reduz logica condicional no app.</li><li>Ha um desalinhamento de nomenclatura no tipo de grupo do frontend: o union local ainda admite <code>MEMBRO</code>, enquanto o backend usa <code>JOGADOR</code>.</li></ul>
+</section>
+<section id="qualidade">
+<h2>9. Qualidade, Testes e Validacao</h2>
+<h3>9.1 Testes automatizados .NET</h3>
+<p>O repositorio ja possui um projeto formal de testes em <code>backend/Resenha.API.Tests</code>, baseado em <code>xUnit</code>, <code>Microsoft.NET.Test.Sdk</code> e SQLite in-memory para isolar comportamento de dominio.</p>
+<table><thead><tr><th>Arquivo de teste</th><th>Cobertura principal</th></tr></thead><tbody>
+<tr><td><code>CaptainServiceTests.cs</code></td><td>Criacao do ciclo, criterios de elegibilidade, bloqueio do derrotado, transicao de ciclo e ordenacao de historico.</td></tr>
+<tr><td><code>MatchServiceChallengeTests.cs</code></td><td>Limite de goleiros, convidados, janela de 20 minutos, notificacao de vaga reaberta, par ou impar, picks, goleiros, exclusao da partida e retomada do fluxo.</td></tr>
+</tbody></table>
+<div class="callout"><strong>Validacao executada durante esta producao</strong><br />Foi executado <code>dotnet test backend/Resenha.API.Tests/Resenha.API.Tests.csproj --nologo --verbosity minimal</code> no workspace atual em <strong>01/04/2026</strong>, com resultado: <strong>25 testes aprovados, 0 falhas, 0 ignorados</strong>.</div>
+<h3>9.2 Scripts de regressao e operacao</h3>
+<p>Alem dos testes .NET, o projeto mantem scripts PowerShell para fluxos ponta a ponta e regresses especificas:</p>
+<ul><li><code>scripts/test-vote-flow.ps1</code></li><li><code>scripts/test-captain-flow.ps1</code></li><li><code>scripts/test-password-recovery-flow.ps1</code></li><li><code>scripts/test-delete-match-classification-regression.ps1</code></li><li><code>scripts/test-regression.ps1</code></li></ul>
+<p class="small">Estes scripts nao foram reexecutados nesta producao do PDF. O status verificado diretamente aqui foi apenas o da suite .NET.</p>
+<h3>9.3 Leitura de maturidade de qualidade</h3>
+<ul><li>O dominio mais sensivel ja tem testes de servico que exercitam regra, nao apenas controller.</li><li>A combinacao de testes .NET e scripts de fluxo e um bom ponto de partida para um pipeline CI.</li><li>Ainda vale ampliar cobertura para <code>AuthService</code>, <code>GroupService</code>, <code>ClassificationService</code> e <code>VoteService</code>.</li></ul>
+</section>
+<section id="infra">
+<h2>10. Infraestrutura e Operacao</h2>
+<h3>10.1 Estado de publicacao identificado</h3>
+<ul><li>API publica em <code>https://api.resenhaapp.com</code>.</li><li>Hospedagem em VM Linux na Oracle Cloud.</li><li><code>nginx</code> na borda com TLS e proxy para a API interna.</li><li>MySQL local na mesma VM.</li><li>Servico gerenciado por <code>systemd</code>.</li></ul>
+<h3>10.2 Variaveis e integracoes externas</h3>
+<table><thead><tr><th>Grupo de configuracao</th><th>Exemplos</th><th>Uso</th></tr></thead><tbody>
+<tr><td>Conexao e JWT</td><td><code>ConnectionStrings__DefaultConnection</code>, <code>JwtSettings__SecretKey</code>, <code>JwtSettings__Issuer</code>, <code>JwtSettings__Audience</code></td><td>Persistencia, assinatura de tokens e identidade da API.</td></tr>
+<tr><td>Convite e reset</td><td><code>InviteSettings__RegisterLinkTemplate</code>, <code>PasswordResetSettings__ResetLinkTemplate</code></td><td>Deep links enviados por e-mail.</td></tr>
+<tr><td>E-mail</td><td><code>EmailSettings__Provider</code>, <code>EmailSettings__Host</code>, <code>EmailSettings__SendGrid__ApiKey</code></td><td>Convites, reset de senha e aviso de vaga reaberta.</td></tr>
+<tr><td>Frontend</td><td><code>EXPO_PUBLIC_API_BASE_URL</code></td><td>Base URL consumida pelo app mobile.</td></tr>
+</tbody></table>
+<h3>10.3 Operacao Linux</h3>
+<p>Os templates de deploy do repositorio apontam para um cenario <code>dotnet Resenha.API.dll</code>, mas a documentacao operacional existente indica que a publicacao atual roda como binario self-contained em <code>/opt/resenha/api/current/Resenha.API</code>, servindo internamente em <code>127.0.0.1:5000</code>.</p>
+<div class="callout-warning"><strong>Ponto de atencao</strong><br />Ha divergencia entre o template versionado e a forma efetiva de execucao em producao. Em termos de manutencao, isso pede alinhamento do template ou atualizacao explicita do runbook para evitar deploys inconsistentes.</div>
+<h3>10.4 Build do app Android</h3>
+<ul><li>Projeto Expo ja vinculado ao EAS por <code>projectId</code>.</li><li>Perfil <code>preview</code>: gera APK para distribuicao interna.</li><li>Perfil <code>production</code>: gera AAB para futura publicacao.</li><li>Comando pratico: <code>npx eas-cli build -p android --profile preview</code>.</li></ul>
+<h3>10.5 Checklist operacional minimo</h3>
+<ul><li>Validar <code>systemctl status resenha-api</code>, <code>nginx</code> e <code>mysql</code>.</li><li>Confirmar <code>curl https://api.resenhaapp.com/api/groups/me</code> retornando <code>401</code> sem token.</li><li>Garantir que a porta 3306 do banco nao esteja exposta publicamente.</li><li>Revisar segredos fora do repositorio, preferencialmente em arquivo de ambiente da VM.</li></ul>
+</section>
+<section id="recomendacoes">
+<h2>11. Observacoes Tecnicas e Recomendacoes</h2>
+<h3>11.1 Pontos fortes observados</h3>
+<ul><li>Boa separacao por dominio no backend, com servicos legiveis e regras centralizadas.</li><li>DTO do desafio em andamento e rico e adequado para dirigir a UI mobile sem logica duplicada.</li><li>Rollback de classificacao na exclusao de partida finalizada e raro em produtos similares e foi tratado com cuidado.</li><li>Ja existe embriao de estrategia de testes automatizados em camada de servico.</li><li>Os fluxos de convite, reset de senha e deep linking estao coerentes entre backend e app.</li></ul>
+<h3>11.2 Recomendacoes prioritarias</h3>
+<ol><li><strong>Seguranca de senha:</strong> migrar o hash atual de <code>SHA-256</code> para algoritmo apropriado de password hashing.</li><li><strong>Observabilidade:</strong> adicionar logging estruturado mais amplo, health checks e monitoramento basico de producao.</li><li><strong>CI/CD:</strong> automatizar build, testes .NET, lint do app e publicacao controlada.</li><li><strong>Consistencia de tipos/estados:</strong> unificar papeis e estados entre backend, frontend, testes e documentacao.</li><li><strong>Realtime verdadeiro:</strong> se a montagem simultanea dos times for critica para o produto, considerar WebSocket/SignalR ou polling controlado.</li><li><strong>Infra:</strong> alinhar templates versionados de <code>systemd</code> e <code>nginx</code> com a forma real de publicacao em producao.</li></ol>
+<h3>11.3 Observacoes especificas da feature de desafio</h3>
+<ul><li>O DTO expoe <code>UsuarioPodeEscolherParidadeGoleiro</code>, mas a implementacao atual reaproveita a paridade principal e nao habilita uma escolha nova pelo usuario.</li><li>O status <code>ESCOLHA_GOLEIRO_EM_ANDAMENTO</code> ja existe no backend e nos testes, e precisa constar sempre em documentacao e clientes.</li><li>O fluxo ja reage a entrada tardia de novos jogadores de linha, retomando a etapa de picks se necessario.</li></ul>
+</section>
+<section id="anexos">
+<h2>12. Anexos Tecnicos</h2>
+<h3>12.1 Catalogos de perfil esportivo</h3>
+<ul><li><strong>Posicoes principais validas:</strong> <code>GOLEIRO</code>, <code>ZAGUEIRO</code>, <code>LATERAL</code>, <code>VOLANTE</code>, <code>MEIA</code>, <code>PONTA</code>, <code>ATACANTE</code>.</li><li><strong>Pe dominante valido:</strong> <code>DIREITO</code>, <code>ESQUERDO</code>, <code>AMBIDESTRO</code>.</li></ul>
+<h3>12.2 Deep links padrao</h3>
+<ul><li><strong>Convite:</strong> <code>resenha://register?email={email}&invite={code}</code></li><li><strong>Reset:</strong> <code>resenha://reset-password?token={token}</code></li></ul>
+<h3>12.3 Artefatos tecnicos que merecem consulta complementar</h3>
+<ul><li><code>backend/Resenha.API/sql/full-migration.sql</code> e scripts incrementais em <code>backend/Resenha.API/sql/</code></li><li><code>documentacao/08-regras-de-negocio.md</code> e <code>documentacao/13-desafio-em-andamento.md</code></li><li><code>scripts/test-regression.ps1</code> e scripts relacionados</li><li><code>backend/deploy/linux/*</code> para baseline operacional</li></ul>
+<p class="footer-note">Documento consolidado gerado a partir da leitura do codigo do workspace em 01/04/2026. Quando endpoints, regras, estados ou infraestrutura mudarem, o ideal e atualizar este artefato junto com o codigo, preservando-o como documento de onboarding e referencia operacional.</p>
+</section>
+</main>
+</body>
+</html>

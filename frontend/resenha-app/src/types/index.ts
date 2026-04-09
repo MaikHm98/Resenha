@@ -91,8 +91,24 @@ export interface CaptainStatus {
   idDesafiante?: number;
   nomeDesafiante?: string;
   bloqueados: BlockedPlayer[];
+  historico: CaptainHistoryEntry[];
   status: string;
   iniciadoEm: string;
+}
+
+export interface CaptainHistoryEntry {
+  idHistorico: number;
+  idPartida: number;
+  idCapitao: number;
+  nomeCapitao: string;
+  idDesafiante: number;
+  nomeDesafiante: string;
+  idVencedor: number;
+  nomeVencedor: string;
+  idDerrotado: number;
+  nomeDerrotado: string;
+  resultado: string;
+  registradoEm: string;
 }
 
 export interface ClassificationEntry {
@@ -153,4 +169,133 @@ export interface Match {
   nomeCapitaoVencedor?: string;
   jogadoresVencedores: string[];
   criadoEm: string;
+}
+
+export interface ResumoPartidaHistorico {
+  idPartida: number;
+  dataHoraJogo: string;
+  status: 'ABERTA' | 'EM_ANDAMENTO' | 'FINALIZADA' | 'CANCELADA';
+  limiteVagas: number;
+  totalConfirmados: number;
+  golsTime1?: number;
+  golsTime2?: number;
+  nomeCapitaoTime1?: string;
+  nomeCapitaoTime2?: string;
+  numeroTimeVencedor?: number;
+  nomeCapitaoVencedor?: string;
+}
+
+export interface JogadorPartidaDetalhe {
+  idUsuario: number;
+  nome: string;
+  goleiro: boolean;
+  gols: number;
+  assistencias: number;
+}
+
+export interface TimePartidaDetalhe {
+  numeroTime: number;
+  idCapitao: number;
+  nomeCapitao: string;
+  jogadores: JogadorPartidaDetalhe[];
+}
+
+export interface PremioPartidaDetalhe {
+  tipo: string;
+  status: string;
+  rodada: number;
+  idVencedor?: number;
+  nomeVencedor?: string;
+}
+
+export interface DetalhePartida {
+  idPartida: number;
+  idGrupo: number;
+  dataHoraJogo: string;
+  status: 'ABERTA' | 'EM_ANDAMENTO' | 'FINALIZADA' | 'CANCELADA';
+  observacao?: string;
+  limiteVagas: number;
+  totalConfirmados: number;
+  totalAusentes: number;
+  golsTime1?: number;
+  golsTime2?: number;
+  numeroTimeVencedor?: number;
+  nomeCapitaoVencedor?: string;
+  time1?: TimePartidaDetalhe;
+  time2?: TimePartidaDetalhe;
+  confirmadosNomes: string[];
+  ausentesNomes: string[];
+  naoConfirmaramNomes: string[];
+  premios: PremioPartidaDetalhe[];
+}
+
+export interface CapitaoDesafio {
+  idUsuario: number;
+  nome: string;
+}
+
+export interface ChallengeStatus {
+  idPartida: number;
+  idGrupo: number;
+  dataHoraJogo: string;
+  statusPartida: 'ABERTA' | 'EM_ANDAMENTO' | 'FINALIZADA' | 'CANCELADA';
+  statusDesafio: string;
+  totalConfirmados: number;
+  minimoConfirmados: number;
+  goleirosConfirmados: number;
+  maximoGoleiros: number;
+  horarioLimiteConfirmacao: string;
+  confirmacoesEncerradas: boolean;
+  podeIniciarMontagem: boolean;
+  usuarioEhCapitao: boolean;
+  usuarioEhCapitaoAtual: boolean;
+  usuarioEhDesafiante: boolean;
+  usuarioPodeInteragir: boolean;
+  usuarioPodeEscolherParidade: boolean;
+  usuarioPodeInformarNumero: boolean;
+  usuarioPodeEscolherJogadorLinha: boolean;
+  usuarioPodeEscolherParidadeGoleiro: boolean;
+  usuarioPodeInformarNumeroGoleiro: boolean;
+  usuarioPodeEscolherGoleiro: boolean;
+  possuiDesafianteDefinido: boolean;
+  requerDefinicaoManualGoleiro: boolean;
+  paridadeCapitaoAtual?: string;
+  paridadeDesafiante?: string;
+  capitaoAtualJaInformouNumero: boolean;
+  desafianteJaInformouNumero: boolean;
+  numeroCapitaoAtual?: number;
+  numeroDesafiante?: number;
+  somaParImparLinha?: number;
+  paridadeCapitaoAtualGoleiro?: string;
+  paridadeDesafianteGoleiro?: string;
+  capitaoAtualJaInformouNumeroGoleiro: boolean;
+  desafianteJaInformouNumeroGoleiro: boolean;
+  numeroCapitaoAtualGoleiro?: number;
+  numeroDesafianteGoleiro?: number;
+  somaParImparGoleiro?: number;
+  alertas: string[];
+  bloqueios: string[];
+  capitaoAtual?: CapitaoDesafio;
+  desafiante?: CapitaoDesafio;
+  vencedorParImparLinha?: CapitaoDesafio;
+  proximoCapitaoEscolha?: CapitaoDesafio;
+  vencedorParImparGoleiro?: CapitaoDesafio;
+  proximoCapitaoEscolhaGoleiro?: CapitaoDesafio;
+  timeCapitaoAtual?: TimeMontagemDesafio;
+  timeDesafiante?: TimeMontagemDesafio;
+  jogadoresLinhaDisponiveis: JogadorDesafio[];
+  goleirosDisponiveis: JogadorDesafio[];
+}
+
+export interface JogadorDesafio {
+  idUsuario: number;
+  nome: string;
+  goleiro: boolean;
+}
+
+export interface TimeMontagemDesafio {
+  numeroTime: number;
+  idCapitao: number;
+  nomeCapitao: string;
+  jogadores: JogadorDesafio[];
 }

@@ -77,6 +77,30 @@ namespace Resenha.API.Services
                     })
                 .ToList();
 
+            var usuariosPorId = _context.Usuarios
+                .ToDictionary(u => u.IdUsuario, u => u.Nome);
+
+            var historico = _context.HistoricosCapitao
+                .Where(h => h.IdGrupo == groupId)
+                .OrderByDescending(h => h.RegistradoEm)
+                .ToList()
+                .Select(h => new HistoricoCapitaoDTO
+                {
+                    IdHistorico = h.IdHistorico,
+                    IdPartida = h.IdPartida,
+                    IdCapitao = h.IdCapitao,
+                    NomeCapitao = usuariosPorId.GetValueOrDefault(h.IdCapitao, "Capitao"),
+                    IdDesafiante = h.IdDesafiante,
+                    NomeDesafiante = usuariosPorId.GetValueOrDefault(h.IdDesafiante, "Desafiante"),
+                    IdVencedor = h.IdVencedor,
+                    NomeVencedor = usuariosPorId.GetValueOrDefault(h.IdVencedor, "Vencedor"),
+                    IdDerrotado = h.IdDerrotado,
+                    NomeDerrotado = usuariosPorId.GetValueOrDefault(h.IdDerrotado, "Derrotado"),
+                    Resultado = h.Resultado,
+                    RegistradoEm = h.RegistradoEm
+                })
+                .ToList();
+
             return new CaptainStatusDTO
             {
                 IdCiclo = ciclo.IdCiclo,
@@ -85,6 +109,7 @@ namespace Resenha.API.Services
                 IdDesafiante = ciclo.IdDesafianteAtual,
                 NomeDesafiante = nomeDesafiante,
                 Bloqueados = bloqueados,
+                Historico = historico,
                 Status = ciclo.Status,
                 IniciadoEm = ciclo.IniciadoEm
             };
@@ -140,6 +165,30 @@ namespace Resenha.API.Services
                 throw new Exception("Este jogador já foi derrotado pelo capitão neste ciclo e não pode ser desafiante novamente.");
 
             ciclo.IdDesafianteAtual = dto.IdDesafiante;
+            partida.IdCicloCapitao = ciclo.IdCiclo;
+
+            var desafioPartida = _context.DesafiosPartida
+                .FirstOrDefault(d => d.IdPartida == partida.IdPartida);
+
+            if (desafioPartida == null)
+            {
+                desafioPartida = new DesafioPartida
+                {
+                    IdPartida = partida.IdPartida
+                };
+                _context.DesafiosPartida.Add(desafioPartida);
+            }
+
+            desafioPartida.IdCapitaoAtual = ciclo.IdCapitaoAtual;
+            desafioPartida.IdDesafiante = dto.IdDesafiante;
+            desafioPartida.StatusFluxo = "PRONTA_PARA_MONTAGEM";
+            desafioPartida.EscolhaParidadeCapitaoAtual = null;
+            desafioPartida.NumeroCapitaoAtual = null;
+            desafioPartida.NumeroDesafiante = null;
+            desafioPartida.SomaParImparLinha = null;
+            desafioPartida.IdVencedorParImparLinha = null;
+            desafioPartida.IdProximoCapitaoEscolha = null;
+            desafioPartida.AtualizadoEm = DateTime.UtcNow;
             _context.SaveChanges();
 
             return GetStatus(capitaoId, groupId);
@@ -175,10 +224,12 @@ namespace Resenha.API.Services
                 .Join(_context.Usuarios,
                     p => p.IdUsuario,
                     u => u.IdUsuario,
-                    (p, u) => new BlockedPlayerDTO
+                    (p, u) => new { u.IdUsuario, u.Nome, u.Convidado })
+                .Where(x => !x.Convidado)
+                .Select(x => new BlockedPlayerDTO
                     {
-                        IdUsuario = u.IdUsuario,
-                        Nome = u.Nome
+                        IdUsuario = x.IdUsuario,
+                        Nome = x.Nome
                     })
                 .ToList();
 
@@ -203,6 +254,30 @@ namespace Resenha.API.Services
                 throw new Exception("Não há desafio pendente para registrar resultado.");
 
             var idDesafiante = ciclo.IdDesafianteAtual.Value;
+            var idCapitao = ciclo.IdCapitaoAtual;
+            var idVencedor = dto.Resultado == "CAPITAO" ? idCapitao : idDesafiante;
+            var idDerrotado = dto.Resultado == "CAPITAO" ? idDesafiante : idCapitao;
+
+            var partidaDoDesafio = _context.Partidas
+                .Where(p => p.IdGrupo == groupId && p.IdCicloCapitao == ciclo.IdCiclo)
+                .OrderByDescending(p => p.DataHoraJogo)
+                .FirstOrDefault();
+
+            if (partidaDoDesafio != null)
+            {
+                _context.HistoricosCapitao.Add(new HistoricoCapitao
+                {
+                    IdGrupo = groupId,
+                    IdPartida = partidaDoDesafio.IdPartida,
+                    IdCiclo = ciclo.IdCiclo,
+                    IdCapitao = idCapitao,
+                    IdDesafiante = idDesafiante,
+                    Resultado = dto.Resultado,
+                    IdVencedor = idVencedor,
+                    IdDerrotado = idDerrotado,
+                    RegistradoEm = DateTime.UtcNow
+                });
+            }
 
             if (dto.Resultado == "CAPITAO")
             {
