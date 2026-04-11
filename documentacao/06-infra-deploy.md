@@ -37,7 +37,7 @@ A API foi publicada em uma VM Linux na Oracle Cloud e exposta na internet com do
 
 ### Banco
 
-- MySQL local na mesma VM
+- PostgreSQL local na mesma VM ou em instancia dedicada
 
 ### Proxy reverso
 
@@ -59,17 +59,15 @@ Principais chaves:
 - `InviteSettings__RegisterLinkTemplate`
 - `PasswordResetSettings__ResetLinkTemplate`
 - `EmailSettings__Provider`
-- `EmailSettings__Host`
-- `EmailSettings__Port`
-- `EmailSettings__EnableSsl`
-- `EmailSettings__Username`
-- `EmailSettings__Password`
+- `EmailSettings__Resend__ApiKey`
 - `EmailSettings__FromEmail`
 - `EmailSettings__FromName`
 
 No ambiente produtivo, o arquivo efetivo fica em:
 
 - `/etc/resenha/resenha-api.env`
+
+Os valores reais de banco, JWT e Resend nao devem ser versionados. Em producao, eles devem ficar apenas no arquivo de ambiente da VM ou em mecanismo equivalente de segredo.
 
 ## Execucao da API
 
@@ -184,13 +182,14 @@ Estado esperado do `INPUT`:
 
 - `systemctl status resenha-api`
 - `systemctl status nginx`
-- `curl -I http://127.0.0.1`
+- `curl http://127.0.0.1:5000/health`
+- `curl http://127.0.0.1:5000/ready`
 - `curl -I https://api.resenhaapp.com`
 - `curl https://api.resenhaapp.com/api/groups/me` retorna `401` sem token
 
 ## Observacoes Importantes
 
 - nao versionar segredos reais
-- nao expor MySQL na internet
+- nao expor PostgreSQL na internet
 - manter o app consumindo somente a URL `https://api.resenhaapp.com`
 - se a forma de publicacao mudar, revisar templates em `backend/deploy/linux`

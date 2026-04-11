@@ -633,7 +633,7 @@ namespace Resenha.API.Services
             var template = _configuration["InviteSettings:RegisterLinkTemplate"];
             if (string.IsNullOrWhiteSpace(template))
             {
-                template = "resenha://register?email={email}&invite={code}";
+                template = "http://localhost:5173/register?email={email}&invite={code}";
             }
 
             return template

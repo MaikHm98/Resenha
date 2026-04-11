@@ -8,7 +8,7 @@ obj/
 *.sqlite
 
 # Nunca subir appsettings com senhas reais
-# (usamos appsettings.Development.json localmente)
+# appsettings.json local fica ignorado; arquivos versionados usam placeholders
 backend/Resenha.API/appsettings.json
 
 # Migrations geradas automaticamente (cada dev roda localmente)

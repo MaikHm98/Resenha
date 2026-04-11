@@ -15,8 +15,8 @@ O `Resenha` e uma plataforma para organizacao de peladas e grupos de futebol, co
 
 O projeto esta dividido em duas frentes:
 
-- `backend`: API ASP.NET Core com Entity Framework Core e MySQL
-- `frontend`: aplicativo mobile Expo/React Native para Android
+- `backend`: API ASP.NET Core com Entity Framework Core e PostgreSQL
+- `frontend`: web React/Vite mobile-first e aplicativo mobile Expo/React Native legado
 
 ## Objetivo do Produto
 

@@ -14,8 +14,10 @@ namespace Resenha.API.Data
         // ── Usuários e Grupos ──────────────────────────────────────
         public DbSet<Usuario> Usuarios { get; set; } = null!;
         public DbSet<TokenRecuperacaoSenha> TokensRecuperacaoSenha { get; set; } = null!;
+        public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
         public DbSet<AuditoriaSeguranca> AuditoriasSeguranca { get; set; } = null!;
         public DbSet<Grupo> Grupos { get; set; } = null!;
+        public DbSet<ConfiguracaoGrupo> ConfiguracoesGrupo { get; set; } = null!;
         public DbSet<GrupoUsuario> GrupoUsuarios { get; set; } = null!;
         public DbSet<ConviteGrupo> ConvitesGrupo { get; set; } = null!;
 
@@ -111,6 +113,17 @@ namespace Resenha.API.Data
 
             modelBuilder.Entity<TokenRecuperacaoSenha>()
                 .HasIndex(t => new { t.IdUsuario, t.CriadoEm });
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(t => t.TokenHash)
+                .IsUnique();
+
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(t => new { t.IdUsuario, t.CriadoEm });
+
+            modelBuilder.Entity<ConfiguracaoGrupo>()
+                .HasIndex(c => c.IdGrupo)
+                .IsUnique();
 
             modelBuilder.Entity<Temporada>()
                 .HasIndex(t => new { t.IdGrupo, t.Ano })

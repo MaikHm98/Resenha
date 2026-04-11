@@ -1,0 +1,25 @@
+{
+  "name": "Resenha Web",
+  "short_name": "Resenha",
+  "description": "Organize grupos, partidas e presencas de futebol amador.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#040b07",
+  "theme_color": "#071710",
+  "icons": [
+    {
+      "src": "/icons/icon-base.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

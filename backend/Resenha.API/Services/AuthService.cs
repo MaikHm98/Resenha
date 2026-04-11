@@ -373,7 +373,7 @@ namespace Resenha.API.Services
         {
             var template = _configuration["PasswordResetSettings:ResetLinkTemplate"];
             if (string.IsNullOrWhiteSpace(template))
-                template = "resenha://reset-password?token={token}";
+                template = "http://localhost:5173/reset-password?token={token}";
 
             return template.Replace("{token}", Uri.EscapeDataString(token));
         }
@@ -393,7 +393,7 @@ namespace Resenha.API.Services
             return Convert.ToHexString(bytes);
         }
 
-        // Mantem o claim pwd_at estavel entre valor em memoria e valor lido do MySQL.
+        // Mantem o claim pwd_at estavel entre valor em memoria e valor lido do banco.
         private static string BuildPasswordStamp(DateTime value)
         {
             var utc = value.Kind == DateTimeKind.Utc

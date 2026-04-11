@@ -111,7 +111,7 @@ Comandos uteis na VM:
 ```bash
 sudo systemctl status resenha-api --no-pager
 sudo systemctl status nginx --no-pager
-sudo systemctl status mysql --no-pager
+sudo systemctl status postgresql --no-pager
 sudo iptables -L INPUT -n --line-numbers
 curl -I https://api.resenhaapp.com
 ```
@@ -181,5 +181,5 @@ Resultado esperado:
 
 - revisar e simplificar configuracao definitiva do `systemd` para refletir exatamente o modo self-contained atual
 - revisar templates de deploy para manter alinhamento com o ambiente produtivo
-- padronizar e documentar melhor a estrategia de backup do MySQL
+- padronizar e documentar melhor a estrategia de backup do PostgreSQL
 - adicionar observabilidade minima para erros de producao

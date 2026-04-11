@@ -2,7 +2,7 @@
 
 ## Tecnologia
 
-- MySQL
+- PostgreSQL
 
 ## Contexto EF Core
 
@@ -17,6 +17,7 @@ O contexto centraliza todas as tabelas e define os principais indices unicos usa
 ### Usuarios e Seguranca
 
 - `Usuario`
+- `RefreshToken`
 - `TokenRecuperacaoSenha`
 - `AuditoriaSeguranca`
 
@@ -24,6 +25,7 @@ Responsabilidades:
 
 - identidade do usuario
 - estado de ativacao
+- fundacao para renovacao segura de sessao
 - trilha de recuperacao de senha
 - auditoria de eventos de seguranca
 
@@ -32,12 +34,14 @@ Responsabilidades:
 - `Grupo`
 - `GrupoUsuario`
 - `ConviteGrupo`
+- `ConfiguracaoGrupo`
 
 Responsabilidades:
 
 - configuracao do grupo
 - associacao usuario x grupo
 - convite de entrada
+- fundacao para parametrizacao futura por admin
 
 ### Temporadas e Partidas
 
@@ -113,8 +117,10 @@ Indices importantes definidos no contexto:
 - `ClassificacaoGeralGrupo(IdGrupo, IdUsuario)`
 - `ConviteGrupo(CodigoConvite)`
 - `Usuario(Email)`
+- `RefreshToken(TokenHash)`
 - `TokenRecuperacaoSenha(TokenHash)`
 - `Temporada(IdGrupo, Ano)`
+- `ConfiguracaoGrupo(IdGrupo)`
 
 ## Implicacoes de Negocio
 
@@ -125,22 +131,43 @@ Esses indices impedem cenarios como:
 - mesmo usuario votando duas vezes na mesma rodada
 - duas classificacoes duplicadas para o mesmo usuario no mesmo contexto
 - email duplicado em cadastro
+- repeticao de refresh token
 - repeticao de codigo de convite
+- mais de uma configuracao base para o mesmo grupo
+
+## Estrategia de Schema da Fase 0
+
+A fundacao oficial da Fase 0 e o modelo EF Core apontando para PostgreSQL, complementado por scripts SQL versionados em `backend/Resenha.API/sql`.
+
+Nesta fase, o script `2026-04-11_fase0_postgresql_foundation.sql` registra apenas o baseline estrutural novo para:
+
+- refresh token
+- configuracao futura por grupo
+
+As proximas fases devem evoluir o schema por migrations ou scripts revisaveis, sempre partindo do modelo EF Core e sem aplicar alteracao destrutiva automaticamente em producao.
 
 ## Script Complementar Identificado
 
-Script relevante:
+Scripts relevantes:
 
 - `backend/Resenha.API/sql/2026-03-03_auth_recovery_and_club.sql`
+- `backend/Resenha.API/sql/2026-04-11_fase0_postgresql_foundation.sql`
 
-Esse script deve ser aplicado quando for necessario habilitar integralmente:
+O script `2026-03-03_auth_recovery_and_club.sql` deve ser aplicado quando for necessario habilitar integralmente:
 
 - recuperacao de senha
 - informacoes de time do coracao
 
+O script `2026-04-11_fase0_postgresql_foundation.sql` documenta a fundacao PostgreSQL para:
+
+- `refresh_tokens`
+- `configuracoes_grupo`
+
+Ele nao substitui uma migration completa de dados produtivos.
+
 ## Recomendacoes Operacionais
 
 - usar usuario dedicado de banco para a aplicacao
-- nao expor a porta `3306` publicamente
+- nao expor a porta `5432` publicamente
 - manter backup periodico antes de alteracoes estruturais
 - versionar futuros scripts SQL por data e contexto

@@ -3,10 +3,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MySqlConnector;
 using Resenha.API.Data;
+using Resenha.API.Infrastructure.Email;
+using Resenha.API.Infrastructure.HealthChecks;
+using Resenha.API.Infrastructure.Security;
 using Resenha.API.Services;
 using System.Security.Claims;
 using System.Text;
@@ -14,10 +17,11 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment;
 
-var connectionString = NormalizeConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' nao configurada.");
 
 builder.Services.AddDbContext<ResenhaDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseNpgsql(connectionString));
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JwtSettings:SecretKey nao configurado.");
@@ -125,6 +129,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<IEmailSender, ResendEmailSender>();
+builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IInviteEmailService, InviteEmailService>();
 builder.Services.AddScoped<GroupService>();
@@ -132,6 +138,9 @@ builder.Services.AddScoped<MatchService>();
 builder.Services.AddScoped<CaptainService>();
 builder.Services.AddScoped<ClassificationService>();
 builder.Services.AddScoped<VoteService>();
+builder.Services
+    .AddHealthChecks()
+    .AddCheck<BancoDadosHealthCheck>("banco_dados", HealthStatus.Unhealthy);
 
 builder.Services
     .AddControllers()
@@ -203,24 +212,10 @@ app.UseCors("AppCors");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/ready");
 app.MapControllers();
 
 app.Run();
 
-static string NormalizeConnectionString(string? rawConnectionString)
-{
-    if (string.IsNullOrWhiteSpace(rawConnectionString))
-        throw new InvalidOperationException("Connection string 'DefaultConnection' nao configurada.");
-
-    var builder = new MySqlConnectionStringBuilder(rawConnectionString);
-    var server = builder.Server?.Trim();
-    var isLocalServer =
-        string.Equals(server, "localhost", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(server, "127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(server, "::1", StringComparison.OrdinalIgnoreCase);
-
-    if (isLocalServer && builder.SslMode == MySqlSslMode.Preferred)
-        builder.SslMode = MySqlSslMode.None;
-
-    return builder.ConnectionString;
-}
+public partial class Program { }

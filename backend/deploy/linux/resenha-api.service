@@ -1,7 +1,7 @@
 [Unit]
 Description=Resenha API
-After=network.target mysql.service
-Wants=mysql.service
+After=network.target postgresql.service
+Wants=postgresql.service
 
 [Service]
 WorkingDirectory=/opt/resenha/api/current

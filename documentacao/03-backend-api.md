@@ -5,7 +5,8 @@
 - .NET 6
 - ASP.NET Core Web API
 - Entity Framework Core
-- MySQL
+- PostgreSQL
+- Npgsql EF Core Provider
 - JWT Bearer Authentication
 - Swagger em desenvolvimento
 
@@ -35,7 +36,14 @@ Arquivo principal de bootstrap:
 
 ### Banco
 
-A API usa a connection string `DefaultConnection`. No bootstrap, a string e normalizada para desabilitar SSL local quando necessario.
+A API usa a connection string `DefaultConnection` e registra o provider PostgreSQL via `UseNpgsql`.
+
+Configuracao esperada:
+
+- `ConnectionStrings:DefaultConnection`
+
+Em ambiente local, usar uma connection string PostgreSQL de desenvolvimento. Em producao, carregar a string por variavel de ambiente.
+Segredos locais devem ser configurados por User Secrets ou pelo `appsettings.json` local ignorado pelo Git, nunca em arquivo versionado.
 
 ### JWT
 
@@ -51,6 +59,19 @@ Validacoes importantes:
 - chave com no minimo 32 caracteres
 - validacao de emissor, audiencia, expiracao e assinatura
 - validacao adicional da claim `pwd_at` contra o timestamp de atualizacao da senha do usuario
+- fundacao de `ITokenService` preparada para emitir token de acesso sem implementar o fluxo completo de refresh token nesta fase
+
+### Email
+
+Configuracoes esperadas:
+
+- `EmailSettings:Provider`
+- `EmailSettings:Resend:ApiKey`
+- `EmailSettings:FromEmail`
+- `EmailSettings:FromName`
+
+O provedor estrutural preparado para beta e `Resend`, por meio da abstracao `IEmailSender`.
+Valores reais devem ficar fora do repositorio, preferencialmente em variaveis de ambiente, User Secrets ou arquivo local ignorado pelo Git.
 
 ### CORS
 
@@ -69,6 +90,8 @@ Servicos principais:
 
 - `AuthService`
 - `InviteEmailService`
+- `IEmailSender`
+- `ITokenService`
 - `GroupService`
 - `MatchService`
 - `CaptainService`
@@ -234,6 +257,7 @@ Endpoints:
 
 - JWT Bearer
 - `Authorization: Bearer <token>`
+- refresh token modelado estruturalmente na entidade `RefreshToken`
 
 ### Expiracao de Sessao por Senha
 
@@ -251,6 +275,15 @@ O projeto configura uma resposta padrao para dados invalidos:
 - habilitado apenas em desenvolvimento
 - desabilitado em producao
 
+### Health checks
+
+Endpoints estruturais:
+
+- `GET /health`
+- `GET /ready`
+
+O health check valida a capacidade basica de inicializacao da API e a conexao com o contexto EF Core.
+
 ## Arquivos Relevantes
 
 - `backend/Resenha.API/Program.cs`
@@ -258,6 +291,9 @@ O projeto configura uma resposta padrao para dados invalidos:
 - `backend/Resenha.API/Controllers/*.cs`
 - `backend/Resenha.API/Services/*.cs`
 - `backend/Resenha.API/Entities/*.cs`
+- `backend/Resenha.API/Infrastructure/Email/*.cs`
+- `backend/Resenha.API/Infrastructure/Security/*.cs`
+- `backend/Resenha.API/Infrastructure/HealthChecks/*.cs`
 - `backend/Resenha.API/sql/2026-03-03_auth_recovery_and_club.sql`
 
 ## Scripts e Publicacao

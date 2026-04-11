@@ -4,19 +4,20 @@
 
 O projeto adota uma arquitetura simples e pragmatica para um produto em fase inicial:
 
-- aplicativo mobile em `Expo/React Native`
+- frontend web em `React + Vite`
+- aplicativo mobile legado em `Expo/React Native`
 - API REST em `ASP.NET Core 6`
-- banco relacional `MySQL`
+- banco relacional `PostgreSQL`
 - proxy reverso `nginx`
 - hospedagem em `Oracle Cloud`
 
 ## Diagrama Logico
 
 ```text
-Usuario Android
+Usuario web/mobile
     |
     v
-App Expo / React Native
+Resenha Web (React/Vite)
     |
     v
 https://api.resenhaapp.com
@@ -28,12 +29,27 @@ nginx
 Resenha.API (ASP.NET Core)
     |
     v
-MySQL
+PostgreSQL
 ```
 
 ## Componentes
 
-### Frontend Mobile
+### Frontend Web
+
+Localizacao:
+
+- `frontend/resenha-web`
+
+Responsabilidades:
+
+- experiencia web-first mobile-first
+- roteamento publico e autenticado
+- componentes reutilizaveis e design system inicial
+- PWA base
+- consumo da API REST
+- exibicao responsiva de grupos, partidas, classificacoes e votacoes
+
+### Frontend Mobile legado
 
 Localizacao:
 
@@ -65,7 +81,7 @@ Responsabilidades:
 
 Tecnologia:
 
-- MySQL local na VM de producao
+- PostgreSQL como banco relacional oficial da fundacao web
 
 Responsabilidades:
 
@@ -99,7 +115,7 @@ Componentes principais:
 ### API -> Banco
 
 - Entity Framework Core
-- provider MySQL
+- provider PostgreSQL (`Npgsql.EntityFrameworkCore.PostgreSQL`)
 - conexao via `ConnectionStrings__DefaultConnection`
 
 ## Decisoes Tecnicas Relevantes
@@ -115,16 +131,16 @@ Autenticacao baseada em token Bearer, com validacao adicional de versao de senha
 Isso permite:
 
 - invalidar sessoes antigas apos troca de senha
-- manter autenticacao simples para app mobile
+- manter autenticacao simples para web e app mobile
 
-### 3. MySQL local na VM
+### 3. PostgreSQL como fundacao de dados
 
-Para reduzir custo e manter o projeto dentro de um plano gratuito, o banco roda na mesma instancia da API.
+Para a fundacao web, o banco oficial passa a ser PostgreSQL via EF Core.
 
 Trade-off:
 
-- menor custo e menor complexidade
-- menor isolamento entre aplicacao e banco
+- alinhamento com a stack travada para o Resenha Web
+- exige revisao operacional da instancia atual antes de migrar dado produtivo
 
 ### 4. Proxy com nginx
 
@@ -135,7 +151,7 @@ O `nginx` fica na borda publica para:
 - encaminhar requisicoes para a API interna
 - evitar exposicao direta da porta interna da aplicacao
 
-### 5. Deploy mobile via Expo EAS
+### 5. Deploy mobile legado via Expo EAS
 
 Escolha adequada para:
 
@@ -186,6 +202,7 @@ Escolha adequada para:
 
 - API local com Swagger habilitado
 - CORS permissivo
+- frontend web Vite com URL da API definida por `.env`
 - app Expo com URL local ou definida por `.env`
 
 ### Producao

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Resenha.API.Infrastructure.Email;
 using System.Net;
 using System.Net.Http.Json;
 using System.Net.Mail;
@@ -26,22 +27,26 @@ namespace Resenha.API.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<InviteEmailService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IEmailSender _emailSender;
 
         public InviteEmailService(
             IConfiguration configuration,
             ILogger<InviteEmailService> logger,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IEmailSender emailSender)
         {
             _configuration = configuration;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _emailSender = emailSender;
         }
 
         public InviteSendResult SendGroupInvite(string toEmail, string inviterName, string groupName, string inviteLink, DateTime expiresAtUtc)
         {
-            var provider = (GetSetting("EmailSettings:Provider", "EMAIL_PROVIDER") ?? "smtp").Trim().ToLowerInvariant();
+            var provider = (GetSetting("EmailSettings:Provider", "EMAIL_PROVIDER") ?? "resend").Trim().ToLowerInvariant();
             return provider switch
             {
+                "resend" => SendGroupInviteWithResend(toEmail, inviterName, groupName, inviteLink, expiresAtUtc),
                 "sendgrid" => SendWithSendGrid(toEmail, inviterName, groupName, inviteLink, expiresAtUtc),
                 "smtp" => SendWithSmtp(toEmail, inviterName, groupName, inviteLink, expiresAtUtc),
                 _ => new InviteSendResult
@@ -56,9 +61,10 @@ namespace Resenha.API.Services
 
         public InviteSendResult SendPasswordReset(string toEmail, string userName, string resetLink, DateTime expiresAtUtc)
         {
-            var provider = (GetSetting("EmailSettings:Provider", "EMAIL_PROVIDER") ?? "smtp").Trim().ToLowerInvariant();
+            var provider = (GetSetting("EmailSettings:Provider", "EMAIL_PROVIDER") ?? "resend").Trim().ToLowerInvariant();
             return provider switch
             {
+                "resend" => SendPasswordResetWithResend(toEmail, userName, resetLink, expiresAtUtc),
                 "sendgrid" => SendPasswordResetWithSendGrid(toEmail, userName, resetLink, expiresAtUtc),
                 "smtp" => SendPasswordResetWithSmtp(toEmail, userName, resetLink, expiresAtUtc),
                 _ => new InviteSendResult
@@ -73,9 +79,10 @@ namespace Resenha.API.Services
 
         public InviteSendResult SendMatchSlotReopened(string toEmail, string userName, string groupName, string playerWhoLeft, DateTime matchDateTimeLocal)
         {
-            var provider = (GetSetting("EmailSettings:Provider", "EMAIL_PROVIDER") ?? "smtp").Trim().ToLowerInvariant();
+            var provider = (GetSetting("EmailSettings:Provider", "EMAIL_PROVIDER") ?? "resend").Trim().ToLowerInvariant();
             return provider switch
             {
+                "resend" => SendMatchSlotReopenedWithResend(toEmail, userName, groupName, playerWhoLeft, matchDateTimeLocal),
                 "sendgrid" => SendMatchSlotReopenedWithSendGrid(toEmail, userName, groupName, playerWhoLeft, matchDateTimeLocal),
                 "smtp" => SendMatchSlotReopenedWithSmtp(toEmail, userName, groupName, playerWhoLeft, matchDateTimeLocal),
                 _ => new InviteSendResult
@@ -86,6 +93,65 @@ namespace Resenha.API.Services
                     Error = "Provider de e-mail invalido."
                 }
             };
+        }
+
+        private InviteSendResult SendGroupInviteWithResend(string toEmail, string inviterName, string groupName, string inviteLink, DateTime expiresAtUtc)
+        {
+            var message = new EmailMessage
+            {
+                ToEmail = toEmail,
+                Subject = $"Convite para entrar no grupo {groupName}",
+                TextBody = BuildTextBody(inviterName, groupName, inviteLink, expiresAtUtc),
+                HtmlBody = BuildHtmlBody(inviterName, groupName, inviteLink, expiresAtUtc)
+            };
+
+            return SendWithResend(message, toEmail, "INVITE_EMAIL");
+        }
+
+        private InviteSendResult SendPasswordResetWithResend(string toEmail, string userName, string resetLink, DateTime expiresAtUtc)
+        {
+            var message = new EmailMessage
+            {
+                ToEmail = toEmail,
+                Subject = "Redefinicao de senha - Resenha",
+                TextBody = BuildResetTextBody(userName, resetLink, expiresAtUtc),
+                HtmlBody = BuildResetHtmlBody(userName, resetLink, expiresAtUtc)
+            };
+
+            return SendWithResend(message, toEmail, "PASSWORD_RESET_EMAIL");
+        }
+
+        private InviteSendResult SendMatchSlotReopenedWithResend(string toEmail, string userName, string groupName, string playerWhoLeft, DateTime matchDateTimeLocal)
+        {
+            var message = new EmailMessage
+            {
+                ToEmail = toEmail,
+                Subject = $"Uma vaga abriu no jogo de {groupName}",
+                TextBody = BuildMatchSlotReopenedTextBody(userName, groupName, playerWhoLeft, matchDateTimeLocal),
+                HtmlBody = BuildMatchSlotReopenedHtmlBody(userName, groupName, playerWhoLeft, matchDateTimeLocal)
+            };
+
+            return SendWithResend(message, toEmail, "MATCH_SLOT_EMAIL");
+        }
+
+        private InviteSendResult SendWithResend(EmailMessage message, string toEmail, string logPrefix)
+        {
+            try
+            {
+                _emailSender.SendAsync(message).GetAwaiter().GetResult();
+                _logger.LogInformation("{LogPrefix}_SENT | provider=resend to={ToEmail}", logPrefix, toEmail);
+                return new InviteSendResult { Sent = true, Configured = true, Provider = "resend" };
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Resend nao configurado."))
+            {
+                _logger.LogWarning(ex, "{LogPrefix}_SKIPPED_NO_RESEND_CONFIG | to={ToEmail}", logPrefix, toEmail);
+                return new InviteSendResult { Sent = false, Configured = false, Provider = "resend", Error = ex.Message };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{LogPrefix}_SEND_FAILED | provider=resend to={ToEmail}", logPrefix, toEmail);
+                return new InviteSendResult { Sent = false, Configured = true, Provider = "resend", Error = ex.Message };
+            }
         }
 
         private InviteSendResult SendWithSmtp(string toEmail, string inviterName, string groupName, string inviteLink, DateTime expiresAtUtc)

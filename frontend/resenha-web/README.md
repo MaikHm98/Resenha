@@ -16,7 +16,10 @@ Frontend web do projeto Resenha, construindo uma base incremental para evolucao 
 - `Vite 8`
 - `React Router DOM 7`
 - `Axios`
+- `Tailwind CSS 4`
 - `ESLint 9`
+- `Vitest`
+- `Playwright`
 
 ## 3) Estrutura principal de pastas
 
@@ -24,6 +27,7 @@ Frontend web do projeto Resenha, construindo uma base incremental para evolucao 
 src/
   app/
     App.tsx
+    pwa/
     router/
       AppRouter.tsx
       paths.ts
@@ -52,6 +56,8 @@ src/
     lib/
       api/
     styles/
+  tests/
+e2e/
 ```
 
 ### Resumo por camada
@@ -59,6 +65,8 @@ src/
 - `app/`: bootstrap e roteamento global
 - `modules/`: organizacao por dominio/modulo
 - `shared/`: componentes reutilizaveis, utilitarios e estilos base
+- `tests/`: testes unitarios e estruturais do frontend
+- `e2e/`: smoke tests web com Playwright
 
 ## 4) Como rodar localmente
 
@@ -96,14 +104,18 @@ npm run dev
 
 ```bash
 npm run lint
+npm run test
 npm run build
+npm run test:e2e
 ```
 
 ## 5) O que a Fase 0 ja entregou
 
 - scaffold do projeto web com `Vite + React + TypeScript`
 - estrutura base `app/shared/modules`
+- Tailwind CSS como camada base
 - tokens visuais e estilos globais
+- PWA base com manifesto, icones, metadados e service worker simples
 - roteamento base com rotas publicas e privadas placeholder:
   - `/login`
   - `/register`
@@ -127,9 +139,24 @@ npm run build
 - componentes base de UI:
   - `Button`
   - `Input`
+  - `PasswordField`
+  - `Label`
+  - `Select`
+  - `Checkbox`
+  - `Card`
+  - `Dialog`
   - `Spinner`
+  - `LoadingState`
   - `Alert`
   - `EmptyState`
+  - `ErrorState`
+  - `AppContainer`
+  - `PageHeader`
+- testes base:
+  - componentes reutilizaveis
+  - protecao estrutural de rota
+  - smoke E2E da rota publica
+- CI base com lint, testes, build e smoke E2E
 
 Checklist detalhado: [docs/fase-0-checklist.md](./docs/fase-0-checklist.md)
 

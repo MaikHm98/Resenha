@@ -41,7 +41,7 @@ Use para:
 - reiniciar API
 - ver logs
 - mexer no Nginx
-- consultar o MySQL local da VM
+- consultar o PostgreSQL local da VM
 
 ## 1. Entrar na Pasta do Projeto
 
@@ -155,44 +155,42 @@ Se o comando ficar parado, teste:
 ssh -v -o ServerAliveInterval=30 -i "$env:USERPROFILE\Downloads\ssh-key-2026-03-11.key" ubuntu@163.176.142.15
 ```
 
-## 6. Abrir Tunel do Banco para SQLyog
+## 6. Abrir Tunel do Banco para PostgreSQL
 
 ### Comando
 
 ```powershell
-ssh -L 3308:127.0.0.1:3306 -o ServerAliveInterval=30 -i "$env:USERPROFILE\Downloads\ssh-key-2026-03-11.key" ubuntu@163.176.142.15
+ssh -L 5433:127.0.0.1:5432 -o ServerAliveInterval=30 -i "$env:USERPROFILE\Downloads\ssh-key-2026-03-11.key" ubuntu@163.176.142.15
 ```
 
 ### O que faz
 
 Cria um tunel local entre:
 
-- seu computador: `127.0.0.1:3308`
-- MySQL da VM: `127.0.0.1:3306`
+- seu computador: `127.0.0.1:5433`
+- PostgreSQL da VM: `127.0.0.1:5432`
 
 ### Quando usar
 
-Quando quiser abrir o banco no SQLyog/HeidiSQL.
+Quando quiser abrir o banco no DBeaver, pgAdmin ou outro cliente PostgreSQL.
 
 ### Importante
 
-Essa janela precisa ficar aberta enquanto o SQLyog estiver conectado.
+Essa janela precisa ficar aberta enquanto o cliente PostgreSQL estiver conectado.
 
-## 7. Configuracao do SQLyog
+## 7. Configuracao do cliente PostgreSQL
 
 ### Preenchimento correto
 
 - `Host`: `127.0.0.1`
-- `Port`: `3308`
+- `Port`: `5433`
 - `User`: `resenha_app`
-- `Password`: `455623@_`
+- `Password`: `<senha_do_banco>`
 - `Database`: `resenha`
 
 ### Observacao
 
-Desmarque:
-
-- `Use Compressed Protocol`
+Use o driver PostgreSQL do cliente escolhido.
 
 ## 8. Rodar Backend Local
 
@@ -474,19 +472,19 @@ Confirma se o dominio e o HTTPS estao funcionando.
 
 ## 25. Consultar Banco na VM
 
-### Entrar no MySQL
+### Entrar no PostgreSQL
 
 ```bash
-mysql -u resenha_app -p -h 127.0.0.1 -P 3306 resenha
+psql "host=127.0.0.1 port=5432 dbname=resenha user=resenha_app password=<senha_do_banco>"
 ```
 
 ### O que faz
 
-Abre o MySQL direto na VM.
+Abre o PostgreSQL direto na VM.
 
 ### Quando usar
 
-Para consultar dados rapidamente sem SQLyog.
+Para consultar dados rapidamente sem abrir um cliente grafico.
 
 ## 26. Consultas uteis de banco
 
@@ -558,18 +556,18 @@ cd C:\Resenha\frontend\resenha-app
 npx expo start --tunnel --clear --port 8082
 ```
 
-### Quero ver o banco no SQLyog
+### Quero ver o banco no cliente PostgreSQL
 
 1. abrir tunel:
 
 ```powershell
-ssh -L 3308:127.0.0.1:3306 -o ServerAliveInterval=30 -i "$env:USERPROFILE\Downloads\ssh-key-2026-03-11.key" ubuntu@163.176.142.15
+ssh -L 5433:127.0.0.1:5432 -o ServerAliveInterval=30 -i "$env:USERPROFILE\Downloads\ssh-key-2026-03-11.key" ubuntu@163.176.142.15
 ```
 
-2. conectar no SQLyog com:
+2. conectar no cliente PostgreSQL com:
 
 - `127.0.0.1`
-- porta `3308`
+- porta `5433`
 
 ### Quero publicar backend novo
 
@@ -582,7 +580,7 @@ ssh -L 3308:127.0.0.1:3306 -o ServerAliveInterval=30 -i "$env:USERPROFILE\Downlo
 ## 29. Dicas rapidas
 
 - se o app usa a API publicada, nao precisa rodar backend local
-- para SQLyog funcionar, o tunel SSH precisa estar aberto
+- para o cliente PostgreSQL funcionar via tunel, o SSH precisa estar aberto
 - se o Expo mostrar `No apps connected`, reabra o projeto no Expo Go
 - para deploy seguro, sempre rode antes:
 
