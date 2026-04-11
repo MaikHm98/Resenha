@@ -1,5 +1,9 @@
 import axios, { AxiosHeaders } from 'axios'
-import { loadAccessTokenFromStorage } from '../../../modules/auth/storage/sessionStorage'
+import {
+  clearSessionFromStorage,
+  loadAccessTokenFromStorage,
+  notifySessionInvalidated,
+} from '../../../modules/auth/storage/sessionStorage'
 import { apiConfig } from './apiConfig'
 import { normalizeApiError } from './apiError'
 
@@ -27,5 +31,24 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: unknown) => Promise.reject(normalizeApiError(error)),
+  (error: unknown) => {
+    const normalizedError = normalizeApiError(error)
+
+    if (normalizedError.status === 401) {
+      clearSessionFromStorage()
+      notifySessionInvalidated(401)
+      return Promise.reject(normalizedError)
+    }
+
+    if (normalizedError.status === 403) {
+      return Promise.reject({
+        ...normalizedError,
+        message:
+          normalizedError.backendMessage ??
+          'Voce nao tem permissao para concluir esta acao.',
+      })
+    }
+
+    return Promise.reject(normalizedError)
+  },
 )

@@ -3,6 +3,7 @@ import { mapMatchChallengeStatusApiToMatchChallengeStatus } from '../mappers/cha
 import {
   mapMatchApiToMatch,
   mapMatchDetailApiToMatchDetail,
+  mapMatchHistorySummaryApiToMatchHistorySummary,
   mapMatchPresenceApiToMatchPresenceResult,
   mapMessageApiToMessageResult,
 } from '../mappers/matchesMapper'
@@ -24,6 +25,8 @@ import type {
   MatchApiResponse,
   MatchDetail,
   MatchDetailApiResponse,
+  MatchHistorySummary,
+  MatchHistorySummaryApiResponse,
   MatchPresenceApiResponse,
   MatchPresenceResult,
   MessageApiResponse,
@@ -53,6 +56,15 @@ async function getGroupMatches(groupId: number): Promise<Match[]> {
     `${GROUPS_BASE_PATH}/${groupId}/matches`,
   )
   return response.data.map(mapMatchApiToMatch)
+}
+
+async function getGroupMatchHistory(
+  groupId: number,
+): Promise<MatchHistorySummary[]> {
+  const response = await apiClient.get<MatchHistorySummaryApiResponse[]>(
+    `${GROUPS_BASE_PATH}/${groupId}/matches/history`,
+  )
+  return response.data.map(mapMatchHistorySummaryApiToMatchHistorySummary)
 }
 
 async function getMatchDetails(matchId: number): Promise<MatchDetail> {
@@ -233,6 +245,7 @@ async function approveMatchVote(
 export const matchesApi = {
   createMatch,
   getGroupMatches,
+  getGroupMatchHistory,
   getMatchDetails,
   getMatchChallengeStatus,
   startLineDraw,

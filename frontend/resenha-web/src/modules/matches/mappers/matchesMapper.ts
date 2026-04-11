@@ -7,6 +7,8 @@ import type {
   MatchConfirmedInfoApiResponse,
   MatchDetail,
   MatchDetailApiResponse,
+  MatchHistorySummary,
+  MatchHistorySummaryApiResponse,
   MatchPlayerDetail,
   MatchPlayerDetailApiResponse,
   MatchPresenceApiResponse,
@@ -111,6 +113,24 @@ export function mapMatchDetailApiToMatchDetail(
     ausentesNomes: payload.ausentesNomes,
     naoConfirmaramNomes: payload.naoConfirmaramNomes,
     premios: payload.premios.map(mapMatchAwardDetailApiToMatchAwardDetail),
+  }
+}
+
+export function mapMatchHistorySummaryApiToMatchHistorySummary(
+  payload: MatchHistorySummaryApiResponse,
+): MatchHistorySummary {
+  return {
+    idPartida: payload.idPartida,
+    dataHoraJogo: payload.dataHoraJogo,
+    status: payload.status,
+    limiteVagas: payload.limiteVagas,
+    totalConfirmados: payload.totalConfirmados,
+    golsTime1: payload.golsTime1,
+    golsTime2: payload.golsTime2,
+    nomeCapitaoTime1: payload.nomeCapitaoTime1,
+    nomeCapitaoTime2: payload.nomeCapitaoTime2,
+    numeroTimeVencedor: payload.numeroTimeVencedor,
+    nomeCapitaoVencedor: payload.nomeCapitaoVencedor,
   }
 }
 

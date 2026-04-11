@@ -67,7 +67,7 @@ export function MatchChallengePage() {
     <section className="match-challenge-page" aria-labelledby="match-challenge-page-title">
       <header className="match-challenge-page__hero">
         <div className="match-challenge-page__breadcrumbs">
-          <Link to={ROUTE_PATHS.MATCHES}>Partidas</Link>
+          <Link to={ROUTE_PATHS.GROUPS}>Grupos</Link>
           <span>/</span>
           <Link to={buildMatchDetailPath(currentMatchId)}>{currentMatchId}</Link>
           <span>/</span>
@@ -97,8 +97,8 @@ export function MatchChallengePage() {
             >
               Voltar para a partida
             </Link>
-            <Link className="match-challenge-page__link" to={ROUTE_PATHS.MATCHES}>
-              Voltar para o modulo
+            <Link className="match-challenge-page__link" to={ROUTE_PATHS.GROUPS}>
+              Voltar para grupos
             </Link>
             <Button
               disabled={parsedMatchId === null || isInitialLoading}

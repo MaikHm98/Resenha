@@ -15,10 +15,9 @@ export function MatchesPage() {
               Partidas e operacao basica
             </h1>
             <p className="app-subtitle">
-              A entrada do modulo agora e real, mas o fluxo operacional continua
-              ancorado por grupo. As proximas etapas vao plugar listagem,
-              criacao, presenca e detalhe sem inventar uma visao global que o
-              backend nao expoe.
+              O modulo de partidas ja possui fluxo web funcional, mas a entrada
+              continua ancorada por grupo para respeitar a estrutura real do
+              backend e evitar uma visao global que a API nao expoe.
             </p>
           </div>
 
@@ -52,23 +51,25 @@ export function MatchesPage() {
               <strong>1. Escolha um grupo</strong>
               <p>
                 Entre em <code>/groups</code> e abra um grupo para acessar o
-                contexto certo da operacao.
+                contexto certo da operacao, da governanca e do historico das
+                partidas.
               </p>
             </article>
 
             <article className="matches-page__step">
               <strong>2. Abra as partidas do grupo</strong>
               <p>
-                A rota por grupo ja esta preparada para receber listagem e
-                criacao no proximo commit.
+                A rota <code>/groups/:groupId/matches</code> concentra listagem
+                operacional, criacao de partida e navegacao para o detalhe.
               </p>
             </article>
 
             <article className="matches-page__step">
-              <strong>3. Entre no detalhe da partida</strong>
+              <strong>3. Siga para o fluxo certo da partida</strong>
               <p>
-                O detalhe do modulo tambem ja existe como shell de navegacao
-                para os proximos fluxos operacionais.
+                A partir da partida, o web ja cobre detalhe operacional,
+                desafio, votacao e historico conforme o estado e a necessidade
+                do usuario.
               </p>
             </article>
           </div>
@@ -79,21 +80,22 @@ export function MatchesPage() {
             <div>
               <h2 id="matches-scope-title">Escopo preparado</h2>
               <p>
-                As paginas base do modulo ja apontam o caminho para listagem,
-                criacao, presenca, ausencia, convidado e exclusao.
+                Esta entrada resume os fluxos ativos do modulo e ajuda a
+                localizar o ponto certo de operacao sem duplicar regra de
+                negocio no frontend.
               </p>
             </div>
             <span className="matches-page__badge matches-page__badge--outline">
-              Scaffold
+              Fluxos ativos
             </span>
           </header>
 
           <ul className="matches-page__scope-list">
-            <li>Criacao de partida por grupo</li>
-            <li>Listagem operacional do grupo</li>
-            <li>Detalhe de partida</li>
-            <li>Confirmacao, cancelamento e ausencia</li>
-            <li>Convidado e exclusao quando permitido</li>
+            <li>Criacao e listagem operacional por grupo</li>
+            <li>Detalhe da partida com presenca, ausencia, convidado e exclusao</li>
+            <li>Fluxo de desafio em andamento</li>
+            <li>Fluxo de votacao por partida</li>
+            <li>Historico por grupo e detalhe historico da partida</li>
           </ul>
         </section>
       </div>

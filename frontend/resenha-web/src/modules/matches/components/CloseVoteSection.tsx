@@ -6,6 +6,7 @@ import type {
 
 type CloseVoteSectionProps = {
   canManageVoting: boolean
+  adminCapabilityIssue: string | null
   mvpRound: MatchVoteRound | null
   bolaMurchaRound: MatchVoteRound | null
   closeVoteError: string | null
@@ -18,6 +19,7 @@ type CloseVoteSectionProps = {
 
 type CloseVoteCardProps = {
   canManageVoting: boolean
+  adminCapabilityIssue: string | null
   round: MatchVoteRound | null
   type: MatchVoteType
   activeCloseVoteType: MatchVoteType | null
@@ -32,6 +34,7 @@ const VOTE_TYPE_LABELS: Record<MatchVoteType, string> = {
 
 function CloseVoteCard({
   canManageVoting,
+  adminCapabilityIssue,
   round,
   type,
   activeCloseVoteType,
@@ -73,13 +76,19 @@ function CloseVoteCard({
         <span className="close-vote-section__badge">{round.status}</span>
       </header>
 
-      {!canManageVoting ? (
+      {adminCapabilityIssue ? (
+        <div className="close-vote-section__notice">
+          <p>{adminCapabilityIssue}</p>
+        </div>
+      ) : null}
+
+      {!adminCapabilityIssue && !canManageVoting ? (
         <div className="close-vote-section__notice">
           <p>O encerramento/apuracao desta rodada fica restrito ao admin.</p>
         </div>
       ) : null}
 
-      {canManageVoting && round.status !== 'ABERTA' ? (
+      {canManageVoting && !adminCapabilityIssue && round.status !== 'ABERTA' ? (
         <div className="close-vote-section__notice">
           <p>
             Esta rodada nao esta aberta para encerramento neste momento. A UI
@@ -95,7 +104,7 @@ function CloseVoteCard({
         </p>
       </div>
 
-      {canCloseRound ? (
+      {canCloseRound && !adminCapabilityIssue ? (
         <Button
           loading={isCurrentAction}
           onClick={() => void onCloseVote(type)}
@@ -110,6 +119,7 @@ function CloseVoteCard({
 
 export function CloseVoteSection({
   canManageVoting,
+  adminCapabilityIssue,
   mvpRound,
   bolaMurchaRound,
   closeVoteError,
@@ -150,6 +160,7 @@ export function CloseVoteSection({
       <div className="close-vote-section__grid">
         <CloseVoteCard
           activeCloseVoteType={activeCloseVoteType}
+          adminCapabilityIssue={adminCapabilityIssue}
           canManageVoting={canManageVoting}
           isClosingVote={isClosingVote}
           onCloseVote={onCloseVote}
@@ -158,6 +169,7 @@ export function CloseVoteSection({
         />
         <CloseVoteCard
           activeCloseVoteType={activeCloseVoteType}
+          adminCapabilityIssue={adminCapabilityIssue}
           canManageVoting={canManageVoting}
           isClosingVote={isClosingVote}
           onCloseVote={onCloseVote}

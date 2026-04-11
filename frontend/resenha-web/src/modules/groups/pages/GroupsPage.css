@@ -16,8 +16,8 @@
 .groups-page__hero {
   padding: var(--space-6);
   background:
-    radial-gradient(circle at top right, rgba(23, 104, 58, 0.14), transparent 32%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(232, 241, 235, 0.92));
+    radial-gradient(circle at top right, rgba(124, 255, 79, 0.12), transparent 30%),
+    linear-gradient(145deg, rgba(15, 38, 24, 0.98), rgba(19, 43, 31, 0.96));
 }
 
 .groups-page__eyebrow {
@@ -26,7 +26,7 @@
   align-items: center;
   padding: var(--space-1) var(--space-3);
   border-radius: 999px;
-  background-color: rgba(23, 104, 58, 0.12);
+  background-color: rgba(124, 255, 79, 0.12);
   color: var(--color-brand-primary);
   font-size: 0.8rem;
   font-weight: 700;
@@ -134,7 +134,7 @@
   min-height: 2rem;
   padding: 0 var(--space-3);
   border-radius: 999px;
-  background-color: rgba(23, 104, 58, 0.12);
+  background-color: rgba(124, 255, 79, 0.12);
   color: var(--color-brand-primary);
   font-size: 0.8rem;
   font-weight: 700;
@@ -197,7 +197,7 @@
   padding: var(--space-6);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-lg);
-  background-color: rgba(23, 104, 58, 0.03);
+  background-color: rgba(124, 255, 79, 0.04);
 }
 
 .groups-page__list {
@@ -215,7 +215,7 @@
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(243, 246, 242, 0.94));
+    linear-gradient(145deg, rgba(19, 43, 31, 0.98), rgba(15, 38, 24, 0.96));
 }
 
 .group-card__header {
@@ -244,12 +244,12 @@
 }
 
 .group-card__role--admin {
-  background-color: rgba(181, 71, 8, 0.12);
+  background-color: rgba(215, 255, 90, 0.12);
   color: var(--color-feedback-warning);
 }
 
 .group-card__role--player {
-  background-color: rgba(23, 104, 58, 0.12);
+  background-color: rgba(124, 255, 79, 0.12);
   color: var(--color-brand-primary);
 }
 

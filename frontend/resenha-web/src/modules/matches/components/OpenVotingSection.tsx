@@ -2,6 +2,7 @@ import { Alert, Button } from '../../../shared/components'
 
 type OpenVotingSectionProps = {
   canManageVoting: boolean
+  adminCapabilityIssue: string | null
   hasVotingStarted: boolean
   openVotingError: string | null
   openVotingNotice: string | null
@@ -12,6 +13,7 @@ type OpenVotingSectionProps = {
 
 export function OpenVotingSection({
   canManageVoting,
+  adminCapabilityIssue,
   hasVotingStarted,
   openVotingError,
   openVotingNotice,
@@ -47,7 +49,14 @@ export function OpenVotingSection({
         </div>
       ) : null}
 
-      {!canManageVoting ? (
+      {adminCapabilityIssue ? (
+        <div className="open-voting-section__notice">
+          <h3>Permissao administrativa indisponivel</h3>
+          <p>{adminCapabilityIssue}</p>
+        </div>
+      ) : null}
+
+      {!adminCapabilityIssue && !canManageVoting ? (
         <div className="open-voting-section__notice">
           <h3>Abertura restrita ao admin</h3>
           <p>
@@ -57,7 +66,7 @@ export function OpenVotingSection({
         </div>
       ) : null}
 
-      {canManageVoting && hasVotingStarted ? (
+      {canManageVoting && !adminCapabilityIssue && hasVotingStarted ? (
         <div className="open-voting-section__notice">
           <h3>Votacao ja iniciada</h3>
           <p>
@@ -67,7 +76,7 @@ export function OpenVotingSection({
         </div>
       ) : null}
 
-      {canManageVoting && !hasVotingStarted ? (
+      {canManageVoting && !adminCapabilityIssue && !hasVotingStarted ? (
         <div className="open-voting-section__action-card">
           <div className="open-voting-section__action-copy">
             <h3>Abrir votacao da partida</h3>

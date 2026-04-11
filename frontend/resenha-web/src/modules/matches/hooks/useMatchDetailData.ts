@@ -14,10 +14,17 @@ export type MatchPlayerActionKind =
   | 'markAbsent'
   | 'cancelAbsent'
 
+type MatchDetailLoadResult = {
+  ok: boolean
+  hasAuxiliaryFailure: boolean
+}
+
 export type UseMatchDetailDataResult = {
   match: MatchDetail | null
   userAttendanceStatus: MatchUserAttendanceStatus | null
+  attendanceStatusIssue: string | null
   canManageMatch: boolean
+  managementCapabilityIssue: string | null
   status: MatchDetailDataStatus
   error: string | null
   actionError: string | null
@@ -52,6 +59,22 @@ function getLoadErrorMessage(requestError: unknown): string {
   return 'Nao foi possivel carregar o detalhe da partida.'
 }
 
+function getAuxiliaryErrorMessage(
+  kind: 'attendance' | 'management',
+  requestError: unknown,
+): string {
+  const fallbackMessage =
+    kind === 'attendance'
+      ? 'Nao foi possivel determinar sua resposta atual nesta partida.'
+      : 'Nao foi possivel validar suas permissoes administrativas nesta partida.'
+
+  if (isNormalizedApiError(requestError)) {
+    return `${fallbackMessage} ${requestError.message}`
+  }
+
+  return fallbackMessage
+}
+
 function getActionErrorMessage(
   action: MatchPlayerActionKind,
   requestError: unknown,
@@ -83,6 +106,36 @@ function getActionNotice(action: MatchPlayerActionKind): string {
     case 'cancelAbsent':
       return 'Ausencia removida com sucesso.'
   }
+}
+
+function getActionStatusFromKind(
+  action: MatchPlayerActionKind,
+): MatchUserAttendanceStatus {
+  switch (action) {
+    case 'confirmPresence':
+      return 'CONFIRMADO'
+    case 'cancelPresence':
+      return 'NEUTRO'
+    case 'markAbsent':
+      return 'AUSENTE'
+    case 'cancelAbsent':
+      return 'NEUTRO'
+  }
+}
+
+function buildPostMutationNotice(
+  successMessage: string,
+  loadResult: MatchDetailLoadResult,
+): string {
+  if (!loadResult.ok) {
+    return `${successMessage} A acao foi concluida, mas nao foi possivel recarregar a partida agora.`
+  }
+
+  if (loadResult.hasAuxiliaryFailure) {
+    return `${successMessage} O detalhe principal foi mantido, mas algumas validacoes auxiliares ainda nao puderam ser atualizadas agora.`
+  }
+
+  return successMessage
 }
 
 async function getCurrentUserAttendanceStatus(
@@ -120,7 +173,12 @@ export function useMatchDetailData(
   const [match, setMatch] = useState<MatchDetail | null>(null)
   const [userAttendanceStatus, setUserAttendanceStatus] =
     useState<MatchUserAttendanceStatus | null>(null)
+  const [attendanceStatusIssue, setAttendanceStatusIssue] = useState<string | null>(
+    null,
+  )
   const [canManageMatch, setCanManageMatch] = useState(false)
+  const [managementCapabilityIssue, setManagementCapabilityIssue] =
+    useState<string | null>(null)
   const [status, setStatus] = useState<MatchDetailDataStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -138,22 +196,29 @@ export function useMatchDetailData(
   const [isDeletingMatch, setIsDeletingMatch] = useState(false)
 
   const loadData = useCallback(
-    async (mode: LoadMode) => {
+    async (mode: LoadMode): Promise<MatchDetailLoadResult> => {
       if (matchId === null) {
         setMatch(null)
         setUserAttendanceStatus(null)
+        setAttendanceStatusIssue(null)
         setCanManageMatch(false)
+        setManagementCapabilityIssue(null)
         setError('Partida invalida para o modulo de partidas.')
         setStatus('error')
         setIsLoading(false)
         setIsRefreshing(false)
-        return
+        return {
+          ok: false,
+          hasAuxiliaryFailure: false,
+        }
       }
 
       if (mode === 'initial') {
         setMatch(null)
         setUserAttendanceStatus(null)
+        setAttendanceStatusIssue(null)
         setCanManageMatch(false)
+        setManagementCapabilityIssue(null)
         setIsLoading(true)
         setStatus('loading')
       } else {
@@ -161,6 +226,8 @@ export function useMatchDetailData(
       }
 
       setError(null)
+      setAttendanceStatusIssue(null)
+      setManagementCapabilityIssue(null)
 
       try {
         const nextMatch = await matchesApi.getMatchDetails(matchId)
@@ -173,20 +240,48 @@ export function useMatchDetailData(
           ],
         )
 
+        const nextAttendanceIssue =
+          attendanceStatusResult.status === 'rejected'
+            ? getAuxiliaryErrorMessage('attendance', attendanceStatusResult.reason)
+            : null
+
+        const nextManagementIssue =
+          canManageResult.status === 'rejected'
+            ? getAuxiliaryErrorMessage('management', canManageResult.reason)
+            : null
+
         setUserAttendanceStatus(
           attendanceStatusResult.status === 'fulfilled'
             ? attendanceStatusResult.value
             : null,
         )
+        setAttendanceStatusIssue(nextAttendanceIssue)
         setCanManageMatch(
           canManageResult.status === 'fulfilled' ? canManageResult.value : false,
         )
+        setManagementCapabilityIssue(nextManagementIssue)
         setStatus('success')
+        return {
+          ok: true,
+          hasAuxiliaryFailure:
+            nextAttendanceIssue !== null || nextManagementIssue !== null,
+        }
       } catch (requestError: unknown) {
-        setUserAttendanceStatus(null)
-        setCanManageMatch(false)
+        if (mode === 'initial') {
+          setUserAttendanceStatus(null)
+          setAttendanceStatusIssue(null)
+          setCanManageMatch(false)
+          setManagementCapabilityIssue(null)
+          setStatus('error')
+        } else {
+          setStatus('success')
+        }
+
         setError(getLoadErrorMessage(requestError))
-        setStatus('error')
+        return {
+          ok: false,
+          hasAuxiliaryFailure: false,
+        }
       } finally {
         if (mode === 'initial') {
           setIsLoading(false)
@@ -217,9 +312,25 @@ export function useMatchDetailData(
       setActiveAction(action)
 
       try {
-        await request()
-        setActionNotice(getActionNotice(action))
-        await loadData('refresh')
+        const result = await request()
+
+        setUserAttendanceStatus(getActionStatusFromKind(action))
+        setMatch((currentMatch) =>
+          currentMatch
+            ? {
+                ...currentMatch,
+                totalConfirmados: result.totalConfirmados,
+                limiteVagas: result.limiteVagas,
+              }
+            : currentMatch,
+        )
+
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setActionNotice(
+          buildPostMutationNotice(getActionNotice(action), loadResult),
+        )
         return true
       } catch (requestError: unknown) {
         setActionError(getActionErrorMessage(action, requestError))
@@ -287,9 +398,24 @@ export function useMatchDetailData(
       setIsAddingGuest(true)
 
       try {
-        await matchesApi.addGuestToMatch(matchId, { nome: name })
-        setGuestNotice('Convidado adicionado com sucesso.')
-        await loadData('refresh')
+        const result = await matchesApi.addGuestToMatch(matchId, { nome: name })
+
+        setMatch((currentMatch) =>
+          currentMatch
+            ? {
+                ...currentMatch,
+                totalConfirmados: result.totalConfirmados,
+                limiteVagas: result.limiteVagas,
+              }
+            : currentMatch,
+        )
+
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setGuestNotice(
+          buildPostMutationNotice('Convidado adicionado com sucesso.', loadResult),
+        )
         return true
       } catch (requestError: unknown) {
         setGuestError(
@@ -352,6 +478,8 @@ export function useMatchDetailData(
     setGuestError(null)
     setGuestNotice(null)
     setDeleteMatchError(null)
+    setAttendanceStatusIssue(null)
+    setManagementCapabilityIssue(null)
     setActiveAction(null)
     setIsSubmittingAction(false)
     setIsAddingGuest(false)
@@ -363,7 +491,9 @@ export function useMatchDetailData(
     () => ({
       match,
       userAttendanceStatus,
+      attendanceStatusIssue,
       canManageMatch,
+      managementCapabilityIssue,
       status,
       error,
       actionError,
@@ -394,6 +524,7 @@ export function useMatchDetailData(
       addGuest,
       actionError,
       actionNotice,
+      attendanceStatusIssue,
       cancelAbsent,
       cancelPresence,
       canManageMatch,
@@ -412,6 +543,7 @@ export function useMatchDetailData(
       isLoading,
       isRefreshing,
       isSubmittingAction,
+      managementCapabilityIssue,
       markAbsent,
       match,
       refresh,

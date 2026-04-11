@@ -34,8 +34,7 @@ export function GroupsPage() {
               Grupos e governanca
             </h1>
             <p className="app-subtitle">
-              Consulte seus grupos reais e crie novos grupos sem sair do modulo
-              de grupos.
+              Veja onde voce joga e abra novos grupos sem sair da resenha.
             </p>
           </div>
 
@@ -80,12 +79,11 @@ export function GroupsPage() {
         >
           <header className="groups-page__panel-header">
             <div>
-              <h2 id="groups-create-title">Criar grupo</h2>
-              <p>
-                Formulario conectado ao backend para criar um novo grupo e
-                atualizar a listagem da pagina.
-              </p>
-            </div>
+                <h2 id="groups-create-title">Criar grupo</h2>
+                <p>
+                  Monte um novo grupo com agenda e limite de jogadores em poucos passos.
+                </p>
+              </div>
             <span className="groups-page__badge">Criacao</span>
           </header>
 
@@ -98,12 +96,11 @@ export function GroupsPage() {
         >
           <header className="groups-page__panel-header">
             <div>
-              <h2 id="groups-list-title">Seus grupos</h2>
-              <p>
-                Listagem real carregada via API, pronta para levar o usuario ao
-                detalhe do grupo.
-              </p>
-            </div>
+                <h2 id="groups-list-title">Seus grupos</h2>
+                <p>
+                  Seus grupos ativos aparecem aqui para voce entrar direto na organizacao da partida.
+                </p>
+              </div>
             <span className="groups-page__badge groups-page__badge--outline">
               {groups.length}
             </span>
@@ -137,7 +134,7 @@ export function GroupsPage() {
               ) : (
                 <EmptyState
                   title="Voce ainda nao participa de grupos"
-                  description="Crie seu primeiro grupo ao lado para iniciar a organizacao do modulo."
+                  description="Crie seu primeiro grupo para organizar a proxima resenha."
                 />
               )}
             </>

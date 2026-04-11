@@ -50,8 +50,27 @@ function isNoActiveSeasonRequestError(requestError: unknown): boolean {
     return false
   }
 
-  const normalizedMessage = normalizeTextForComparison(requestError.message)
-  return normalizedMessage.includes('nao ha temporada ativa neste grupo')
+  const normalizedSignal = normalizeTextForComparison(
+    [
+      requestError.code ?? '',
+      requestError.backendMessage ?? '',
+      requestError.message,
+    ].join(' '),
+  )
+
+  if (
+    normalizedSignal.includes('nao ha temporada ativa neste grupo') ||
+    normalizedSignal.includes('nao possui temporada ativa') ||
+    normalizedSignal.includes('sem temporada ativa')
+  ) {
+    return true
+  }
+
+  return (
+    (requestError.status === 400 || requestError.status === 404) &&
+    normalizedSignal.includes('temporada') &&
+    normalizedSignal.includes('ativa')
+  )
 }
 
 export function useClassificationData(

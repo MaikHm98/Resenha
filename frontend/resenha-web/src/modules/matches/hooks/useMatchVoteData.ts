@@ -8,9 +8,15 @@ type LoadMode = 'initial' | 'refresh'
 
 export type MatchVoteDataStatus = 'idle' | 'loading' | 'success' | 'error'
 
+type MatchVoteLoadResult = {
+  ok: boolean
+  hasPermissionIssue: boolean
+}
+
 export type UseMatchVoteDataResult = {
   voteStatus: MatchVoteStatus | null
   canManageVoting: boolean
+  managementCapabilityIssue: string | null
   hasVotingStarted: boolean
   status: MatchVoteDataStatus
   error: string | null
@@ -88,6 +94,29 @@ function getApproveVoteErrorMessage(requestError: unknown): string {
   return 'Nao foi possivel aprovar o resultado final desta votacao.'
 }
 
+function getManagementCapabilityErrorMessage(requestError: unknown): string {
+  if (isNormalizedApiError(requestError)) {
+    return `Nao foi possivel validar sua permissao administrativa nesta votacao. ${requestError.message}`
+  }
+
+  return 'Nao foi possivel validar sua permissao administrativa nesta votacao.'
+}
+
+function buildPostMutationNotice(
+  successMessage: string,
+  loadResult: MatchVoteLoadResult,
+): string {
+  if (!loadResult.ok) {
+    return `${successMessage} A acao foi concluida, mas nao foi possivel recarregar a votacao agora.`
+  }
+
+  if (loadResult.hasPermissionIssue) {
+    return `${successMessage} O snapshot principal foi atualizado, mas a validacao auxiliar de permissao admin ainda nao pode ser confirmada agora.`
+  }
+
+  return successMessage
+}
+
 async function getCurrentUserCanManageVoting(matchId: number): Promise<boolean> {
   const match = await matchesApi.getMatchDetails(matchId)
   const myGroups = await groupsApi.getMyGroups()
@@ -114,6 +143,8 @@ export function useMatchVoteData(
 ): UseMatchVoteDataResult {
   const [voteStatus, setVoteStatus] = useState<MatchVoteStatus | null>(null)
   const [canManageVoting, setCanManageVoting] = useState(false)
+  const [managementCapabilityIssue, setManagementCapabilityIssue] =
+    useState<string | null>(null)
   const [status, setStatus] = useState<MatchVoteDataStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [voteError, setVoteError] = useState<string | null>(null)
@@ -137,20 +168,25 @@ export function useMatchVoteData(
   const voteStatusRef = useRef<MatchVoteStatus | null>(null)
 
   const loadData = useCallback(
-    async (mode: LoadMode) => {
+    async (mode: LoadMode): Promise<MatchVoteLoadResult> => {
       if (matchId === null) {
         setVoteStatus(null)
         setCanManageVoting(false)
+        setManagementCapabilityIssue(null)
         setError('Partida invalida para o modulo de votacao.')
         setStatus('error')
         setIsLoading(false)
         setIsRefreshing(false)
-        return
+        return {
+          ok: false,
+          hasPermissionIssue: false,
+        }
       }
 
       if (mode === 'initial') {
         setVoteStatus(null)
         setCanManageVoting(false)
+        setManagementCapabilityIssue(null)
         setIsLoading(true)
         setStatus('loading')
       } else {
@@ -158,28 +194,46 @@ export function useMatchVoteData(
       }
 
       setError(null)
+      setManagementCapabilityIssue(null)
 
       try {
         const nextVoteStatus = await matchesApi.getMatchVoteStatus(matchId)
         setVoteStatus(nextVoteStatus)
         setStatus('success')
+        let hasPermissionIssue = false
 
         try {
           const nextCanManageVoting = await getCurrentUserCanManageVoting(matchId)
           setCanManageVoting(nextCanManageVoting)
-        } catch {
+        } catch (requestError: unknown) {
           setCanManageVoting(false)
+          setManagementCapabilityIssue(
+            getManagementCapabilityErrorMessage(requestError),
+          )
+          hasPermissionIssue = true
+        }
+
+        return {
+          ok: true,
+          hasPermissionIssue,
         }
       } catch (requestError: unknown) {
         const nextError = getLoadErrorMessage(requestError)
 
         if (mode === 'refresh' && voteStatusRef.current !== null) {
           setError(nextError)
+          setStatus('success')
         } else {
           setVoteStatus(null)
           setCanManageVoting(false)
+          setManagementCapabilityIssue(null)
           setError(nextError)
           setStatus('error')
+        }
+
+        return {
+          ok: false,
+          hasPermissionIssue: false,
         }
       } finally {
         if (mode === 'initial') {
@@ -218,8 +272,16 @@ export function useMatchVoteData(
           idUsuarioVotado: candidateUserId,
         })
         setVoteStatus(nextVoteStatus)
-        setVoteNotice(`Voto em ${type} registrado para ${candidateName}.`)
-        await loadData('refresh')
+        voteStatusRef.current = nextVoteStatus
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setVoteNotice(
+          buildPostMutationNotice(
+            `Voto em ${type} registrado para ${candidateName}.`,
+            loadResult,
+          ),
+        )
         return true
       } catch (requestError: unknown) {
         setVoteError(getVoteErrorMessage(requestError))
@@ -249,10 +311,16 @@ export function useMatchVoteData(
           tipo: type,
         })
         setVoteStatus(nextVoteStatus)
+        voteStatusRef.current = nextVoteStatus
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
         setCloseVoteNotice(
-          `Rodada de ${type} encerrada/apurada. O snapshot foi atualizado com o retorno do backend.`,
+          buildPostMutationNotice(
+            `Rodada de ${type} encerrada/apurada. O snapshot foi atualizado com o retorno do backend.`,
+            loadResult,
+          ),
         )
-        await loadData('refresh')
         return true
       } catch (requestError: unknown) {
         setCloseVoteError(getCloseVoteErrorMessage(requestError))
@@ -281,10 +349,16 @@ export function useMatchVoteData(
           tipo: type,
         })
         setVoteStatus(nextVoteStatus)
+        voteStatusRef.current = nextVoteStatus
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
         setApproveVoteNotice(
-          `Resultado final de ${type} aprovado. O snapshot foi recarregado a partir do backend.`,
+          buildPostMutationNotice(
+            `Resultado final de ${type} aprovado. O snapshot foi recarregado a partir do backend.`,
+            loadResult,
+          ),
         )
-        await loadData('refresh')
         return true
       } catch (requestError: unknown) {
         setApproveVoteError(getApproveVoteErrorMessage(requestError))
@@ -309,8 +383,16 @@ export function useMatchVoteData(
     try {
       const nextVoteStatus = await matchesApi.openMatchVoting(matchId)
       setVoteStatus(nextVoteStatus)
-      setOpenVotingNotice('Votacao aberta com sucesso para MVP e Bola Murcha.')
-      await loadData('refresh')
+      voteStatusRef.current = nextVoteStatus
+      const loadResult = await loadData('refresh')
+      setError(null)
+      setStatus('success')
+      setOpenVotingNotice(
+        buildPostMutationNotice(
+          'Votacao aberta com sucesso para MVP e Bola Murcha.',
+          loadResult,
+        ),
+      )
       return true
     } catch (requestError: unknown) {
       setOpenVotingError(getOpenVotingErrorMessage(requestError))
@@ -350,6 +432,7 @@ export function useMatchVoteData(
 
   useEffect(() => {
     setError(null)
+    setManagementCapabilityIssue(null)
     setVoteError(null)
     setVoteNotice(null)
     setCloseVoteError(null)
@@ -375,6 +458,7 @@ export function useMatchVoteData(
     () => ({
       voteStatus,
       canManageVoting,
+      managementCapabilityIssue,
       hasVotingStarted,
       status,
       error,
@@ -417,6 +501,7 @@ export function useMatchVoteData(
       approveVoteNotice,
       castVote,
       canManageVoting,
+      managementCapabilityIssue,
       clearApproveVoteFeedback,
       clearError,
       clearCloseVoteFeedback,

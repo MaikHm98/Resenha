@@ -62,21 +62,19 @@ export function ClassificationPage() {
           <span>/</span>
           <Link to={buildGroupDetailPath(currentGroupId)}>{currentGroupId}</Link>
           <span>/</span>
-          <span>classification</span>
+          <span>Classificacao</span>
         </div>
 
         <div className="classification-page__hero-content">
           <div>
             <p className="classification-page__route">
-              Rota ativa: {buildGroupClassificationPath(currentGroupId)}
+              Grupo em campo: {buildGroupClassificationPath(currentGroupId)}
             </p>
             <h1 className="app-title" id="classification-page-title">
               Classificacao do grupo
             </h1>
             <p className="app-subtitle">
-              Esta pagina-base prepara o modulo `classification` para receber
-              leitura da temporada, ranking historico e desempenho individual,
-              sempre com o backend como fonte de verdade.
+              Veja a temporada, o historico do grupo e o seu desempenho sem sair da resenha.
             </p>
           </div>
 
@@ -85,7 +83,7 @@ export function ClassificationPage() {
               className="classification-page__link classification-page__link--primary"
               to={buildGroupDetailPath(currentGroupId)}
             >
-              Voltar para o grupo
+              Voltar ao grupo
             </Link>
             <Link
               className="classification-page__link"
@@ -106,7 +104,7 @@ export function ClassificationPage() {
               type="button"
               variant="secondary"
             >
-              Atualizar classificacao
+              Atualizar tabela
             </Button>
           </div>
         </div>
@@ -133,12 +131,10 @@ export function ClassificationPage() {
           <header className="classification-page__panel-header">
             <div>
               <h2 id="classification-page-foundation-title">
-                Base do modulo `classification`
+                Panorama da classificacao
               </h2>
               <p>
-                O fluxo continua ancorado no grupo e sera alimentado pelos
-                endpoints reais de classificacao, sem inventar visao global no
-                frontend.
+                A classificacao do grupo fica reunida aqui para facilitar a leitura da temporada, do historico e do seu momento no campeonato.
               </p>
             </div>
             <span className="classification-page__badge">Grupo</span>
@@ -148,10 +144,10 @@ export function ClassificationPage() {
             <article className="classification-page__card">
               <p className="classification-page__label">Temporada</p>
               <strong className="classification-page__name">
-                Ranking da temporada ativa
+                Tabela da temporada ativa
               </strong>
               <p className="classification-page__meta">
-                Pronto para receber `GET /api/groups/{'{'}groupId{'}'}/classification`.
+                Pontos, vitorias, derrotas e presencas do grupo aparecem aqui.
               </p>
             </article>
 
@@ -161,28 +157,27 @@ export function ClassificationPage() {
                 Ranking geral do grupo
               </strong>
               <p className="classification-page__meta">
-                Pronto para receber `GET /api/groups/{'{'}groupId{'}'}/classification/all-time`.
+                O historico do grupo fica separado para mostrar a caminhada completa da resenha.
               </p>
             </article>
 
             <article className="classification-page__card">
-              <p className="classification-page__label">Desempenho</p>
+              <p className="classification-page__label">Seu jogo</p>
               <strong className="classification-page__name">
-                Estatisticas do usuario logado
+                Seu desempenho na temporada
               </strong>
               <p className="classification-page__meta">
-                Pronto para receber `GET /api/groups/{'{'}groupId{'}'}/classification/me`.
+                Veja a sua posicao, pontos e presencas no contexto do grupo.
               </p>
             </article>
 
             <article className="classification-page__card">
-              <p className="classification-page__label">Fonte de verdade</p>
+              <p className="classification-page__label">Leitura fiel</p>
               <strong className="classification-page__name">
-                Backend define posicao e ordem
+                Posicoes vindas da API
               </strong>
               <p className="classification-page__meta">
-                O frontend nao recalcula pontos, nao reordena ranking e nao
-                reconstrui posicao no cliente.
+                A web apenas reflete a classificacao devolvida pela API do grupo.
               </p>
             </article>
           </div>
@@ -196,8 +191,7 @@ export function ClassificationPage() {
             <div>
               <h2 id="classification-page-season-title">Temporada</h2>
               <p>
-                A leitura da temporada vai priorizar pontos, vitorias,
-                derrotas e presencas, com o ranking vindo pronto da API.
+                A tabela da temporada atual fica pronta para consulta assim que a classificacao do grupo estiver disponivel.
               </p>
             </div>
             <span className="classification-page__badge classification-page__badge--outline">
@@ -237,9 +231,7 @@ export function ClassificationPage() {
             <div className="classification-page__placeholder">
               <h3>Temporada indisponivel</h3>
               <p>
-                O backend informou que este grupo ainda nao possui temporada
-                ativa. A estrutura da pagina permanece pronta para historico e
-                desempenho individual nos proximos commits.
+                Este grupo ainda nao tem temporada ativa. Enquanto isso, o historico continua disponivel logo abaixo.
               </p>
             </div>
           ) : null}
@@ -248,9 +240,7 @@ export function ClassificationPage() {
             <div className="classification-page__placeholder">
               <h3>Temporada temporariamente indisponivel</h3>
               <p>
-                A leitura da temporada nao ficou disponivel agora, mas a pagina
-                continua utilizavel e o ranking historico do grupo permanece
-                acessivel.
+                A leitura da temporada nao ficou disponivel agora, mas o ranking historico do grupo continua acessivel.
               </p>
             </div>
           ) : null}
@@ -271,8 +261,7 @@ export function ClassificationPage() {
             <div>
               <h2 id="classification-page-all-time-title">Ranking historico</h2>
               <p>
-                O ranking geral do grupo sera exibido separadamente da
-                temporada ativa, sem misturar regras ou recalculos locais.
+                O historico do grupo aparece separado da temporada atual para manter a leitura clara.
               </p>
             </div>
             <span className="classification-page__badge classification-page__badge--outline">
@@ -308,9 +297,7 @@ export function ClassificationPage() {
                 Desempenho individual
               </h2>
               <p>
-                A leitura individual sera separada do ranking coletivo para
-                deixar claros pontos, vitorias, derrotas e presencas do usuario
-                logado.
+                Seu painel individual acompanha a mesma classificacao do grupo para destacar seu momento na temporada.
               </p>
             </div>
             <span className="classification-page__badge classification-page__badge--outline">
@@ -336,8 +323,7 @@ export function ClassificationPage() {
               aria-label="Desempenho individual indisponivel"
             >
               <Alert title="Desempenho individual indisponivel" variant="warning">
-                Carregue a classificacao da temporada com sucesso para consultar
-                o painel individual deste grupo.
+                Assim que a tabela da temporada estiver disponivel, o seu painel individual volta a aparecer aqui.
               </Alert>
             </section>
           ) : null}
@@ -348,8 +334,7 @@ export function ClassificationPage() {
               aria-label="Desempenho individual temporariamente indisponivel"
             >
               <Alert title="Desempenho individual temporariamente indisponivel" variant="warning">
-                O painel individual depende da leitura da temporada atual. O
-                ranking historico do grupo continua disponivel nesta pagina.
+                O painel individual depende da temporada atual. O ranking historico do grupo continua disponivel nesta pagina.
               </Alert>
             </section>
           ) : null}

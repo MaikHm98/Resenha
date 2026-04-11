@@ -30,6 +30,7 @@ export function MatchVotePage() {
   const {
     voteStatus,
     canManageVoting,
+    managementCapabilityIssue,
     hasVotingStarted,
     status,
     error,
@@ -70,7 +71,7 @@ export function MatchVotePage() {
     <section className="match-vote-page" aria-labelledby="match-vote-page-title">
       <header className="match-vote-page__hero">
         <div className="match-vote-page__breadcrumbs">
-          <Link to={ROUTE_PATHS.MATCHES}>Partidas</Link>
+          <Link to={ROUTE_PATHS.GROUPS}>Grupos</Link>
           <span>/</span>
           <Link to={buildMatchDetailPath(currentMatchId)}>{currentMatchId}</Link>
           <span>/</span>
@@ -99,8 +100,8 @@ export function MatchVotePage() {
             >
               Voltar para a partida
             </Link>
-            <Link className="match-vote-page__link" to={ROUTE_PATHS.MATCHES}>
-              Voltar para o modulo
+            <Link className="match-vote-page__link" to={ROUTE_PATHS.GROUPS}>
+              Voltar para grupos
             </Link>
             <Button
               disabled={parsedMatchId === null || isInitialLoading}
@@ -125,6 +126,14 @@ export function MatchVotePage() {
               Fechar aviso
             </Button>
           </div>
+        </div>
+      ) : null}
+
+      {managementCapabilityIssue && !showFullError ? (
+        <div className="match-vote-page__alert-stack">
+          <Alert title="Permissao admin temporariamente indisponivel" variant="warning">
+            {managementCapabilityIssue}
+          </Alert>
         </div>
       ) : null}
 
@@ -218,6 +227,7 @@ export function MatchVotePage() {
             </header>
 
             <OpenVotingSection
+              adminCapabilityIssue={managementCapabilityIssue}
               canManageVoting={canManageVoting}
               hasVotingStarted={hasVotingStarted}
               isOpeningVoting={isOpeningVoting}
@@ -279,6 +289,7 @@ export function MatchVotePage() {
 
             <CloseVoteSection
               activeCloseVoteType={activeCloseVoteType}
+              adminCapabilityIssue={managementCapabilityIssue}
               bolaMurchaRound={voteStatus.bolaMurcha}
               canManageVoting={canManageVoting}
               closeVoteError={closeVoteError}
@@ -310,6 +321,7 @@ export function MatchVotePage() {
 
             <ApproveVoteSection
               activeApproveVoteType={activeApproveVoteType}
+              adminCapabilityIssue={managementCapabilityIssue}
               approveVoteError={approveVoteError}
               approveVoteNotice={approveVoteNotice}
               bolaMurchaRound={voteStatus.bolaMurcha}

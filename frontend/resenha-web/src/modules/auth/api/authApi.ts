@@ -1,12 +1,15 @@
 import { apiClient } from '../../../shared/lib/api'
 import type {
   AuthApiResponse,
+  ChangePasswordRequest,
+  ClubOption,
   ForgotPasswordRequest,
   ForgotPasswordResponse,
   LoginRequest,
   RegisterRequest,
   ResetPasswordRequest,
   ResetPasswordResponse,
+  UpdateProfileRequest,
   ValidateResetTokenResponse,
 } from '../types/authContracts'
 
@@ -60,10 +63,38 @@ async function resetPassword(
   return response.data
 }
 
+async function getClubOptions(): Promise<ClubOption[]> {
+  const response = await apiClient.get<ClubOption[]>(`${AUTH_BASE_PATH}/clubs`)
+  return response.data
+}
+
+async function updateProfile(
+  payload: UpdateProfileRequest,
+): Promise<AuthApiResponse> {
+  const response = await apiClient.patch<AuthApiResponse>(
+    `${AUTH_BASE_PATH}/profile`,
+    payload,
+  )
+  return response.data
+}
+
+async function changePassword(
+  payload: ChangePasswordRequest,
+): Promise<AuthApiResponse> {
+  const response = await apiClient.patch<AuthApiResponse>(
+    `${AUTH_BASE_PATH}/change-password`,
+    payload,
+  )
+  return response.data
+}
+
 export const authApi = {
   login,
   register,
   forgotPassword,
   validateResetToken,
   resetPassword,
+  getClubOptions,
+  updateProfile,
+  changePassword,
 }

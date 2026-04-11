@@ -1,11 +1,74 @@
 .auth-card {
-  width: min(100%, 28rem);
+  position: relative;
+  width: min(100%, 34rem);
   margin-inline: auto;
   padding: var(--space-6);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   border: 1px solid var(--color-border-default);
-  background-color: var(--color-bg-surface);
-  box-shadow: var(--shadow-sm);
+  background:
+    linear-gradient(145deg, rgba(15, 38, 24, 0.98), rgba(12, 31, 20, 0.96));
+  box-shadow: var(--shadow-brand);
+  overflow: hidden;
+}
+
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: -5rem;
+  right: -4rem;
+  width: 11rem;
+  height: 11rem;
+  border-radius: 999px;
+  background: rgba(124, 255, 79, 0.12);
+  filter: blur(16px);
+  pointer-events: none;
+}
+
+.auth-card__header,
+.auth-card__brand {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.auth-card__match-tag {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 var(--space-3);
+  border-radius: 999px;
+  border: 1px solid rgba(124, 255, 79, 0.36);
+  background-color: rgba(124, 255, 79, 0.1);
+  color: var(--color-brand-primary);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.auth-card__brand-name {
+  margin: 0;
+  font-family: var(--font-family-brand);
+  font-size: clamp(2rem, 5vw, 2.7rem);
+  line-height: 0.96;
+  letter-spacing: 0.05em;
+  color: var(--color-text-primary);
+}
+
+.auth-card__title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.auth-card__copy {
+  max-width: 28rem;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.94rem;
+  line-height: 1.65;
 }
 
 .auth-form {
@@ -24,9 +87,20 @@
 
 .auth-footer-links a {
   font-size: 0.875rem;
+  font-weight: 700;
   color: var(--color-brand-primary);
 }
 
 .auth-footer-links a:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .auth-card {
+    padding: var(--space-5);
+  }
+
+  .auth-footer-links {
+    display: grid;
+  }
 }

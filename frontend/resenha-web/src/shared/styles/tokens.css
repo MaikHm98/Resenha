@@ -1,19 +1,29 @@
 :root {
-  --font-family-base: 'Sora', 'Trebuchet MS', 'Segoe UI', sans-serif;
-  --font-family-heading: 'Sora', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --font-family-base: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --font-family-heading: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --font-family-brand: 'Bubblegum Sans', 'Marker Felt', 'Trebuchet MS', cursive;
   --font-family-mono: 'Fira Code', Consolas, monospace;
 
-  --color-bg-page: #f3f6f2;
-  --color-bg-surface: #ffffff;
-  --color-text-primary: #14221a;
-  --color-text-secondary: #44574a;
-  --color-border-default: #d7e0d8;
-  --color-brand-primary: #17683a;
-  --color-brand-primary-contrast: #ffffff;
-  --color-feedback-danger: #b42318;
-  --color-feedback-warning: #b54708;
-  --color-feedback-success: #067647;
-  --color-feedback-info: #175cd3;
+  --color-bg-page: #040b07;
+  --color-bg-page-alt: #071710;
+  --color-bg-surface: #0f2618;
+  --color-bg-surface-alt: #173425;
+  --color-bg-surface-soft: #132b1f;
+  --color-bg-surface-muted: rgba(19, 43, 31, 0.78);
+  --color-bg-overlay: rgba(4, 11, 7, 0.82);
+  --color-text-primary: #f3fff4;
+  --color-text-secondary: #8fa890;
+  --color-border-default: #2e5c44;
+  --color-border-strong: #3d7a58;
+  --color-brand-primary: #7cff4f;
+  --color-brand-primary-strong: #b6ff00;
+  --color-brand-primary-contrast: #041022;
+  --color-text-on-brand: #041022;
+  --color-feedback-danger: #ff6b6b;
+  --color-feedback-error: #ff6b6b;
+  --color-feedback-warning: #d7ff5a;
+  --color-feedback-success: #35f57b;
+  --color-feedback-info: #7cff4f;
 
   --space-0: 0;
   --space-1: 0.25rem;
@@ -26,12 +36,15 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
 
-  --shadow-sm: 0 1px 2px rgba(10, 13, 18, 0.08);
-  --shadow-md: 0 8px 24px rgba(10, 13, 18, 0.08);
+  --shadow-sm: 0 12px 28px rgba(0, 0, 0, 0.22);
+  --shadow-md: 0 20px 48px rgba(0, 0, 0, 0.34);
+  --shadow-brand: 0 0 0 1px rgba(124, 255, 79, 0.1),
+    0 18px 48px rgba(0, 0, 0, 0.32);
 
   --container-max-width: 1200px;
 }

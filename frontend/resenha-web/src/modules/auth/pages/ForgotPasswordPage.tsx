@@ -48,13 +48,18 @@ export function ForgotPasswordPage() {
 
   return (
     <section className="auth-card" aria-labelledby="forgot-password-title">
-      <header>
-        <h1 className="app-title" id="forgot-password-title">
-          Recuperar senha
-        </h1>
-        <p className="app-subtitle">
-          Informe seu email para receber instrucoes de redefinicao.
-        </p>
+      <header className="auth-card__header">
+        <span className="auth-card__match-tag">Recuperar senha</span>
+
+        <div className="auth-card__brand">
+          <p className="auth-card__brand-name">Resenha App</p>
+          <h1 className="auth-card__title" id="forgot-password-title">
+            Enviar instrucoes
+          </h1>
+          <p className="auth-card__copy">
+            Informe seu email para receber o caminho de volta para a resenha.
+          </p>
+        </div>
       </header>
 
       <form className="auth-form" onSubmit={handleSubmit}>

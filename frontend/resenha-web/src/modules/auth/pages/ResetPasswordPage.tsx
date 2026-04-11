@@ -72,7 +72,7 @@ export function ResetPasswordPage() {
     setSucesso(null)
 
     const tokenValue = token.trim()
-    const passwordValue = novaSenha.trim()
+    const passwordValue = novaSenha
 
     if (!tokenValue) {
       setErro('Informe o token de recuperacao.')
@@ -118,13 +118,19 @@ export function ResetPasswordPage() {
 
   return (
     <section className="auth-card" aria-labelledby="reset-password-title">
-      <header>
-        <h1 className="app-title" id="reset-password-title">
-          Redefinir senha
-        </h1>
-        <p className="app-subtitle">
-          Valide o token recebido e defina sua nova senha.
-        </p>
+      <header className="auth-card__header">
+        <span className="auth-card__match-tag">Redefinir senha</span>
+
+        <div className="auth-card__brand">
+          <p className="auth-card__brand-name">Resenha App</p>
+          <h1 className="auth-card__title" id="reset-password-title">
+            Salvar nova senha
+          </h1>
+          <p className="auth-card__copy">
+            Valide o token recebido por email e volte para a resenha com uma
+            senha nova.
+          </p>
+        </div>
       </header>
 
       <form className="auth-form" onSubmit={handleSubmit}>
@@ -190,7 +196,7 @@ export function ResetPasswordPage() {
           loading={isSubmitting}
           type="submit"
         >
-          Redefinir senha
+          Salvar nova senha
         </Button>
       </form>
 

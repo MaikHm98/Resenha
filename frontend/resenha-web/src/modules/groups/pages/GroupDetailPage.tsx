@@ -4,6 +4,7 @@ import {
   buildGroupCaptainPath,
   buildGroupClassificationPath,
   buildGroupDetailPath,
+  buildGroupMatchHistoryPath,
   buildGroupMatchesPath,
 } from '../../../app/router/paths'
 import { Alert, Button, Spinner } from '../../../shared/components'
@@ -105,6 +106,12 @@ export function GroupDetailPage() {
               to={buildGroupClassificationPath(currentGroupId)}
             >
               Ver classificacao do grupo
+            </Link>
+            <Link
+              className="group-detail-page__back-link"
+              to={buildGroupMatchHistoryPath(currentGroupId)}
+            >
+              Ver historico de partidas
             </Link>
             <Link
               className="group-detail-page__back-link"

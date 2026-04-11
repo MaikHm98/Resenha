@@ -49,8 +49,7 @@ export function AllTimeClassificationPanel({
         <div className="classification-table__empty">
           <h3>Ranking historico sem classificados</h3>
           <p>
-            O backend nao devolveu jogadores classificados no ranking
-            historico deste grupo no momento.
+            Ainda nao ha jogadores classificados no historico deste grupo neste momento.
           </p>
         </div>
       ) : (

@@ -15,6 +15,10 @@ type MatchChallengeGoalkeeperActionKind =
 
 export type MatchChallengeDataStatus = 'idle' | 'loading' | 'success' | 'error'
 
+type MatchChallengeLoadResult = {
+  ok: boolean
+}
+
 export type UseMatchChallengeDataResult = {
   challenge: MatchChallengeStatus | null
   status: MatchChallengeDataStatus
@@ -106,6 +110,17 @@ function getGoalkeeperActionNotice(
   return 'Numero dos goleiros informado com sucesso.'
 }
 
+function buildPostMutationNotice(
+  successMessage: string,
+  loadResult: MatchChallengeLoadResult,
+): string {
+  if (!loadResult.ok) {
+    return `${successMessage} O snapshot principal foi atualizado, mas nao foi possivel recarregar o desafio agora.`
+  }
+
+  return successMessage
+}
+
 export function useMatchChallengeData(
   matchId: number | null,
 ): UseMatchChallengeDataResult {
@@ -136,14 +151,14 @@ export function useMatchChallengeData(
   const challengeRef = useRef<MatchChallengeStatus | null>(null)
 
   const loadData = useCallback(
-    async (mode: LoadMode) => {
+    async (mode: LoadMode): Promise<MatchChallengeLoadResult> => {
       if (matchId === null) {
         setChallenge(null)
         setError('Partida invalida para o modulo de desafio.')
         setStatus('error')
         setIsLoading(false)
         setIsRefreshing(false)
-        return
+        return { ok: false }
       }
 
       if (mode === 'initial') {
@@ -160,16 +175,20 @@ export function useMatchChallengeData(
         const nextChallenge = await matchesApi.getMatchChallengeStatus(matchId)
         setChallenge(nextChallenge)
         setStatus('success')
+        return { ok: true }
       } catch (requestError: unknown) {
         const nextError = getLoadErrorMessage(requestError)
 
         if (mode === 'refresh' && challengeRef.current !== null) {
           setError(nextError)
+          setStatus('success')
         } else {
           setChallenge(null)
           setError(nextError)
           setStatus('error')
         }
+
+        return { ok: false }
       } finally {
         if (mode === 'initial') {
           setIsLoading(false)
@@ -202,8 +221,13 @@ export function useMatchChallengeData(
       try {
         const nextChallenge = await request()
         setChallenge(nextChallenge)
-        setLineDrawNotice(getLineDrawActionNotice(action))
-        await loadData('refresh')
+        challengeRef.current = nextChallenge
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setLineDrawNotice(
+          buildPostMutationNotice(getLineDrawActionNotice(action), loadResult),
+        )
         return true
       } catch (requestError: unknown) {
         setLineDrawError(getLineDrawActionErrorMessage(action, requestError))
@@ -268,8 +292,16 @@ export function useMatchChallengeData(
       try {
         const nextChallenge = await request()
         setChallenge(nextChallenge)
-        setGoalkeeperNotice(getGoalkeeperActionNotice(action))
-        await loadData('refresh')
+        challengeRef.current = nextChallenge
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setGoalkeeperNotice(
+          buildPostMutationNotice(
+            getGoalkeeperActionNotice(action),
+            loadResult,
+          ),
+        )
         return true
       } catch (requestError: unknown) {
         setGoalkeeperError(
@@ -341,8 +373,16 @@ export function useMatchChallengeData(
         })
 
         setChallenge(nextChallenge)
-        setLinePickNotice(`Pick registrado para ${player.nome}.`)
-        await loadData('refresh')
+        challengeRef.current = nextChallenge
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setLinePickNotice(
+          buildPostMutationNotice(
+            `Pick registrado para ${player.nome}.`,
+            loadResult,
+          ),
+        )
         return true
       } catch (requestError: unknown) {
         setLinePickError(
@@ -382,8 +422,16 @@ export function useMatchChallengeData(
         })
 
         setChallenge(nextChallenge)
-        setGoalkeeperNotice(`Goleiro ${player.nome} escolhido com sucesso.`)
-        await loadData('refresh')
+        challengeRef.current = nextChallenge
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setGoalkeeperNotice(
+          buildPostMutationNotice(
+            `Goleiro ${player.nome} escolhido com sucesso.`,
+            loadResult,
+          ),
+        )
         return true
       } catch (requestError: unknown) {
         setGoalkeeperError(

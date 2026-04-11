@@ -6,6 +6,7 @@ import type {
 
 type MatchActionsPanelProps = {
   userAttendanceStatus: MatchUserAttendanceStatus | null
+  availabilityWarning: string | null
   actionError: string | null
   actionNotice: string | null
   activeAction: MatchPlayerActionKind | null
@@ -55,6 +56,7 @@ function getAttendanceStatusClassName(
 
 export function MatchActionsPanel({
   userAttendanceStatus,
+  availabilityWarning,
   actionError,
   actionNotice,
   activeAction,
@@ -123,12 +125,10 @@ export function MatchActionsPanel({
       ) : null}
 
       {!isStateReady ? (
-        <div className="match-actions-panel__notice">
-          <p>
-            Nao foi possivel determinar seu estado atual nesta partida. Atualize
-            o detalhe para tentar novamente.
-          </p>
-        </div>
+        <Alert title="Acoes do jogador indisponiveis agora" variant="warning">
+          {availabilityWarning ??
+            'Nao foi possivel determinar seu estado atual nesta partida. Atualize o detalhe para tentar novamente.'}
+        </Alert>
       ) : (
         <div className="match-actions-panel__grid">
           <section className="match-actions-panel__card">

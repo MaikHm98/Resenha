@@ -145,10 +145,14 @@ export function HomePage() {
     pendingInvites,
     status,
     error,
+    groupsError,
+    pendingInvitesError,
+    notice,
     isLoading,
     isRefreshing,
     refresh,
     clearError,
+    clearNotice,
     acceptInvite,
     rejectInvite,
     isInviteActionLoading,
@@ -210,11 +214,12 @@ export function HomePage() {
     <section className="home-page" aria-labelledby="home-page-title">
       <header className="home-page__header">
         <div>
+          <p className="home-page__eyebrow">Resenha App</p>
           <h1 className="app-title" id="home-page-title">
-            Home
+            Sua resenha
           </h1>
           <p className="app-subtitle">
-            Veja seus grupos e os convites pendentes em um unico lugar.
+            Acompanhe grupos, convites e os proximos passos do seu jogo em um so lugar.
           </p>
         </div>
 
@@ -226,20 +231,20 @@ export function HomePage() {
             type="button"
             variant="secondary"
           >
-            Atualizar
+            Atualizar painel
           </Button>
         </div>
       </header>
 
       <nav className="home-page__quick-links" aria-label="Atalhos principais">
         <Button onClick={() => navigate(ROUTE_PATHS.GROUPS)} type="button" variant="secondary">
-          Ir para grupos
+          Meus grupos
         </Button>
-        <Button onClick={() => navigate(ROUTE_PATHS.MATCHES)} type="button" variant="secondary">
-          Ir para partidas
+        <Button onClick={() => navigate(ROUTE_PATHS.GROUPS)} type="button" variant="secondary">
+          Partidas por grupo
         </Button>
         <Button onClick={() => navigate(ROUTE_PATHS.PROFILE)} type="button" variant="secondary">
-          Ir para perfil
+          Meu perfil
         </Button>
       </nav>
 
@@ -262,6 +267,17 @@ export function HomePage() {
 
       {!isInitialLoading && !showFullError ? (
         <section className="home-content" aria-label="Conteudo da Home">
+          {notice ? (
+            <div className="home-error-actions">
+              <Alert title="Atualizacao concluida" variant="success">
+                {notice}
+              </Alert>
+              <Button onClick={clearNotice} type="button" variant="secondary">
+                Fechar aviso
+              </Button>
+            </div>
+          ) : null}
+
           {error ? (
             <Alert title="Falha na ultima atualizacao" variant="warning">
               {error}
@@ -274,16 +290,36 @@ export function HomePage() {
               <span>{groups.length}</span>
             </header>
 
+            {groupsError ? (
+              <Alert title="Nao foi possivel atualizar seus grupos" variant="warning">
+                {groupsError}
+              </Alert>
+            ) : null}
+
             {hasGroups ? (
               <ul className="home-list">
                 {groups.map((group) => (
                   <HomeGroupCard group={group} key={group.idGrupo} />
                 ))}
               </ul>
+            ) : groupsError ? (
+              <EmptyState
+                title="Seus grupos estao indisponiveis agora"
+                description="Tente atualizar novamente para recarregar a listagem de grupos."
+                action={
+                  <Button
+                    onClick={() => void refresh()}
+                    type="button"
+                    variant="secondary"
+                  >
+                    Atualizar Home
+                  </Button>
+                }
+              />
             ) : (
               <EmptyState
                 title="Voce ainda nao participa de grupos"
-                description="Quando entrar em um grupo, ele aparecera aqui."
+                description="Quando entrar em um grupo, ele aparece aqui para organizar a sua resenha."
                 action={
                   <Button
                     onClick={() => navigate(ROUTE_PATHS.GROUPS)}
@@ -303,6 +339,15 @@ export function HomePage() {
               <span>{pendingInvites.length}</span>
             </header>
 
+            {pendingInvitesError ? (
+              <Alert
+                title="Nao foi possivel atualizar seus convites"
+                variant="warning"
+              >
+                {pendingInvitesError}
+              </Alert>
+            ) : null}
+
             {hasPendingInvites ? (
               <ul className="home-list">
                 {pendingInvites.map((invite) => (
@@ -316,6 +361,11 @@ export function HomePage() {
                   />
                 ))}
               </ul>
+            ) : pendingInvitesError ? (
+              <EmptyState
+                title="Convites indisponiveis agora"
+                description="A Home continua utilizavel, mas a lista de convites nao pode ser carregada neste momento."
+              />
             ) : (
               <EmptyState
                 title="Nenhum convite pendente"
@@ -328,7 +378,7 @@ export function HomePage() {
             <section className="home-state-inline">
               <EmptyState
                 title="Sua Home esta vazia por enquanto"
-                description="Use os atalhos acima para explorar os proximos modulos."
+                description="Use os atalhos acima para entrar em um grupo, acompanhar partidas e ajustar seu perfil."
               />
             </section>
           ) : null}

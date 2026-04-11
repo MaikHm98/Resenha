@@ -1,18 +1,51 @@
-import { Link, Outlet } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 import { ROUTE_PATHS } from '../paths'
+
+const publicLinks = [
+  { to: ROUTE_PATHS.LOGIN, label: 'Entrar' },
+  { to: ROUTE_PATHS.REGISTER, label: 'Criar conta' },
+  { to: ROUTE_PATHS.FORGOT_PASSWORD, label: 'Recuperar senha' },
+  { to: ROUTE_PATHS.RESET_PASSWORD, label: 'Redefinir senha' },
+]
 
 export function PublicLayout() {
   return (
     <div className="app-shell">
       <main className="app-container">
-        <header className="route-header">
-          <span className="route-badge">Area publica</span>
-          <nav className="route-nav" aria-label="Rotas publicas">
-            <Link to={ROUTE_PATHS.LOGIN}>Login</Link>
-            <Link to={ROUTE_PATHS.REGISTER}>Register</Link>
-            <Link to={ROUTE_PATHS.FORGOT_PASSWORD}>Forgot Password</Link>
-            <Link to={ROUTE_PATHS.RESET_PASSWORD}>Reset Password</Link>
-          </nav>
+        <header className="route-header route-header--public">
+          <div className="route-header__brand">
+            <div className="route-header__brand-copy">
+              <div className="route-header__badge-row">
+                <span className="route-badge">Resenha App</span>
+                <span className="route-badge route-badge--muted">Acesso web</span>
+              </div>
+
+              <h1 className="route-header__title">Entre na resenha</h1>
+              <p className="route-header__subtitle">
+                Organize o rachao no navegador com a mesma linguagem de campo
+                do app e sem perder o clima da arquibancada.
+              </p>
+            </div>
+
+            <nav className="route-nav" aria-label="Rotas publicas">
+              {publicLinks.map((link) => (
+                <NavLink
+                  className={({ isActive }) =>
+                    [
+                      'route-nav__link',
+                      isActive ? 'route-nav__link--active' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')
+                  }
+                  key={link.to}
+                  to={link.to}
+                >
+                  {link.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
         </header>
         <Outlet />
       </main>

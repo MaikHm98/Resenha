@@ -56,7 +56,7 @@ export function LoginPage() {
     setErro(null)
 
     const normalizedEmail = email.trim().toLowerCase()
-    const passwordValue = senha.trim()
+    const passwordValue = senha
 
     if (!normalizedEmail || !passwordValue) {
       setErro('Informe email e senha para entrar.')
@@ -84,13 +84,19 @@ export function LoginPage() {
 
   return (
     <section className="auth-card" aria-labelledby="login-title">
-      <header>
-        <h1 className="app-title" id="login-title">
-          Entrar
-        </h1>
-        <p className="app-subtitle">
-          Acesse sua conta para continuar no Resenha Web.
-        </p>
+      <header className="auth-card__header">
+        <span className="auth-card__match-tag">Acesso ao app</span>
+
+        <div className="auth-card__brand">
+          <p className="auth-card__brand-name">Resenha App</p>
+          <h1 className="auth-card__title" id="login-title">
+            Entrar em Campo
+          </h1>
+          <p className="auth-card__copy">
+            Use seu email e sua senha para voltar para a resenha sem perder o
+            ritmo do jogo.
+          </p>
+        </div>
       </header>
 
       <form className="auth-form" onSubmit={handleSubmit}>
@@ -120,7 +126,7 @@ export function LoginPage() {
         ) : null}
 
         <Button fullWidth loading={isSubmitting} type="submit">
-          Entrar
+          Entrar em Campo
         </Button>
       </form>
 

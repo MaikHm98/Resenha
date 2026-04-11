@@ -11,6 +11,12 @@ export type AuthApiResponse = {
   peDominante: string | null
 }
 
+export type ClubOption = {
+  codigo: string
+  nome: string
+  escudoUrl: string
+}
+
 export type LoginRequest = {
   email: string
   senha: string
@@ -24,6 +30,14 @@ export type RegisterRequest = {
   timeCoracaoCodigo?: string | null
   posicaoPrincipal: string
   peDominante: string
+}
+
+export type UpdateProfileRequest = {
+  nome?: string
+  goleiro?: boolean
+  timeCoracaoCodigo?: string | null
+  posicaoPrincipal?: string | null
+  peDominante?: string | null
 }
 
 export type ForgotPasswordRequest = {
@@ -46,4 +60,9 @@ export type ResetPasswordRequest = {
 
 export type ResetPasswordResponse = {
   mensagem: string
+}
+
+export type ChangePasswordRequest = {
+  senhaAtual: string
+  novaSenha: string
 }

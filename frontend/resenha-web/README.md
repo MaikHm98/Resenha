@@ -78,9 +78,13 @@ npm install
 Crie um arquivo `.env` com base em `.env.example`:
 
 ```bash
-VITE_API_BASE_URL=http://localhost:5000
+VITE_API_BASE_URL=http://localhost:5276
 VITE_API_TIMEOUT_MS=10000
 ```
+
+Se o `.env` estiver ausente durante `npm run dev`, o `resenha-web` passa a usar chamadas relativas para `/api` e o proxy do Vite encaminha automaticamente para `http://localhost:5276`.
+
+Em builds abertas localmente sem `.env`, o cliente usa `http://localhost:5276` quando estiver em `localhost` ou `127.0.0.1`. Em ambiente publicado, mantenha `VITE_API_BASE_URL` definido ou sirva o web e a API no mesmo origin.
 
 ### Execucao
 
@@ -156,6 +160,13 @@ Checklist detalhado: [docs/fase-0-checklist.md](./docs/fase-0-checklist.md)
   - `accessToken`
   - `userId`
   - `userName`
+  - `userEmail`
+  - `goleiro`
+  - `timeCoracaoCodigo`
+  - `timeCoracaoNome`
+  - `timeCoracaoEscudoUrl`
+  - `posicaoPrincipal`
+  - `peDominante`
 
 ### Comportamento atual de rotas publicas/privadas
 
@@ -911,9 +922,91 @@ Checklist detalhado: [docs/fase-7-checklist.md](./docs/fase-7-checklist.md)
 
 Checklist detalhado: [docs/fase-8-checklist.md](./docs/fase-8-checklist.md)
 
-## 14) O que ainda nao existe (proximas fases)
+## 14) O que a Fase 9 ja entregou (historico de partidas)
 
-- evolucao dos modulos de dominio ainda pendentes no web (`matches` ja possui fluxo funcional basico, desafio em andamento e votacao; `captain` ja possui fluxo funcional basico; `classification` ja possui leitura funcional; `profile` ainda sem fluxo funcional completo)
+### Rotas ativas do fluxo historico
+
+- rotas privadas ativas:
+  - `/groups/:groupId/matches/history`
+  - `/matches/:matchId/history`
+- ownership do fluxo dentro de `src/modules/matches`
+- pontos de entrada a partir do detalhe do grupo e da pagina operacional de partidas do grupo
+
+### O que o fluxo historico ja faz
+
+- listagem historica de partidas por grupo
+- filtros locais basicos na listagem historica
+- detalhe historico read-only da partida
+- leitura clara de placar, vencedor, times, capitaes, estatisticas, premiacoes e participacao
+- separacao explicita entre historico e detalhe operacional da Fase 4
+
+### Endpoints consumidos na fase 9
+
+- `GET /api/groups/{groupId}/matches/history`
+- `GET /api/matches/{id}/details`
+
+### Como o historico funciona
+
+- a listagem usa apenas `GET /api/groups/{groupId}/matches/history`
+- os filtros sao locais sobre a lista carregada:
+  - `status`
+  - busca textual simples
+- o detalhe usa apenas `GET /api/matches/{id}/details`
+- o frontend continua sem recalcular:
+  - placar
+  - vencedor
+  - estatisticas
+  - premiacoes
+
+Checklist detalhado: [docs/fase-9-checklist.md](./docs/fase-9-checklist.md)
+
+## 15) O que a Fase 10 ja entregou (perfil e conta)
+
+### Rotas ativas do fluxo
+
+- rotas privadas ativas:
+  - `/profile`
+  - `/profile/change-password`
+- ownership do fluxo em:
+  - `src/modules/app/pages/ProfilePage.tsx`
+  - `src/modules/auth/pages/ChangePasswordPage.tsx`
+
+### O que o fluxo de perfil e conta ja faz
+
+- leitura funcional do snapshot autenticado em `/profile`
+- edicao funcional de perfil com os campos suportados pelo backend:
+  - `nome`
+  - `goleiro`
+  - `timeCoracaoCodigo`
+  - `posicaoPrincipal`
+  - `peDominante`
+- email visivel apenas em leitura
+- carga de clubes via endpoint ja existente
+- troca de senha em rota dedicada de seguranca
+- persistencia imediata do novo token apos `changePassword`
+- sessao mantida valida apos troca de senha bem-sucedida
+
+### Endpoints consumidos na fase 10
+
+- `GET /api/users/clubs`
+- `PATCH /api/users/profile`
+- `PATCH /api/users/change-password`
+
+### Como a sessao ficou no web
+
+- sessoes antigas continuam compativeis com a chave `resenha.web.session.v1`
+- metadados novos podem entrar como `null` quando a sessao antiga ainda nao os tiver
+- update de perfil:
+  - preserva o token atual quando o backend devolver token vazio
+- troca de senha:
+  - persiste o novo token valido retornado pelo backend
+  - mantem a sessao ativa sem logout automatico
+
+Checklist detalhado: [docs/fase-10-checklist.md](./docs/fase-10-checklist.md)
+
+## 16) O que ainda nao existe (proximas fases)
+
+- evolucao dos modulos de dominio ainda pendentes no web (`matches` ja possui fluxo funcional basico, desafio em andamento, historico e votacao; `captain` ja possui fluxo funcional basico; `classification` ja possui leitura funcional; `profile` e `conta` ja possuem fluxo funcional base)
 - componentes de dominio adicionais e estados mais detalhados por modulo
 - refinamento de UX para auth (mascaras, validacoes mais robustas, textos de ajuda por campo)
 - suporte aos campos opcionais de cadastro no web (`goleiro`, `timeCoracaoCodigo`)
@@ -924,6 +1017,7 @@ Checklist detalhado: [docs/fase-8-checklist.md](./docs/fase-8-checklist.md)
 - testes automatizados do modulo de partidas e operacao basica
 - testes automatizados do fluxo de desafio em andamento
 - testes automatizados do modulo de capitao
+- testes automatizados do fluxo de perfil e conta
 - hardening de acessibilidade e responsividade por fluxo/modulo
 
 ## Observacoes de escopo atual

@@ -50,7 +50,7 @@ export function RegisterPage() {
 
     const nomeValue = nome.trim()
     const emailValue = email.trim().toLowerCase()
-    const senhaValue = senha.trim()
+    const senhaValue = senha
 
     if (!nomeValue || !emailValue || !senhaValue) {
       setErro('Preencha nome, email e senha.')
@@ -101,13 +101,19 @@ export function RegisterPage() {
 
   return (
     <section className="auth-card" aria-labelledby="register-title">
-      <header>
-        <h1 className="app-title" id="register-title">
-          Criar conta
-        </h1>
-        <p className="app-subtitle">
-          Cadastre-se para acessar os recursos do Resenha Web.
-        </p>
+      <header className="auth-card__header">
+        <span className="auth-card__match-tag">Criar conta</span>
+
+        <div className="auth-card__brand">
+          <p className="auth-card__brand-name">Resenha App</p>
+          <h1 className="auth-card__title" id="register-title">
+            Monte seu perfil
+          </h1>
+          <p className="auth-card__copy">
+            Complete seu cadastro com os dados esportivos do app e entre no
+            jogo pelo web.
+          </p>
+        </div>
       </header>
 
       <form className="auth-form" onSubmit={handleSubmit}>

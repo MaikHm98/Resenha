@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -9,17 +10,24 @@ import {
   clearSessionFromStorage,
   loadSessionFromStorage,
   saveSessionToStorage,
+  subscribeToSessionInvalidation,
 } from '../storage/sessionStorage'
-import type { AuthSession } from '../types/AuthSession'
+import {
+  type AuthSession,
+  isAuthSessionUsable,
+} from '../types/AuthSession'
 import { authApi } from '../api/authApi'
 import { mapAuthApiResponseToSession } from '../mappers/authSessionMapper'
 import type {
+  ChangePasswordRequest,
+  ClubOption,
   ForgotPasswordRequest,
   ForgotPasswordResponse,
   LoginRequest,
   RegisterRequest,
   ResetPasswordRequest,
   ResetPasswordResponse,
+  UpdateProfileRequest,
 } from '../types/authContracts'
 
 type AuthProviderProps = {
@@ -31,34 +39,55 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loadSessionFromStorage(),
   )
 
-  const persistSession = useCallback((nextSession: AuthSession) => {
-    setSession(nextSession)
-    saveSessionToStorage(nextSession)
-  }, [])
-
   const clearPersistedSession = useCallback(() => {
     setSession(null)
     clearSessionFromStorage()
   }, [])
 
-  const login = useCallback(
-    async (payload: LoginRequest): Promise<AuthSession> => {
-      const response = await authApi.login(payload)
-      const mappedSession = mapAuthApiResponseToSession(response)
+  const persistSession = useCallback(
+    (nextSession: AuthSession) => {
+      if (!isAuthSessionUsable(nextSession)) {
+        clearPersistedSession()
+        return
+      }
+
+      setSession(nextSession)
+      saveSessionToStorage(nextSession)
+    },
+    [clearPersistedSession],
+  )
+
+  useEffect(
+    () =>
+      subscribeToSessionInvalidation(() => {
+        clearPersistedSession()
+      }),
+    [clearPersistedSession],
+  )
+
+  const persistAuthSession = useCallback(
+    (payload: Parameters<typeof mapAuthApiResponseToSession>[0]) => {
+      const mappedSession = mapAuthApiResponseToSession(payload, session)
       persistSession(mappedSession)
       return mappedSession
     },
-    [persistSession],
+    [persistSession, session],
+  )
+
+  const login = useCallback(
+    async (payload: LoginRequest): Promise<AuthSession> => {
+      const response = await authApi.login(payload)
+      return persistAuthSession(response)
+    },
+    [persistAuthSession],
   )
 
   const register = useCallback(
     async (payload: RegisterRequest): Promise<AuthSession> => {
       const response = await authApi.register(payload)
-      const mappedSession = mapAuthApiResponseToSession(response)
-      persistSession(mappedSession)
-      return mappedSession
+      return persistAuthSession(response)
     },
-    [persistSession],
+    [persistAuthSession],
   )
 
   const logout = useCallback(() => {
@@ -86,24 +115,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [],
   )
 
+  const getClubOptions = useCallback(
+    async (): Promise<ClubOption[]> => authApi.getClubOptions(),
+    [],
+  )
+
+  const updateProfile = useCallback(
+    async (payload: UpdateProfileRequest): Promise<AuthSession> => {
+      const response = await authApi.updateProfile(payload)
+      return persistAuthSession(response)
+    },
+    [persistAuthSession],
+  )
+
+  const changePassword = useCallback(
+    async (payload: ChangePasswordRequest): Promise<AuthSession> => {
+      const response = await authApi.changePassword(payload)
+      return persistAuthSession(response)
+    },
+    [persistAuthSession],
+  )
+
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
-      isAuthenticated: session !== null,
+      isAuthenticated: isAuthSessionUsable(session),
       login,
       register,
       logout,
       forgotPassword,
       validateResetToken,
       resetPassword,
+      getClubOptions,
+      updateProfile,
+      changePassword,
     }),
     [
+      changePassword,
       forgotPassword,
+      getClubOptions,
       login,
       logout,
       register,
       resetPassword,
       session,
+      updateProfile,
       validateResetToken,
     ],
   )

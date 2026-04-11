@@ -1,12 +1,15 @@
 import { createContext } from 'react'
 import type { AuthSession } from '../types/AuthSession'
 import type {
+  ChangePasswordRequest,
+  ClubOption,
   ForgotPasswordRequest,
   ForgotPasswordResponse,
   LoginRequest,
   RegisterRequest,
   ResetPasswordRequest,
   ResetPasswordResponse,
+  UpdateProfileRequest,
 } from '../types/authContracts'
 
 export type AuthContextValue = {
@@ -20,6 +23,9 @@ export type AuthContextValue = {
   ) => Promise<ForgotPasswordResponse>
   validateResetToken: (token: string) => Promise<boolean>
   resetPassword: (payload: ResetPasswordRequest) => Promise<ResetPasswordResponse>
+  getClubOptions: () => Promise<ClubOption[]>
+  updateProfile: (payload: UpdateProfileRequest) => Promise<AuthSession>
+  changePassword: (payload: ChangePasswordRequest) => Promise<AuthSession>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

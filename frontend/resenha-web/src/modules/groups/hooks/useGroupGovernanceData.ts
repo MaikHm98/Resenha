@@ -14,6 +14,11 @@ type LoadMode = 'initial' | 'refresh'
 
 export type GroupGovernanceDataStatus = 'idle' | 'loading' | 'success' | 'error'
 
+type GroupLoadResult = {
+  ok: boolean
+  hasPartialFailure: boolean
+}
+
 export type GroupMemberActionState = {
   isUpdatingRole: boolean
   isRemoving: boolean
@@ -74,6 +79,21 @@ function readRequestError(
   return fallbackMessage
 }
 
+function buildPostMutationNotice(
+  successMessage: string,
+  loadResult: GroupLoadResult,
+): string {
+  if (!loadResult.ok) {
+    return `${successMessage} A acao foi concluida, mas nao foi possivel recarregar o grupo agora.`
+  }
+
+  if (loadResult.hasPartialFailure) {
+    return `${successMessage} O grupo foi mantido disponivel, mas alguns blocos ainda nao puderam ser atualizados agora.`
+  }
+
+  return successMessage
+}
+
 export function useGroupGovernanceData(
   groupId: number | null,
 ): UseGroupGovernanceDataResult {
@@ -121,7 +141,7 @@ export function useGroupGovernanceData(
   )
 
   const loadData = useCallback(
-    async (mode: LoadMode) => {
+    async (mode: LoadMode): Promise<GroupLoadResult> => {
       if (groupId === null) {
         setGroup(null)
         setMembers([])
@@ -129,7 +149,10 @@ export function useGroupGovernanceData(
         setPendingInvitesError(null)
         setError('Grupo invalido para carregar o detalhe.')
         setStatus('error')
-        return
+        return {
+          ok: false,
+          hasPartialFailure: false,
+        }
       }
 
       if (mode === 'initial') {
@@ -155,8 +178,13 @@ export function useGroupGovernanceData(
           setPendingInvitesError(null)
           setError('Grupo nao encontrado na sua lista de grupos.')
           setStatus('error')
-          return
+          return {
+            ok: false,
+            hasPartialFailure: false,
+          }
         }
+
+        let hasPartialFailure = false
 
         if (matchedGroup.perfil === 'ADMIN') {
           const [membersResult, pendingInvitesResult] = await Promise.allSettled([
@@ -181,6 +209,7 @@ export function useGroupGovernanceData(
                 'Nao foi possivel carregar os convites pendentes.',
               ),
             )
+            hasPartialFailure = true
           }
         } else {
           const nextMembers = await groupsApi.getGroupMembers(groupId)
@@ -190,6 +219,10 @@ export function useGroupGovernanceData(
         }
 
         setStatus('success')
+        return {
+          ok: true,
+          hasPartialFailure,
+        }
       } catch (requestError: unknown) {
         setError(
           readRequestError(
@@ -198,6 +231,10 @@ export function useGroupGovernanceData(
           ),
         )
         setStatus('error')
+        return {
+          ok: false,
+          hasPartialFailure: false,
+        }
       } finally {
         if (mode === 'initial') {
           setIsLoading(false)
@@ -225,8 +262,38 @@ export function useGroupGovernanceData(
 
       try {
         const result = await groupsApi.addMemberByEmail(groupId, { email })
+        const successMessage = result.mensagem
+
+        if (result.acao === 'ADDED' && result.membro) {
+          const addedMember = result.membro
+
+          setMembers((currentMembers) => {
+            const nextMembers = currentMembers.filter(
+              (member) => member.idUsuario !== addedMember.idUsuario,
+            )
+
+            return [addedMember, ...nextMembers]
+          })
+          setGroup((currentGroup) =>
+            currentGroup
+              ? {
+                  ...currentGroup,
+                  totalMembros: currentGroup.totalMembros + 1,
+                }
+              : currentGroup,
+          )
+        }
+
         setInviteResult(result)
-        await loadData('refresh')
+        setStatus('success')
+
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setInviteResult({
+          ...result,
+          mensagem: buildPostMutationNotice(successMessage, loadResult),
+        })
         return true
       } catch (requestError: unknown) {
         setInviteError(
@@ -266,10 +333,22 @@ export function useGroupGovernanceData(
           perfil: nextRole,
         })
 
-        await loadData('refresh')
+        setMembers((currentMembers) =>
+          currentMembers.map((member) =>
+            member.idUsuario === memberUserId ? updatedMember : member,
+          ),
+        )
+        setStatus('success')
+
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
 
         setMemberActionNotice(
-          `Perfil de ${updatedMember.nome} atualizado para ${updatedMember.perfil}.`,
+          buildPostMutationNotice(
+            `Perfil de ${updatedMember.nome} atualizado para ${updatedMember.perfil}.`,
+            loadResult,
+          ),
         )
         updateMemberActionState(memberUserId, {
           isUpdatingRole: false,
@@ -313,12 +392,30 @@ export function useGroupGovernanceData(
       try {
         const result = await groupsApi.removeMember(groupId, memberUserId)
 
-        await loadData('refresh')
+        setMembers((currentMembers) =>
+          currentMembers.filter((member) => member.idUsuario !== memberUserId),
+        )
+        setGroup((currentGroup) =>
+          currentGroup
+            ? {
+                ...currentGroup,
+                totalMembros: Math.max(0, currentGroup.totalMembros - 1),
+              }
+            : currentGroup,
+        )
+        setStatus('success')
+
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
 
         setMemberActionNotice(
-          targetMember
-            ? `${targetMember.nome}: ${result.mensagem}`
-            : result.mensagem,
+          buildPostMutationNotice(
+            targetMember
+              ? `${targetMember.nome}: ${result.mensagem}`
+              : result.mensagem,
+            loadResult,
+          ),
         )
         setMemberActionStateByUserId((currentState) => {
           const nextState = { ...currentState }
@@ -359,8 +456,22 @@ export function useGroupGovernanceData(
 
       try {
         const result = await groupsApi.updateGroupSchedule(groupId, payload)
-        await loadData('refresh')
-        setScheduleNotice(result.mensagem)
+
+        setGroup((currentGroup) =>
+          currentGroup
+            ? {
+                ...currentGroup,
+                diaSemana: payload.diaSemana,
+                horarioFixo: payload.horarioFixo,
+              }
+            : currentGroup,
+        )
+        setStatus('success')
+
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setScheduleNotice(buildPostMutationNotice(result.mensagem, loadResult))
         return true
       } catch (requestError: unknown) {
         setScheduleError(

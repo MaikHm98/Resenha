@@ -7,15 +7,18 @@ import { ForgotPasswordPage } from '../../modules/auth/pages/ForgotPasswordPage'
 import { LoginPage } from '../../modules/auth/pages/LoginPage'
 import { RegisterPage } from '../../modules/auth/pages/RegisterPage'
 import { ResetPasswordPage } from '../../modules/auth/pages/ResetPasswordPage'
+import { ChangePasswordPage } from '../../modules/auth/pages/ChangePasswordPage'
 import { PrivateRoute } from '../../modules/auth/routes/PrivateRoute'
 import { CaptainPage } from '../../modules/captain/pages/CaptainPage'
 import { ClassificationPage } from '../../modules/classification/pages/ClassificationPage'
 import { GroupDetailPage } from '../../modules/groups/pages/GroupDetailPage'
 import { GroupsPage } from '../../modules/groups/pages/GroupsPage'
 import { HomePage } from '../../modules/home/pages/HomePage'
+import { GroupMatchHistoryPage } from '../../modules/matches/pages/GroupMatchHistoryPage'
 import { GroupMatchesPage } from '../../modules/matches/pages/GroupMatchesPage'
 import { MatchChallengePage } from '../../modules/matches/pages/MatchChallengePage'
 import { MatchDetailPage } from '../../modules/matches/pages/MatchDetailPage'
+import { MatchHistoryPage } from '../../modules/matches/pages/MatchHistoryPage'
 import { MatchesPage } from '../../modules/matches/pages/MatchesPage'
 import { MatchVotePage } from '../../modules/matches/pages/MatchVotePage'
 import { PublicRoute } from '../../modules/auth/routes/PublicRoute'
@@ -60,11 +63,11 @@ const appRouter = createBrowserRouter([
             element: <Navigate replace to={ROUTE_PATHS.HOME} />,
           },
           {
-            path: 'home',
+            path: ROUTE_PATHS.HOME,
             element: <HomePage />,
           },
           {
-            path: 'groups',
+            path: ROUTE_PATHS.GROUPS,
             children: [
               {
                 index: true,
@@ -83,13 +86,17 @@ const appRouter = createBrowserRouter([
                 element: <ClassificationPage />,
               },
               {
+                path: ':groupId/matches/history',
+                element: <GroupMatchHistoryPage />,
+              },
+              {
                 path: ':groupId/matches',
                 element: <GroupMatchesPage />,
               },
             ],
           },
           {
-            path: 'matches',
+            path: ROUTE_PATHS.MATCHES,
             children: [
               {
                 index: true,
@@ -104,14 +111,22 @@ const appRouter = createBrowserRouter([
                 element: <MatchVotePage />,
               },
               {
+                path: ':matchId/history',
+                element: <MatchHistoryPage />,
+              },
+              {
                 path: ':matchId',
                 element: <MatchDetailPage />,
               },
             ],
           },
           {
-            path: 'profile',
+            path: ROUTE_PATHS.PROFILE,
             element: <ProfilePage />,
+          },
+          {
+            path: ROUTE_PATHS.PROFILE_CHANGE_PASSWORD,
+            element: <ChangePasswordPage />,
           },
         ],
       },

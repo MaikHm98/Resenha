@@ -7,6 +7,11 @@
   align-self: end;
 }
 
+.recovery-secondary-action.ui-button,
+.recovery-secondary-action .ui-button {
+  width: 100%;
+}
+
 @media (min-width: 640px) {
   .recovery-inline-actions {
     grid-template-columns: 1fr auto;

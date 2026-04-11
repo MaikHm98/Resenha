@@ -151,6 +151,14 @@ function GroupMembersListItem({
                   disabled={isProcessingAction}
                   loading={actionState.isRemoving}
                   onClick={() => {
+                    const shouldRemoveMember = window.confirm(
+                      `Remover ${member.nome} deste grupo? Esta acao depende da validacao do backend e pode impactar a governanca do grupo.`,
+                    )
+
+                    if (!shouldRemoveMember) {
+                      return
+                    }
+
                     onClearMemberActionError(member.idUsuario)
                     void onRemoveMember(member.idUsuario)
                   }}

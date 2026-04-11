@@ -85,9 +85,7 @@ export function MyPerformancePanel({
       <div className="my-performance-panel__empty my-performance-panel__empty--season">
         <h3>Desempenho individual indisponivel</h3>
         <p>
-          O endpoint `classification/me` depende da temporada ativa no backend.
-          Enquanto ela nao existir, este painel permanece indisponivel com
-          seguranca.
+          Assim que o grupo abrir uma temporada ativa, o seu desempenho individual volta a aparecer aqui.
         </p>
       </div>
     )
@@ -103,12 +101,12 @@ export function MyPerformancePanel({
 
       <div className="my-performance-panel__grid">
         <PerformanceCard
-          emptyMessage="O backend nao devolveu estatisticas individuais da temporada para este usuario."
+          emptyMessage="Ainda nao ha estatisticas individuais da temporada para este usuario."
           entry={myStats?.temporada ?? null}
           title="Temporada atual"
         />
         <PerformanceCard
-          emptyMessage="O backend nao devolveu estatisticas gerais deste usuario no grupo."
+          emptyMessage="Ainda nao ha estatisticas gerais deste usuario no grupo."
           entry={myStats?.geral ?? null}
           title="Geral do grupo"
         />

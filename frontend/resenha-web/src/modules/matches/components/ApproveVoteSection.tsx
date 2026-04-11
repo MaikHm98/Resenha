@@ -6,6 +6,7 @@ import type {
 
 type ApproveVoteSectionProps = {
   canManageVoting: boolean
+  adminCapabilityIssue: string | null
   mvpRound: MatchVoteRound | null
   bolaMurchaRound: MatchVoteRound | null
   approveVoteError: string | null
@@ -18,6 +19,7 @@ type ApproveVoteSectionProps = {
 
 type ApproveVoteCardProps = {
   canManageVoting: boolean
+  adminCapabilityIssue: string | null
   round: MatchVoteRound | null
   type: MatchVoteType
   activeApproveVoteType: MatchVoteType | null
@@ -32,6 +34,7 @@ const VOTE_TYPE_LABELS: Record<MatchVoteType, string> = {
 
 function ApproveVoteCard({
   canManageVoting,
+  adminCapabilityIssue,
   round,
   type,
   activeApproveVoteType,
@@ -75,13 +78,19 @@ function ApproveVoteCard({
         <span className="approve-vote-section__badge">{round.status}</span>
       </header>
 
-      {!canManageVoting ? (
+      {adminCapabilityIssue ? (
+        <div className="approve-vote-section__notice">
+          <p>{adminCapabilityIssue}</p>
+        </div>
+      ) : null}
+
+      {!adminCapabilityIssue && !canManageVoting ? (
         <div className="approve-vote-section__notice">
           <p>A aprovacao final continua restrita ao admin.</p>
         </div>
       ) : null}
 
-      {canManageVoting && isApproved ? (
+      {canManageVoting && !adminCapabilityIssue && isApproved ? (
         <div className="approve-vote-section__notice">
           <p>
             Esta votacao ja aparece como aprovada no snapshot atual. Nenhuma acao
@@ -90,7 +99,7 @@ function ApproveVoteCard({
         </div>
       ) : null}
 
-      {canManageVoting && !isApproved && !canApprove ? (
+      {canManageVoting && !adminCapabilityIssue && !isApproved && !canApprove ? (
         <div className="approve-vote-section__notice">
           <p>
             A rodada ainda nao chegou ao ponto de aprovacao final no snapshot
@@ -106,7 +115,7 @@ function ApproveVoteCard({
         </p>
       </div>
 
-      {canApprove ? (
+      {canApprove && !adminCapabilityIssue ? (
         <Button
           loading={isCurrentAction}
           onClick={() => void onApproveVote(type)}
@@ -121,6 +130,7 @@ function ApproveVoteCard({
 
 export function ApproveVoteSection({
   canManageVoting,
+  adminCapabilityIssue,
   mvpRound,
   bolaMurchaRound,
   approveVoteError,
@@ -161,6 +171,7 @@ export function ApproveVoteSection({
       <div className="approve-vote-section__grid">
         <ApproveVoteCard
           activeApproveVoteType={activeApproveVoteType}
+          adminCapabilityIssue={adminCapabilityIssue}
           canManageVoting={canManageVoting}
           isApprovingVote={isApprovingVote}
           onApproveVote={onApproveVote}
@@ -169,6 +180,7 @@ export function ApproveVoteSection({
         />
         <ApproveVoteCard
           activeApproveVoteType={activeApproveVoteType}
+          adminCapabilityIssue={adminCapabilityIssue}
           canManageVoting={canManageVoting}
           isApprovingVote={isApprovingVote}
           onApproveVote={onApproveVote}

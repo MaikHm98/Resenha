@@ -32,7 +32,9 @@ export function MatchDetailPage() {
   const {
     match,
     userAttendanceStatus,
+    attendanceStatusIssue,
     canManageMatch,
+    managementCapabilityIssue,
     status,
     error,
     actionError,
@@ -61,14 +63,14 @@ export function MatchDetailPage() {
 
   const isInitialLoading = status === 'idle' || status === 'loading' || isLoading
   const showFullError = status === 'error' && !match
-  const backPath = match ? buildGroupMatchesPath(match.idGrupo) : ROUTE_PATHS.MATCHES
-  const backLabel = match ? 'Voltar para partidas do grupo' : 'Voltar para o modulo'
+  const backPath = match ? buildGroupMatchesPath(match.idGrupo) : ROUTE_PATHS.GROUPS
+  const backLabel = match ? 'Voltar para partidas do grupo' : 'Voltar para grupos'
 
   return (
     <section className="match-detail-page" aria-labelledby="match-detail-page-title">
       <header className="match-detail-page__hero">
         <div className="match-detail-page__breadcrumbs">
-          <Link to={ROUTE_PATHS.MATCHES}>Partidas</Link>
+          <Link to={ROUTE_PATHS.GROUPS}>Grupos</Link>
           {match ? (
             <>
               <span>/</span>
@@ -155,8 +157,8 @@ export function MatchDetailPage() {
             <Button onClick={() => void refresh()} type="button">
               Tentar novamente
             </Button>
-            <Link className="match-detail-page__link" to={ROUTE_PATHS.MATCHES}>
-              Voltar para o modulo
+            <Link className="match-detail-page__link" to={ROUTE_PATHS.GROUPS}>
+              Voltar para grupos
             </Link>
           </div>
         </section>
@@ -171,9 +173,9 @@ export function MatchDetailPage() {
             action={
               <Link
                 className="match-detail-page__link match-detail-page__link--primary"
-                to={ROUTE_PATHS.MATCHES}
+                to={ROUTE_PATHS.GROUPS}
               >
-                Voltar para o modulo
+                Voltar para grupos
               </Link>
             }
             description="Se esta partida existir, tente atualizar a tela novamente em alguns instantes."
@@ -220,6 +222,7 @@ export function MatchDetailPage() {
             </header>
 
             <MatchActionsPanel
+              availabilityWarning={attendanceStatusIssue}
               actionError={actionError}
               actionNotice={actionNotice}
               activeAction={activeAction}
@@ -233,7 +236,7 @@ export function MatchDetailPage() {
             />
           </section>
 
-          {canManageMatch ? (
+          {canManageMatch || managementCapabilityIssue ? (
             <section
               className="match-detail-page__panel match-detail-page__panel--admin"
               aria-labelledby="match-detail-admin-title"
@@ -251,53 +254,59 @@ export function MatchDetailPage() {
                 </span>
               </header>
 
-              <div className="match-detail-page__admin-stack">
-                <div className="match-detail-page__admin-box">
-                  <div className="match-detail-page__admin-box-header">
-                    <h3>Adicionar convidado</h3>
-                    <p>
-                      O backend decide se a partida aceita convidados neste
-                      momento e atualiza o detalhe apos sucesso.
-                    </p>
+              {canManageMatch ? (
+                <div className="match-detail-page__admin-stack">
+                  <div className="match-detail-page__admin-box">
+                    <div className="match-detail-page__admin-box-header">
+                      <h3>Adicionar convidado</h3>
+                      <p>
+                        O backend decide se a partida aceita convidados neste
+                        momento e atualiza o detalhe apos sucesso.
+                      </p>
+                    </div>
+
+                    <AddGuestForm
+                      guestError={guestError}
+                      guestNotice={guestNotice}
+                      isSubmitting={isAddingGuest}
+                      onClearFeedback={clearGuestFeedback}
+                      onSubmit={addGuest}
+                    />
                   </div>
 
-                  <AddGuestForm
-                    guestError={guestError}
-                    guestNotice={guestNotice}
-                    isSubmitting={isAddingGuest}
-                    onClearFeedback={clearGuestFeedback}
-                    onSubmit={addGuest}
-                  />
-                </div>
+                  <div className="match-detail-page__admin-box match-detail-page__admin-box--danger">
+                    <div className="match-detail-page__admin-box-header">
+                      <h3>Excluir partida</h3>
+                      <p>
+                        A exclusao retorna com seguranca para a listagem do grupo e
+                        preserva o backend como fonte de verdade das regras.
+                      </p>
+                    </div>
 
-                <div className="match-detail-page__admin-box match-detail-page__admin-box--danger">
-                  <div className="match-detail-page__admin-box-header">
-                    <h3>Excluir partida</h3>
-                    <p>
-                      A exclusao retorna com seguranca para a listagem do grupo e
-                      preserva o backend como fonte de verdade das regras.
-                    </p>
+                    <DeleteMatchSection
+                      error={deleteMatchError}
+                      isSubmitting={isDeletingMatch}
+                      matchId={match.idPartida}
+                      onClearFeedback={clearDeleteMatchFeedback}
+                      onConfirmDelete={async () => {
+                        const didDelete = await deleteMatch()
+
+                        if (didDelete) {
+                          navigate(buildGroupMatchesPath(match.idGrupo), {
+                            replace: true,
+                          })
+                        }
+
+                        return didDelete
+                      }}
+                    />
                   </div>
-
-                  <DeleteMatchSection
-                    error={deleteMatchError}
-                    isSubmitting={isDeletingMatch}
-                    matchId={match.idPartida}
-                    onClearFeedback={clearDeleteMatchFeedback}
-                    onConfirmDelete={async () => {
-                      const didDelete = await deleteMatch()
-
-                      if (didDelete) {
-                        navigate(buildGroupMatchesPath(match.idGrupo), {
-                          replace: true,
-                        })
-                      }
-
-                      return didDelete
-                    }}
-                  />
                 </div>
-              </div>
+              ) : (
+                <Alert title="Acoes administrativas indisponiveis agora" variant="warning">
+                  {managementCapabilityIssue}
+                </Alert>
+              )}
             </section>
           ) : null}
 

@@ -83,6 +83,20 @@ export type MatchDetailApiResponse = {
   premios: MatchAwardDetailApiResponse[]
 }
 
+export type MatchHistorySummaryApiResponse = {
+  idPartida: number
+  dataHoraJogo: string
+  status: MatchStatus
+  limiteVagas: number
+  totalConfirmados: number
+  golsTime1: number | null
+  golsTime2: number | null
+  nomeCapitaoTime1: string | null
+  nomeCapitaoTime2: string | null
+  numeroTimeVencedor: number | null
+  nomeCapitaoVencedor: string | null
+}
+
 export type MatchPresenceApiResponse = {
   idPartida: number
   status: MatchPresenceStatus
@@ -172,6 +186,20 @@ export type MatchDetail = {
   ausentesNomes: string[]
   naoConfirmaramNomes: string[]
   premios: MatchAwardDetail[]
+}
+
+export type MatchHistorySummary = {
+  idPartida: number
+  dataHoraJogo: string
+  status: MatchStatus
+  limiteVagas: number
+  totalConfirmados: number
+  golsTime1: number | null
+  golsTime2: number | null
+  nomeCapitaoTime1: string | null
+  nomeCapitaoTime2: string | null
+  numeroTimeVencedor: number | null
+  nomeCapitaoVencedor: string | null
 }
 
 export type MatchPresenceResult = {

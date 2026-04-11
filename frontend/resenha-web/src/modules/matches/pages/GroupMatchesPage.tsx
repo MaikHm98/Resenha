@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import {
   ROUTE_PATHS,
   buildGroupDetailPath,
+  buildGroupMatchHistoryPath,
 } from '../../../app/router/paths'
 import { Alert, Button, EmptyState, Spinner } from '../../../shared/components'
 import { CreateMatchForm } from '../components/CreateMatchForm'
@@ -59,7 +60,8 @@ export function GroupMatchesPage() {
             </h1>
             <p className="app-subtitle">
               Consulte as partidas reais deste grupo e crie novas partidas sem
-              sair do fluxo ancorado no grupo.
+              sair do fluxo ancorado no grupo. O historico agora segue em uma
+              rota separada de leitura.
             </p>
           </div>
 
@@ -70,8 +72,14 @@ export function GroupMatchesPage() {
             >
               Voltar para o grupo
             </Link>
-            <Link className="group-matches-page__link" to={ROUTE_PATHS.MATCHES}>
-              Entrada do modulo
+            <Link className="group-matches-page__link" to={ROUTE_PATHS.GROUPS}>
+              Escolher outro grupo
+            </Link>
+            <Link
+              className="group-matches-page__link"
+              to={buildGroupMatchHistoryPath(currentGroupId)}
+            >
+              Abrir historico do grupo
             </Link>
             <Button
               disabled={parsedGroupId === null || isInitialLoading}

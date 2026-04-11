@@ -15,6 +15,11 @@ type LoadMode = 'initial' | 'refresh'
 
 export type CaptainDataStatus = 'idle' | 'loading' | 'success' | 'error'
 
+type CaptainLoadResult = {
+  ok: boolean
+  hasPartialFailure: boolean
+}
+
 export type UseCaptainDataResult = {
   captainStatus: CaptainStatus | null
   groupMatches: Match[]
@@ -76,8 +81,42 @@ function isNoCycleRequestError(requestError: unknown): boolean {
     return false
   }
 
-  const normalizedMessage = normalizeTextForComparison(requestError.message)
-  return normalizedMessage.includes('nao ha capitao ativo')
+  const normalizedSignal = normalizeTextForComparison(
+    [
+      requestError.code ?? '',
+      requestError.backendMessage ?? '',
+      requestError.message,
+    ].join(' '),
+  )
+
+  if (
+    normalizedSignal.includes('nao ha capitao ativo') ||
+    normalizedSignal.includes('nenhum ciclo ativo') ||
+    normalizedSignal.includes('ciclo de capitao nao iniciado')
+  ) {
+    return true
+  }
+
+  return (
+    requestError.status === 404 &&
+    (normalizedSignal.includes('capitao') ||
+      normalizedSignal.includes('ciclo'))
+  )
+}
+
+function buildPostMutationNotice(
+  successMessage: string,
+  loadResult: CaptainLoadResult,
+): string {
+  if (!loadResult.ok) {
+    return `${successMessage} A acao foi concluida, mas nao foi possivel recarregar o ciclo agora.`
+  }
+
+  if (loadResult.hasPartialFailure) {
+    return `${successMessage} O ciclo foi mantido disponivel, mas alguns blocos auxiliares ainda nao puderam ser atualizados agora.`
+  }
+
+  return successMessage
 }
 
 function parseSessionUserId(value: string | undefined): number | null {
@@ -153,7 +192,7 @@ export function useCaptainData(groupId: number | null): UseCaptainDataResult {
   )
 
   const loadData = useCallback(
-    async (mode: LoadMode) => {
+    async (mode: LoadMode): Promise<CaptainLoadResult> => {
       if (groupId === null) {
         setCaptainStatus(null)
         setGroupMatches([])
@@ -167,7 +206,10 @@ export function useCaptainData(groupId: number | null): UseCaptainDataResult {
         setIsLoadingEligibleChallengers(false)
         setError('Grupo invalido para carregar o ciclo de capitao.')
         setStatus('error')
-        return
+        return {
+          ok: false,
+          hasPartialFailure: false,
+        }
       }
 
       if (mode === 'initial') {
@@ -197,10 +239,14 @@ export function useCaptainData(groupId: number | null): UseCaptainDataResult {
           setIsLoadingEligibleChallengers(false)
           setError('Grupo nao encontrado na sua lista de grupos.')
           setStatus('error')
-          return
+          return {
+            ok: false,
+            hasPartialFailure: false,
+          }
         }
 
         setIsAdmin(matchedGroup.perfil === 'ADMIN')
+        let hasPartialFailure = false
 
         try {
           const nextCaptainStatus = await captainApi.getCaptainStatus(groupId)
@@ -225,6 +271,7 @@ export function useCaptainData(groupId: number | null): UseCaptainDataResult {
                   'Nao foi possivel carregar as partidas do grupo para o fluxo de desafio.',
                 ),
               )
+              hasPartialFailure = true
             } finally {
               setIsLoadingMatches(false)
             }
@@ -248,10 +295,18 @@ export function useCaptainData(groupId: number | null): UseCaptainDataResult {
             setIsLoadingMatches(false)
             setIsLoadingEligibleChallengers(false)
             setStatus('success')
-            return
+            return {
+              ok: true,
+              hasPartialFailure: false,
+            }
           }
 
           throw requestError
+        }
+
+        return {
+          ok: true,
+          hasPartialFailure,
         }
       } catch (requestError: unknown) {
         const nextError = readRequestError(
@@ -275,6 +330,11 @@ export function useCaptainData(groupId: number | null): UseCaptainDataResult {
           setIsLoadingEligibleChallengers(false)
           setError(nextError)
           setStatus('error')
+        }
+
+        return {
+          ok: false,
+          hasPartialFailure: false,
         }
       } finally {
         if (mode === 'initial') {
@@ -349,8 +409,15 @@ export function useCaptainData(groupId: number | null): UseCaptainDataResult {
       setHasNoCycle(false)
       setStatus('success')
       setError(null)
-      setOpenCycleNotice('Ciclo de capitao iniciado com sucesso.')
-      await loadData('refresh')
+      const loadResult = await loadData('refresh')
+      setError(null)
+      setStatus('success')
+      setOpenCycleNotice(
+        buildPostMutationNotice(
+          'Ciclo de capitao iniciado com sucesso.',
+          loadResult,
+        ),
+      )
       return true
     } catch (requestError: unknown) {
       setOpenCycleError(
@@ -397,8 +464,15 @@ export function useCaptainData(groupId: number | null): UseCaptainDataResult {
         })
 
         setCaptainStatus(nextCaptainStatus)
-        setLaunchChallengeNotice('Desafiante definido com sucesso.')
-        await loadData('refresh')
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setLaunchChallengeNotice(
+          buildPostMutationNotice(
+            'Desafiante definido com sucesso.',
+            loadResult,
+          ),
+        )
         return true
       } catch (requestError: unknown) {
         setLaunchChallengeError(
@@ -440,8 +514,15 @@ export function useCaptainData(groupId: number | null): UseCaptainDataResult {
         )
 
         setCaptainStatus(nextCaptainStatus)
-        setResultNotice('Resultado do desafio registrado com sucesso.')
-        await loadData('refresh')
+        const loadResult = await loadData('refresh')
+        setError(null)
+        setStatus('success')
+        setResultNotice(
+          buildPostMutationNotice(
+            'Resultado do desafio registrado com sucesso.',
+            loadResult,
+          ),
+        )
         return true
       } catch (requestError: unknown) {
         setResultError(
