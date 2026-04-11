@@ -2,7 +2,7 @@
 
 ## Stack
 
-- .NET 6
+- .NET 10
 - ASP.NET Core Web API
 - Entity Framework Core
 - PostgreSQL

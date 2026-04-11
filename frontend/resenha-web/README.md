@@ -20,6 +20,7 @@ Frontend web do projeto Resenha, construindo uma base incremental para evolucao 
 - `ESLint 9`
 - `Vitest`
 - `Playwright`
+- `Node.js 24`
 
 ## 3) Estrutura principal de pastas
 

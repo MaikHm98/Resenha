@@ -17,7 +17,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 6.0.x
+          global-json-file: global.json
 
       - name: Restore
         run: dotnet restore Resenha.sln
@@ -41,7 +41,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: frontend/resenha-web/.nvmrc
           cache: npm
           cache-dependency-path: frontend/resenha-web/package-lock.json
 

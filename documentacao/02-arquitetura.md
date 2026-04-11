@@ -6,7 +6,7 @@ O projeto adota uma arquitetura simples e pragmatica para um produto em fase ini
 
 - frontend web em `React + Vite`
 - aplicativo mobile legado em `Expo/React Native`
-- API REST em `ASP.NET Core 6`
+- API REST em `ASP.NET Core 10`
 - banco relacional `PostgreSQL`
 - proxy reverso `nginx`
 - hospedagem em `Oracle Cloud`
